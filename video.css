@@ -1,0 +1,128 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+.navbar {
+    background-color: #333;
+    padding: 1rem;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 0;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+}
+
+.nav-links a.active {
+    background-color: #555;
+    border-radius: 4px;
+}
+
+.page-title {
+    text-align: center;
+    padding: 1rem 0;
+    background-color: white;
+    position: sticky;
+    top: 4rem;
+    z-index: 900;
+    border-bottom: 1px solid #eee;
+}
+
+.video-gallery {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    height: calc(100vh - 8rem); /* Subtract header heights */
+    overflow-y: auto;
+}
+
+.video-card {
+    display: flex;
+    gap: 2rem;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.video-card:hover {
+    transform: translateX(5px);
+}
+
+.video-content {
+    flex: 2;
+}
+
+.video-description {
+    flex: 1;
+    background-color: white;
+    padding: 1rem;
+    border-radius: 4px;
+    align-self: flex-start;
+    position: sticky;
+    top: 1rem;
+}
+
+.video-card h2 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.video-card video {
+    width: 100%;
+    border-radius: 4px;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+/* Scrollbar styling */
+.video-gallery::-webkit-scrollbar {
+    width: 8px;
+}
+
+.video-gallery::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.video-gallery::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.video-gallery::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .video-card {
+        flex-direction: column;
+    }
+    
+    .video-description {
+        position: static;
+    }
+}

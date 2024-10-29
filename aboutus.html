@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workshops</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="workshops.html" >Workshops</a></li>
+            <li><a href="aboutus.html"class="active">About Us</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+        
+    </nav>
+
+    <h1>we are burat</h1>
+    <script>
+        // Simple debouncing to prevent navigation spam
+        const links = document.querySelectorAll('.nav-links a');
+        links.forEach(link => {
+            let isNavigating = false;
+            link.addEventListener('click', (e) => {
+                if (isNavigating) {
+                    e.preventDefault();
+                    return;
+                }
+                isNavigating = true;
+                setTimeout(() => {
+                    isNavigating = false;
+                }, 300); // 300ms cooldown between clicks
+            });
+        });
+    </script>
+</body>
+</html>
