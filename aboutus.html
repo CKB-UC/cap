@@ -18,22 +18,19 @@
     </nav>
 
     <h1>we are burat</h1>
-    <script>
-        // Simple debouncing to prevent navigation spam
-        const links = document.querySelectorAll('.nav-links a');
-        links.forEach(link => {
-            let isNavigating = false;
-            link.addEventListener('click', (e) => {
-                if (isNavigating) {
-                    e.preventDefault();
-                    return;
-                }
-                isNavigating = true;
-                setTimeout(() => {
-                    isNavigating = false;
-                }, 300); // 300ms cooldown between clicks
-            });
-        });
-    </script>
+    
+
+<hr class="footer-line">
+
+<footer class="footer">
+    <div class="footer-content">
+        <p>&copy; 2024 MyWebsite. All rights reserved.</p>
+        <ul class="footer-links">
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms of Service</a></li>
+        </ul>
+    </div>
+</footer>
+
 </body>
 </html>

@@ -10,6 +10,7 @@ body {
     justify-content: space-between;
     padding: 10px 20px;
     align-items: center;
+    
 }
 
 .nav-links {
@@ -40,13 +41,3 @@ body {
     padding: 10px 20px;
 }
 
-.logo a {
-    color: white;
-    text-decoration: none;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.logo a:hover {
-    color: #00A9D7;
-}
