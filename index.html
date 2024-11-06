@@ -5,17 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Chatbot Styles */
+        #chatbot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            max-height: 400px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1000; /* Updated z-index */
+        }
+
+        #chatbot-header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            font-size: 16px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        #chatbot-body {
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        #chatbot-footer {
+            display: flex;
+            padding: 8px;
+            border-top: 1px solid #ccc;
+        }
+
+        #chatbot-input {
+            flex: 1;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        #send-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            margin-left: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #chat-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000; /* Updated z-index */
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <ul class="nav-links">
-            <li><a href="index.html"class="active">Home</a></li>
+            <li><a href="index.html" class="active">Home</a></li>
             <li><a href="workshops.html">Workshops</a></li>
             <li><a href="aboutus.html">About Us</a></li>
-            <li><a href="contact.html" >Contact</a></li>
+            <li><a href="contact.html">Contact</a></li>
             <li><a href="gamification.html">Gamification</a></li>
         </ul>
-       
     </nav>
 
     <h1>Welcome to the Homepage</h1>
@@ -31,5 +103,65 @@
             </ul>
         </div>
     </footer>
+
+    <!-- Chatbot UI -->
+    <div id="chatbot">
+        <div id="chatbot-header" onclick="toggleChatbot()">Chat with Us</div>
+        <div id="chatbot-body">
+            <!-- Chat messages will appear here -->
+        </div>
+        <div id="chatbot-footer">
+            <input type="text" id="chatbot-input" placeholder="Type a message...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+    <button id="chat-toggle-btn" onclick="toggleChatbot()">Chat</button>
+
+    <script>
+        // Function to toggle the chatbot display
+        function toggleChatbot() {
+            const chatbot = document.getElementById("chatbot");
+            const chatToggleBtn = document.getElementById("chat-toggle-btn");
+
+            if (chatbot.style.display === "none" || chatbot.style.display === "") {
+                chatbot.style.display = "flex";
+                chatToggleBtn.style.display = "none"; // Hide button when chat is open
+            } else {
+                chatbot.style.display = "none";
+                chatToggleBtn.style.display = "block"; // Show button when chat is closed
+            }
+        }
+
+        // Send message function with simulated response
+        document.getElementById("send-btn").addEventListener("click", () => {
+            const inputField = document.getElementById("chatbot-input");
+            const message = inputField.value.trim();
+            if (message) {
+                // Display user's message
+                const userMessageDiv = document.createElement("div");
+                userMessageDiv.textContent = "You: " + message;
+                userMessageDiv.style.marginBottom = "10px";
+                document.getElementById("chatbot-body").appendChild(userMessageDiv);
+
+                // Clear input field
+                inputField.value = "";
+
+                // Auto-scroll to bottom
+                document.getElementById("chatbot-body").scrollTop = document.getElementById("chatbot-body").scrollHeight;
+
+                // Simulate a chatbot reply after 1 second
+                setTimeout(() => {
+                    const botMessageDiv = document.createElement("div");
+                    botMessageDiv.textContent = "Bot: This is a simulated response!";
+                    botMessageDiv.style.marginBottom = "10px";
+                    botMessageDiv.style.color = "gray";
+                    document.getElementById("chatbot-body").appendChild(botMessageDiv);
+
+                    // Auto-scroll to bottom
+                    document.getElementById("chatbot-body").scrollTop = document.getElementById("chatbot-body").scrollHeight;
+                }, 1000);
+            }
+        });
+    </script>
 </body>
 </html>
