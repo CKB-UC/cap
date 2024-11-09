@@ -1,58 +1,4 @@
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-}
 
-.navbar {
-    background-color: #1f1f1f;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 20px;
-    align-items: center;
-    
-}
-
-/* Navbar styling */
-.navbar {
-    background-color: #1f1f1f; /* Updated to darker background */
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-
-
-/* Navigation Links */
-.nav-links {
-    list-style: none;
-    display: flex;
-    margin: 0;
-    gap: 20px; /* Spacing between links */
-}
-
-.nav-links li a {
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-    padding: 10px;
-}
-
-.nav-links li a:hover {
-    color: #00A9D7; /* Hover effect */
-}
-
-.nav-links li a.active {
-    background-color: #00A9D7;
-    border-radius: 20px;
-    color: white;
-    padding: 10px 20px; /* Add padding for active link */
-}
 
 /* Page Title Styling */
 .page-title {
@@ -60,7 +6,7 @@ body {
     padding: 1rem 0;
     background-color: white;
     position: sticky;
-    top: 4rem; /* Adjust for navbar height */
+    top: 4rem; 
     z-index: 900;
     border-bottom: 1px solid #eee;
 }
@@ -70,7 +16,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 1rem;
-    height: calc(100vh - 8rem); /* Subtract header heights */
+    height: calc(100vh - 8rem); 
     overflow-y: auto;
 }
 
