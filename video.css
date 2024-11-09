@@ -1,16 +1,20 @@
 
+/*page title*/
+.container {
+    
+    position: relative;
+    
+}
 
-/* Page Title Styling */
 .page-title {
     text-align: center;
     padding: 1rem 0;
     background-color: white;
     position: sticky;
-    top: 4rem; 
+    top: 4rem;
     z-index: 900;
     border-bottom: 1px solid #eee;
 }
-
 /* Video Gallery Styling */
 .video-gallery {
     max-width: 1200px;
@@ -78,6 +82,15 @@
 
 .video-gallery::-webkit-scrollbar-thumb:hover {
     background: #555;
+}
+
+.video-description h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.video-description p {
+    margin: 0.5rem 0;
 }
 
 /* Responsive design */
