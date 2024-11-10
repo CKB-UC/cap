@@ -8,7 +8,7 @@ body {
     background-color: #1f1f1f;
     color: white;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;;
     padding: 10px 20px;
     align-items: center;
     
@@ -98,4 +98,22 @@ body {
 
 .contact-form button:hover {
     background-color: #218838;
+}
+
+/* Styles for the main header */
+.main-header {
+    background-color: #004080; 
+    color: #ffffff;            
+    text-align: center;
+    padding: 20px;
+}
+
+.main-header h1 {
+    font-size: 2em;
+    margin: 0;
+}
+
+.main-header p {
+    font-size: 1.2em;
+    margin: 5px 0 0;
 }
