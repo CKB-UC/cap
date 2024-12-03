@@ -79,7 +79,7 @@ body {
 }
 
 .contact-form textarea {
-    resize: vertical;
+    resize: none;
     min-height: 150px;
     border-radius: 15px;  
 }
