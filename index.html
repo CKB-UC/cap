@@ -2,59 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Soft Skills Assessment</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/footer.css">
+    <script src="assessment.js"></script>
 </head>
 <body>
-
-    <header class="main-header">
-        <h1>Welcome to Our Corporate Training Hub</h1>
-        <p>Delivering Excellence in Workshops & Trainings</p>
+    <header>
+        <nav class="navbar">
+            <ul class="nav-links">
+                <li><a href="index.html"class="active">Home</a></li>
+                <li><a href="workshops.html">Workshops</a></li>
+                <li><a href="aboutus.html">About Us</a></li>
+                <li><a href="contact.html" >Contact</a></li>
+            </ul>
+           
+        </nav>
     </header>
 
-    <nav class="navbar">
-        <ul class="nav-links">
-            <li><a href="index.html"class="active">Home</a></li>
-            <li><a href="workshops.html">Workshops</a></li>
-            <li><a href="aboutus.html">About Us</a></li>
-            <li><a href="contact.html" >Contact</a></li>
-        </ul>
-       
-    </nav>
-
-    <h1>Welcome to the Homepage</h1>
-
-    <section class="soft-skills-assessment">
-        <h2>Soft Skills Assessment</h2>
-        <div class="progress-bar">
-            <div class="progress" id="progress"></div>
-        </div>
-        <div class="question-container">
-            <h3 id="question-number">Question 1 of 5</h3>
-            <p id="question-text">Placeholder question</p>
-            <div class="options" id="options-container">
-                <!-- Dynamic options will be inserted here -->
+    <main>
+        <section class="soft-skills-assessment">
+            <h1>Soft Skills Assessment</h1>
+            
+            <div class="progress-bar">
+                <div id="progress" class="progress"></div>
             </div>
-        </div>
-    </section>
-    <script src="assessment.js"></script>
-    
-    
 
-    
+            <div class="category-display">
+                <h2 id="category">Category: Team Dynamics</h2>
+            </div>
 
+            <div class="question-container">
+                <h3 id="question-number">Question 1 of X</h3>
+                <p id="question-text">Placeholder question</p>
+
+                <div id="options-container" class="options">
+                    <!-- Options will be dynamically populated -->
+                </div>
+            </div>
+        </section>
+    </main><br><br><br><br><br><br><br>
     <hr class="footer-line">
 
     <footer class="footer">
         <div class="footer-content">
-            <p>&copy; 2024 MyWebsite. All rights reserved.</p>
+            <ul class="contact-info">
+                <h2>For more Info:</h2>
+                <li>Room 316 B Lopez Building</li>
+                <li>Session Road, Baguio City 2600</li>
+                <li>@JenmenManagementInc</li>
+                <li>0908-340-8351</li>
+            </ul>
             <ul class="footer-links">
                 <li><a href="privacy.html">Privacy Policy</a></li>
                 <li><a href="terms.html">Terms of Service</a></li>
             </ul>
         </div>
     </footer>
-   
 </body>
 </html>
