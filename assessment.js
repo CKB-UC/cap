@@ -212,18 +212,103 @@ document.addEventListener("DOMContentLoaded", () => {
     function showResults() {
         const sortedResults = Object.entries(results).sort((a, b) => b[1] - a[1]);
         const topResults = sortedResults.slice(0, 3); // Top 3 results
-
+    
+        // Detailed development recommendations
+        const developmentRecommendations = {
+            "communication-weak": {
+                summary: "Your communication skills need significant improvement.",
+                actions: [
+                    "Enroll in public speaking workshops",
+                    "Practice active listening techniques",
+                    "Join a communication skills course or Toastmasters club",
+                    "Record and review your presentations to identify areas of improvement"
+                ]
+            },
+            "communication-passive": {
+                summary: "You tend to be reserved in group settings.",
+                actions: [
+                    "Gradually increase participation in team discussions",
+                    "Prepare talking points before meetings",
+                    "Seek opportunities to present small projects",
+                    "Practice expressing your thoughts concisely"
+                ]
+            },
+            "communication-developing": {
+                summary: "You're working on building communication confidence.",
+                actions: [
+                    "Attend confidence-building seminars",
+                    "Practice presentations in low-pressure environments",
+                    "Seek mentorship from confident communicators",
+                    "Use communication skills apps and online resources"
+                ]
+            },
+            "teamwork-uncertain": {
+                summary: "You struggle to find your role in team settings.",
+                actions: [
+                    "Take team collaboration workshops",
+                    "Learn about different team roles and strengths",
+                    "Practice identifying your unique contributions",
+                    "Develop a personal strengths inventory"
+                ]
+            },
+            "teamwork-minimal": {
+                summary: "You may need to become more proactive in team environments.",
+                actions: [
+                    "Volunteer for cross-functional projects",
+                    "Offer help to teammates proactively",
+                    "Learn about team dynamics and collaboration strategies",
+                    "Practice collaborative problem-solving exercises"
+                ]
+            },
+            "problem-solving-avoidant": {
+                summary: "You tend to avoid complex problem-solving scenarios.",
+                actions: [
+                    "Take critical thinking and problem-solving workshops",
+                    "Learn systematic problem-solving frameworks",
+                    "Practice breaking down complex problems step-by-step",
+                    "Develop a growth mindset towards challenges"
+                ]
+            },
+            "problem-solving-overwhelmed": {
+                summary: "Complex challenges can cause stress and panic.",
+                actions: [
+                    "Learn stress management techniques",
+                    "Practice mindfulness and calm-down strategies",
+                    "Develop a structured approach to problem-solving",
+                    "Create personal stress-reduction plans"
+                ]
+            },
+            "feedback-defensive": {
+                summary: "You may struggle with receiving constructive criticism.",
+                actions: [
+                    "Attend emotional intelligence workshops",
+                    "Practice reframing feedback as a growth opportunity",
+                    "Learn active listening and non-defensive communication",
+                    "Keep a feedback journal to track personal development"
+                ]
+            },
+            "feedback-avoidance": {
+                summary: "You tend to avoid seeking feedback.",
+                actions: [
+                    "Create a personal feedback request plan",
+                    "Schedule regular check-ins with supervisors",
+                    "Learn to ask for specific, actionable feedback",
+                    "Develop a growth mindset towards continuous improvement"
+                ]
+            }
+        };
+    
         questionNumber.textContent = "Assessment Complete!";
-        questionText.textContent = `Your top skills and traits:`;
-
-        // Categorize and format results
+        questionText.textContent = "Your Personalized Development Report";
+    
+        // Categorize results
         const categorizedResults = {
             "Communication": [],
             "Teamwork": [],
             "Problem-Solving": [],
             "Other": []
         };
-
+    
         topResults.forEach(([key, value]) => {
             const category = 
                 key.includes("communication") ? "Communication" :
@@ -231,33 +316,78 @@ document.addEventListener("DOMContentLoaded", () => {
                 key.includes("problem-solving") ? "Problem-Solving" : 
                 "Other";
             
-            categorizedResults[category].push(`${key.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}: ${value}`);
+            categorizedResults[category].push({
+                trait: key.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+                score: value
+            });
         });
-
-        let resultHTML = `<div class="results-breakdown">`;
+    
+        // Generate comprehensive HTML report
+        let resultHTML = `<div class="results-breakdown">
+            <h2>Your Personal Development Roadmap</h2>`;
+    
         Object.entries(categorizedResults).forEach(([category, results]) => {
             if (results.length > 0) {
                 resultHTML += `
                     <div class="category-results">
-                        <h3>${category} Insights:</h3>
+                        <h3>${category} Development Focus</h3>
                         <ul>
-                            ${results.map(result => `<li>${result}</li>`).join('')}
+                            ${results.map(result => {
+                                const recommendation = developmentRecommendations[result.trait.toLowerCase().replace(/ /g, '-')];
+                                return recommendation 
+                                    ? `
+                                    <li>
+                                        <strong>${result.trait}</strong>
+                                        <p>${recommendation.summary}</p>
+                                        <div class="action-items">
+                                            <h4>Recommended Actions:</h4>
+                                            <ul>
+                                                ${recommendation.actions.map(action => `<li>${action}</li>`).join('')}
+                                            </ul>
+                                        </div>
+                                    </li>` 
+                                    : `<li>${result.trait}</li>`
+                            }).join('')}
                         </ul>
-                    </div>
-                `;
+                    </div>`;
             }
         });
-
+    
         resultHTML += `
+            <div class="overall-recommendation">
+                <h3>Next Steps</h3>
+                <ol>
+                    <li>Review your development areas carefully</li>
+                    <li>Select 2-3 action items to focus on immediately</li>
+                    <li>Create a 3-month personal development plan</li>
+                    <li>Seek mentorship or coaching if possible</li>
+                    <li>Retake this assessment in 6 months to track progress</li>
+                </ol>
+            </div>
             <div class="result-buttons">
                 <button id="retry-button">Retry Assessment</button>
+                <button id="save-report-button">Save Report</button>
             </div>
         </div>`;
-
+    
         optionsContainer.innerHTML = resultHTML;
         progressBar.style.width = "100%";
-
+    
+        // Add event listeners for new buttons
         document.getElementById("retry-button").addEventListener("click", retryAssessment);
+        document.getElementById("save-report-button").addEventListener("click", saveReport);
+    }
+    
+    // New function to save the report (you might want to implement this based on your specific requirements)
+    function saveReport() {
+        const reportContent = document.querySelector('.results-breakdown').innerText;
+        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `soft-skills-assessment-${new Date().toISOString().split('T')[0]}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
     }
 
     function retryAssessment() {
