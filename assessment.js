@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", () => {
     console.log("DOM fully loaded!");
 
     const progressBar = document.getElementById("progress");

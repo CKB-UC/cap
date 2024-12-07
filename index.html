@@ -5,9 +5,27 @@
     <title>Soft Skills Assessment</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/footer.css">
+    <link rel="stylesheet" href="css/chatbot.css">
     <script src="assessment.js"></script>
+    <script src="chatbot.js"></script>
+    <script src="chatbot2.js"></script>
 </head>
 <body>
+    <div id="upskill-chatbot">
+        <button id="chatbot-toggle">💬</button>
+        <div id="chatbot-container">
+            <div id="chatbot-header">
+                <span>UPSKILL Soft Skills Assistant</span>
+                <button id="chatbot-close">✖</button>
+            </div>
+            <div id="chatbot-messages"></div>
+            <div id="chatbot-input-area">
+                <input type="text" id="chatbot-input" placeholder="Ask about soft skills or navigation...">
+                <button id="chatbot-send">Send</button>
+            </div>
+        </div>
+    </div>
+
     <header class="main-header">
         <h1>Welcome to Our Corporate Training Hub</h1>
         <p>Delivering Excellence in Workshops & Trainings</p>
@@ -21,7 +39,7 @@
             <li><a href="contact.html">Contact Us</a></li>
         </ul>
         
-    </nav>
+    </nav><div id="chatbot-root"></div>
     <center>
         <h1>Welcome to UPSKILL</h1>
         <p>A platform designed to enhance employability by providing interactive workshops and training focused on soft-skill development. <br>    
