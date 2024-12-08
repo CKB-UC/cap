@@ -45,29 +45,98 @@
         <h1 class="page-title">Your Title</h1>
     </div>
     
-    <div class="video-gallery">
-        
-        <!-- Video 1 -->
-        <div class="video-card">
-            <div class="video-content">
-                <h2>Video 1</h2>
-                <video controls>
-                    <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/06e385a2-6e43-4f96-ae72-4394c26f3669.mp4?alt=media&token=f69cb1a4-19f9-4b78-9bc1-9c0a71819491">
-                    Your browser does not support the video tag.
-                </video>
+    <!-- Back Button  -->
+    <button id="back-to-categories" class="back-btn" style="display:none;">← Back to Categories</button>
+
+
+    <div id="category-page" class="container">
+        <h1 class="page-title">Workshop Categories</h1>
+        <div class="categories-container">
+            <div class="category-card" data-category="communication">
+                <h2>communication</h2>
+                <p>Learn the essentials of Firebase and backend services.</p>
+                <button class="category-btn" data-category="communication">Explore</button>
             </div>
-            <div class="video-description">
-                <h3>Workshop Title: Firebase Storage Basics</h3>
-                <p><strong>Schedule Date:</strong> October 28, 2024</p>
-                <strong>Description:</strong> This is the first video in our series. It covers the basics of Firebase Storage and how to set up your environment for seamless file storage and retrieval.
+            <div class="category-card" data-category="interview">
+                <h2>interview</h2>
+                <p>Master the art of creating websites with modern technologies.</p>
+                <button class="category-btn" data-category="interview">Explore</button>
+            </div>
+            <div class="category-card" data-category="time management">
+                <h2>time management</h2>
+                <p>Design user-friendly interfaces with great experiences.</p>
+                <button class="category-btn" data-category="time management">Explore</button>
+            </div>
+            <div class="category-card" data-category="problem solving">
+                <h2>problem solving</h2>
+                <p>Understand strategies for effective online marketing.</p>
+                <button class="category-btn" data-category="problem solving">Explore</button>
             </div>
         </div>
-
-        
     </div>
-    
 
+    
+    <div id="video-page" class="container" style="display:none;">
         
+        <div class="video-gallery">
+            <div class="video-card" data-category="communication">
+                <div class="video-content">
+                    <h2>Firebase Storage Basics</h2>
+                    <video controls>
+                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/06e385a2-6e43-4f96-ae72-4394c26f3669.mp4?alt=media&token=f69cb1a4-19f9-4b78-9bc1-9c0a71819491" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-description">
+                    <h3>Workshop Title: Firebase Storage Basics</h3>
+                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
+                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
+                </div>
+            </div>
+
+            <div class="video-card" data-category="interview">
+                <div class="video-content">
+                    <h2>tite ni keanu</h2>
+                    <video controls>
+                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/06e385a2-6e43-4f96-ae72-4394c26f3669.mp4?alt=media&token=f69cb1a4-19f9-4b78-9bc1-9c0a71819491" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-description">
+                    <h3>Workshop Title: Firebase Storage Basics</h3>
+                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
+                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
+                </div>
+            </div>
+
+            <div class="video-card" data-category="problem solving">
+                <div class="video-content">
+                    <h2>tite ni keanu</h2>
+                    <video controls>
+                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/06e385a2-6e43-4f96-ae72-4394c26f3669.mp4?alt=media&token=f69cb1a4-19f9-4b78-9bc1-9c0a71819491" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-description">
+                    <h3>Workshop Title: Firebase Storage Basics</h3>
+                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
+                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
+                </div>
+            </div>
+
+            <div class="video-card" data-category="time management">
+                <div class="video-content">
+                    <h2>tite ni keanu</h2>
+                    <video controls>
+                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/06e385a2-6e43-4f96-ae72-4394c26f3669.mp4?alt=media&token=f69cb1a4-19f9-4b78-9bc1-9c0a71819491" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-description">
+                    <h3>Workshop Title: Firebase Storage Basics</h3>
+                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
+                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
+                </div>
+            </div>
+
+            <!-- Additional video cards here -->
+        </div>
     </div>
 
     <hr class="footer-line">
@@ -88,5 +157,104 @@
         </div>
     </footer>
     
+
+    <script>
+        document.querySelectorAll('.category').forEach(category => {
+    category.addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent default link behavior
+        const selectedCategory = event.target.getAttribute('data-category');
+
+        document.querySelectorAll('.video-card').forEach(videoCard => {
+            const videoCategory = videoCard.getAttribute('data-category');
+            
+            if (selectedCategory === "all" || selectedCategory === videoCategory) {
+                videoCard.style.visibility = 'visible';
+                videoCard.style.height = 'auto'; // Reset height
+            } else {
+                videoCard.style.visibility = 'hidden';
+                videoCard.style.height = 0; // Keep layout intact
+            }
+        });
+    });
+});
+    </script>
+
+<script>
+    
+    document.querySelectorAll('.category-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const selectedCategory = this.getAttribute('data-category');
+
+            
+            document.getElementById('category-page').style.display = 'none';
+            
+            
+            document.getElementById('video-page').style.display = 'block';
+
+           
+            document.getElementById('back-to-categories').style.display = 'inline-block';
+
+            
+            document.querySelectorAll('.video-card').forEach(videoCard => {
+                const videoCategory = videoCard.getAttribute('data-category');
+                if (selectedCategory === 'all' || selectedCategory === videoCategory) {
+                    videoCard.style.display = 'flex'; // Show matching videos
+                } else {
+                    videoCard.style.display = 'none'; // Hide non-matching videos
+                }
+            });
+        });
+    });
+
+    // Back to Categories button functionality
+    document.getElementById('back-to-categories').addEventListener('click', function () {
+        
+        document.getElementById('video-page').style.display = 'none';
+        
+        
+        document.getElementById('category-page').style.display = 'block';
+
+        
+        document.getElementById('back-to-categories').style.display = 'none';
+    });
+</script>
+
+
+<style>
+    /* Category Card Styles */
+    .categories-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2rem;
+        padding: 2rem;
+    }
+    .category-card {
+        background-color: white;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        width: 300px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+    }
+    .category-card:hover {
+        transform: translateY(-10px);
+    }
+    .category-btn {
+        padding: 0.75rem 1.5rem;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .category-btn:hover {
+        background-color: #0056b3;
+    }
+</style>
+
 </body>
 </html>
