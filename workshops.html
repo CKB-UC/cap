@@ -10,13 +10,14 @@
     <link rel="stylesheet" href="css/chatbot.css">
     <script src="chatbot.js"></script>
     <script src="chatbot2.js"></script>
+    <script src="workshop.js"></script>
 </head>
 <body>
     <div id="upskill-chatbot">
         <button id="chatbot-toggle">💬</button>
         <div id="chatbot-container">
             <div id="chatbot-header">
-                <span>UPSKILL Soft Skills Assistant</span>
+                <span>UPSKILL ChatBot</span>
                 <button id="chatbot-close">✖</button>
             </div>
             <div id="chatbot-messages"></div>
@@ -41,16 +42,12 @@
         </ul>
     </nav>
 
-    <div class="container">
-        <h1 class="page-title">Your Title</h1>
-    </div>
-    
     <!-- Back Button  -->
     <button id="back-to-categories" class="back-btn" style="display:none;">← Back to Categories</button>
 
 
     <div id="category-page" class="container">
-        <h1 class="page-title">Workshop Categories</h1>
+        <h1 class="page-title">Welcome to the Workshop</h1>
         <div class="categories-container">
             <div class="category-card" data-category="communication">
                 <h2>communication</h2>
@@ -236,6 +233,7 @@
 
 
             <!-- Additional video cards here -->
+             
         </div>
     </div>
 
@@ -257,104 +255,5 @@
         </div>
     </footer>
     
-
-    <script>
-        document.querySelectorAll('.category').forEach(category => {
-    category.addEventListener('click', function(event) {
-        event.preventDefault(); // Prevent default link behavior
-        const selectedCategory = event.target.getAttribute('data-category');
-
-        document.querySelectorAll('.video-card').forEach(videoCard => {
-            const videoCategory = videoCard.getAttribute('data-category');
-            
-            if (selectedCategory === "all" || selectedCategory === videoCategory) {
-                videoCard.style.visibility = 'visible';
-                videoCard.style.height = 'auto'; // Reset height
-            } else {
-                videoCard.style.visibility = 'hidden';
-                videoCard.style.height = 0; // Keep layout intact
-            }
-        });
-    });
-});
-    </script>
-
-<script>
-    
-    document.querySelectorAll('.category-btn').forEach(button => {
-        button.addEventListener('click', function () {
-            const selectedCategory = this.getAttribute('data-category');
-
-            
-            document.getElementById('category-page').style.display = 'none';
-            
-            
-            document.getElementById('video-page').style.display = 'block';
-
-           
-            document.getElementById('back-to-categories').style.display = 'inline-block';
-
-            
-            document.querySelectorAll('.video-card').forEach(videoCard => {
-                const videoCategory = videoCard.getAttribute('data-category');
-                if (selectedCategory === 'all' || selectedCategory === videoCategory) {
-                    videoCard.style.display = 'flex'; // Show matching videos
-                } else {
-                    videoCard.style.display = 'none'; // Hide non-matching videos
-                }
-            });
-        });
-    });
-
-    // Back to Categories button functionality
-    document.getElementById('back-to-categories').addEventListener('click', function () {
-        
-        document.getElementById('video-page').style.display = 'none';
-        
-        
-        document.getElementById('category-page').style.display = 'block';
-
-        
-        document.getElementById('back-to-categories').style.display = 'none';
-    });
-</script>
-
-
-<style>
-    /* Category Card Styles */
-    .categories-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 2rem;
-        padding: 2rem;
-    }
-    .category-card {
-        background-color: white;
-        border: 1px solid #eee;
-        border-radius: 8px;
-        padding: 1.5rem;
-        text-align: center;
-        width: 300px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s;
-    }
-    .category-card:hover {
-        transform: translateY(-10px);
-    }
-    .category-btn {
-        padding: 0.75rem 1.5rem;
-        background-color: #007bff;
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    .category-btn:hover {
-        background-color: #0056b3;
-    }
-</style>
-
 </body>
 </html>
