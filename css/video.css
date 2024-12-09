@@ -1,11 +1,9 @@
-
-/*page title*/
+/* Container for the entire page */
 .container {
-    
     position: relative;
-    
 }
 
+/* Page title styling */
 .page-title {
     text-align: center;
     padding: 1rem 0;
@@ -15,7 +13,8 @@
     z-index: 900;
     border-bottom: 1px solid #eee;
 }
-/* Video Gallery Styling */
+
+/* Video gallery container */
 .video-gallery {
     max-width: 1200px;
     margin: 0 auto;
@@ -24,8 +23,10 @@
     overflow-y: auto;
 }
 
+/* Individual video card styling */
 .video-card {
     display: flex;
+    flex-direction: row; /* Keep the layout side-by-side */
     gap: 2rem;
     background-color: #f5f5f5;
     border-radius: 8px;
@@ -33,24 +34,29 @@
     margin-bottom: 2rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
+    align-items: flex-start; /* Make sure video and description align at the top */
 }
 
 .video-card:hover {
     transform: translateX(5px);
 }
 
+/* Video content container */
 .video-content {
     flex: 2;
+    max-width: 70%; /* Restrict the video size */
 }
 
+/* Video description container */
 .video-description {
     flex: 1;
     background-color: white;
     padding: 1rem;
     border-radius: 4px;
-    align-self: flex-start;
-    position: sticky;
-    top: 1rem;
+    overflow-wrap: break-word; /* Make sure long text breaks properly */
+    word-wrap: break-word;
+    word-break: break-word;
+    max-width: 30%; /* Limit the width of the description */
 }
 
 .video-card h2 {
@@ -58,6 +64,7 @@
     color: #333;
 }
 
+/* Video styling */
 .video-card video {
     width: 100%;
     border-radius: 4px;
@@ -65,7 +72,7 @@
     object-fit: cover;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling for the video gallery */
 .video-gallery::-webkit-scrollbar {
     width: 8px;
 }
@@ -84,6 +91,7 @@
     background: #555;
 }
 
+/* Description heading and paragraph styling */
 .video-description h3 {
     margin-top: 0;
     color: #333;
@@ -93,13 +101,14 @@
     margin: 0.5rem 0;
 }
 
-/* Responsive design */
+/* Responsive design for smaller screens */
 @media (max-width: 768px) {
+    /* Stack video and description vertically on small screens */
     .video-card {
         flex-direction: column;
     }
-    
-    .video-description {
-        position: static;
+
+    .video-content, .video-description {
+        max-width: 100%;
     }
 }
