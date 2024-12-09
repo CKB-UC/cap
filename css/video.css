@@ -49,6 +49,7 @@
 
 /* Video description container */
 .video-description {
+    margin-top: 65px;
     flex: 1;
     background-color: white;
     padding: 1rem;
