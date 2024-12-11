@@ -5,24 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/chatbot.css">
-    <script src="chatbot.js"></script>
+    <link rel="stylesheet" href="css/testbot.css">
 </head>
 <body>
-    <div id="upskill-chatbot">
-        <button id="chatbot-toggle">💬</button>
-        <div id="chatbot-container">
-            <div id="chatbot-header">
-                <span>UPSKILL ChatBot</span>
-                <button id="chatbot-close">✖</button>
+    <div id="chatbot-container">
+        <div id="chat-window">
+            <div id="chat-header">
+                <span>UpSkill Chatbot</span>
+                <button onclick="toggleChat()">&times;</button>
             </div>
-            <div id="chatbot-messages"></div>
-            <div id="chatbot-input-area">
-                <input type="text" id="chatbot-input" placeholder="Ask about soft skills or navigation...">
-                <button id="chatbot-send">Send</button>
+            <div id="chat-messages"></div>
+            <div id="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Type your message..." />
+                <button id="send-button" onclick="sendMessage()">➤</button>
             </div>
         </div>
+        <div id="chat-bubble" onclick="toggleChat()">
+            💬
+        </div>
     </div>
+    <script src="testbot.js"></script>
 
     <header class="main-header">
         <h1>Welcome to Our Corporate Training Hub</h1>
