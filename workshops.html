@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/footer.css">
     <link rel="stylesheet" href="css/testbot.css">
+    <link rel="stylesheet" href="css/announce.css">
     <script src="workshop.js"></script>
+    <script src="announce.js"></script>
 </head>
 <body>
     <div id="chatbot-container">
@@ -40,8 +42,44 @@
             <li><a href="workshops.html" class="active">Workshops</a></li>
             <li><a href="aboutus.html">About Us</a></li>
             <li><a href="contact.html">Contact</a></li>
+            <li class="announce-tab">
+                <a href="#" id="announce-toggle">
+                    <i class="announce-icon">🔔</i>
+                </a>
+            </li>
         </ul>
     </nav>
+
+    <!-- Calendar Popup -->
+    <div id="announce-popup" class="announce-popup">
+        <div class="announce-content">
+            <span class="close-announce">&times;</span>
+            <h2>Upcoming Workshops</h2>
+            <div class="announcements-container">
+                <div class="announcement-card">
+                    <h3>Critical Thinking Workshop</h3>
+                    <p><strong>Date:</strong> November 15, 2024</p>
+                    <p><strong>Time:</strong> 10:00 AM - 2:00 PM</p>
+                    <p>Advanced techniques for analytical problem-solving</p>
+                    <button class="register-btn">Register Now</button>
+                </div>
+                <div class="announcement-card">
+                    <h3>Interview Mastery Seminar</h3>
+                    <p><strong>Date:</strong> December 5, 2024</p>
+                    <p><strong>Time:</strong> 9:00 AM - 1:00 PM</p>
+                    <p>Comprehensive interview preparation and communication skills</p>
+                    <button class="register-btn">Register Now</button>
+                </div>
+                <div class="announcement-card">
+                    <h3>Time Management Bootcamp</h3>
+                    <p><strong>Date:</strong> January 20, 2025</p>
+                    <p><strong>Time:</strong> 11:00 AM - 3:00 PM</p>
+                    <p>Strategies for maximizing productivity and efficiency</p>
+                    <button class="register-btn">Register Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Back Button  -->
     <button id="back-to-categories" class="back-btn" style="display:none;">← Back to Categories</button>
