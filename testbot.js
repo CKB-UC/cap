@@ -34,7 +34,7 @@ class GeminiChatbot {
 }
 
 // Initialize chatbot
-const chatbot = new GeminiChatbot('AIzaSyBwjir0udYVRSP459isr-WuyZOxS0rMgRQ');
+const chatbot = new GeminiChatbot('AIzaSyAvgalwt6n4WoIv18_a4LX7RSHWqJ1lVDg');
 const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 
