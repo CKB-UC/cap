@@ -3,13 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workshops</title>
+    <title>About Us - Workshop</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/video.css">
     <link rel="stylesheet" href="css/footer.css">
     <link rel="stylesheet" href="css/testbot.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="nav-brand">Workshop</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="workshops.html">Workshops</a>
+            <a href="aboutus.html" class="active">About Us</a>
+            <a href="contact.html">Contact</a>
+            <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
+            <button onclick="logout()" class="btn-logout">Logout</button>
+        </div>
+    </nav>
+
     <div id="chatbot-container">
         <div id="chat-window">
             <div id="chat-header">
@@ -26,22 +43,11 @@
             💬
         </div>
     </div>
-    <script src="testbot.js"></script>
 
     <header class="main-header">
         <h1>Welcome to Our Corporate Training Hub</h1>
         <p>Delivering Excellence in Workshops & Trainings</p>
     </header>
-    
-    <nav class="navbar">
-        <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="workshops.html" >Workshops</a></li>
-            <li><a href="aboutus.html"class="active">About Us</a></li>
-            <li><a href="contact.html">Contact</a></li>
-        </ul>
-        
-    </nav>
 
     <h1><center>ABOUT US</center></h1>
 
@@ -62,7 +68,7 @@
 
                 <h2>Our Services</h2>
                 <ul>
-                    <li>Development of trainings and workshops tailored to fit the organization’s needs</li>
+                    <li>Development of trainings and workshops tailored to fit the organization's needs</li>
                     <li>Human Resource Management Consultancy</li>
                     <li>Human Resource Audits (External)</li>
                   </ul><br><br>
@@ -96,8 +102,7 @@
                     <li><strong>DEPARTMENT OF LABOR AND EMPLOYMENT (DOLE) – CAR
                         Capacity Building (Teambuilding Program)</strong></li>
                         <ul>
-                            <li>The DOLE Model – “It Starts with ME, but Works with WE”
-                            </li>
+                            <li>The DOLE Model – "It Starts with ME, but Works with WE"</li>
                             <li>November 27 – 29, 2019 (Candon, Ilocos Sur)</li>
                         </ul><br>
                     <li><strong>PINES MULTI TELECOM SHOP</strong></li>
@@ -147,7 +152,7 @@
                     <li><strong>JENMEN ENGINEERING</strong></li>
                     <strong>Values Enhancement Program</strong>
                         <ul>
-                        <li>“Our Values, Our Success”</li>
+                        <li>"Our Values, Our Success"</li>
                         <li>September 23, 2017 (Mountain Lodge Hotel, Baguio City)</li>
                         </ul><br>
 
@@ -186,5 +191,14 @@
     </div>
 </footer>
 
+<script src="auth.js"></script>
+<script>
+    // Check if user is logged in
+    auth.onAuthStateChanged((user) => {
+        if (!user) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
 </body>
 </html>

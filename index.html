@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Soft Skills Assessment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Workshop</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/footer.css">
     <link rel="stylesheet" href="css/testbot.css">
@@ -34,13 +40,15 @@
     </header>
     
     <nav class="navbar">
-        <ul class="nav-links">
-            <li><a href="index.html" class="active">Home</a></li>
-            <li><a href="workshops.html">Workshops</a></li>
-            <li><a href="aboutus.html">About Us</a></li>
-            <li><a href="contact.html">Contact Us</a></li>
-        </ul>
-        
+        <div class="nav-brand">Workshop</div>
+        <div class="nav-links">
+            <a href="index.html" class="active">Home</a>
+            <a href="workshops.html">Workshops</a>
+            <a href="aboutus.html">About Us</a>
+            <a href="contact.html">Contact</a>
+            <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
+            <button onclick="logout()" class="btn-logout">Logout</button>
+        </div>
     </nav>
 
     <center>
@@ -88,5 +96,6 @@
             </ul>
         </div>
     </footer>
+    <script src="auth.js"></script>
 </body>
 </html>

@@ -4,16 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workshops</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/video.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/footer.css">
     <link rel="stylesheet" href="css/testbot.css">
     <link rel="stylesheet" href="css/register.css">
     <link rel="stylesheet" href="css/announce.css">
-    <script src="workshop.js"></script>
-    <script src="announce.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="nav-brand">Workshop</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="workshops.html" class="active">Workshops</a>
+            <a href="aboutus.html">About Us</a>
+            <a href="contact.html">Contact</a>
+            <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
+            <button onclick="logout()" class="btn-logout">Logout</button>
+        </div>
+    </nav>
+
     <div id="chatbot-container">
         <div id="chat-window">
             <div id="chat-header">
@@ -30,26 +45,11 @@
             💬
         </div>
     </div>
-    <script src="testbot.js"></script>
 
     <header class="main-header">
         <h1>Welcome to Our Corporate Training Hub</h1>
         <p>Delivering Excellence in Workshops & Trainings</p>
     </header>
-    
-    <nav class="navbar">
-        <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="workshops.html" class="active">Workshops</a></li>
-            <li><a href="aboutus.html">About Us</a></li>
-            <li><a href="contact.html">Contact</a></li>
-            <li class="announce-tab">
-                <a href="#" id="announce-toggle">
-                    <i class="announce-icon">🔔</i>
-                </a>
-            </li>
-        </ul>
-    </nav>
 
     <!-- Calendar Popup -->
     <div id="announce-popup" class="announce-popup">
@@ -278,7 +278,19 @@
             </ul>
         </div>
     </footer>
+    <script src="auth.js"></script>
+    <script src="workshop.js"></script>
+    <script src="announce.js"></script>
+    <script src="testbot.js"></script>
     <script src="register.js"></script>
     <script src="register2.js"></script>
+    <script>
+        // Check if user is logged in
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
 </body>
 </html>
