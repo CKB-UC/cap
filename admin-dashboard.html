@@ -4,37 +4,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Workshop</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="css/styles.css">
+    <!-- Tailwind CSS -->
     <link href="css/output.css" rel="stylesheet">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Heroicons (optional) -->
+    <script src="https://unpkg.com/heroicons@2.0.18/24/outline/esm/index.js"></script>
 </head>
-<body>
-    <nav class="navbar">
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="workshops.html">Workshops</a>
-            <a href="aboutus.html">About Us</a>
-            <a href="contact.html">Contact</a>
-            <button onclick="logout()" class="btn-logout">Logout</button>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl">Workshop Admin</div>
+            <div class="nav-links space-x-6">
+                <a href="index.html" class="hover:text-indigo-200 transition">Home</a>
+                <a href="workshops.html" class="hover:text-indigo-200 transition">Workshops</a>
+                <a href="aboutus.html" class="hover:text-indigo-200 transition">About Us</a>
+                <a href="contact.html" class="hover:text-indigo-200 transition">Contact</a>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-1 rounded text-white ml-4 transition">Logout</button>
+            </div>
         </div>
     </nav>
 
-    <div class="auth-container">
-        <div class="auth-box">
-            <h2>Admin Dashboard</h2>
-            <div id="adminContent">
-                <div class="admin-actions">
-                    <button class="btn-primary">Manage Users</button>
-                    <button class="btn-primary">Manage Workshops</button>
-                    <button class="btn-primary">View Analytics</button>
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">Admin Dashboard</h1>
+            
+            <!-- Admin Stats Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <div class="text-blue-500 text-lg font-semibold">Total Users</div>
+                    <div class="text-3xl font-bold text-gray-800 mt-2" id="totalUsers">--</div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <div class="text-green-500 text-lg font-semibold">Active Workshops</div>
+                    <div class="text-3xl font-bold text-gray-800 mt-2" id="activeWorkshops">--</div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                    <div class="text-purple-500 text-lg font-semibold">Total Registrations</div>
+                    <div class="text-3xl font-bold text-gray-800 mt-2" id="totalRegistrations">--</div>
+                </div>
+            </div>
+            
+            <!-- Admin Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="adminContent">
+                <div class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Manage Users</h3>
+                    <p class="text-gray-600 mb-4">View, edit, and manage user accounts and permissions.</p>
+                    <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
+                        User Management
+                    </button>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Manage Workshops</h3>
+                    <p class="text-gray-600 mb-4">Create, edit, and schedule workshops and events.</p>
+                    <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
+                        Workshop Management
+                    </button>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Analytics</h3>
+                    <p class="text-gray-600 mb-4">View detailed statistics and reports on platform usage.</p>
+                    <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
+                        View Analytics
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Recent Activity Section -->
+            <div class="mt-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="py-2 px-4 border-b text-left">Action</th>
+                                <th class="py-2 px-4 border-b text-left">User</th>
+                                <th class="py-2 px-4 border-b text-left">Date</th>
+                                <th class="py-2 px-4 border-b text-left">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentActivity">
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-2 px-4 border-b">New Registration</td>
+                                <td class="py-2 px-4 border-b">john.doe@example.com</td>
+                                <td class="py-2 px-4 border-b">March 5, 2025</td>
+                                <td class="py-2 px-4 border-b">Registered for Spring Workshop</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-2 px-4 border-b">Workshop Updated</td>
+                                <td class="py-2 px-4 border-b">admin@example.com</td>
+                                <td class="py-2 px-4 border-b">March 4, 2025</td>
+                                <td class="py-2 px-4 border-b">Updated "UI Design Basics" workshop details</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12 py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 Workshop Platform. All rights reserved.</p>
+        </div>
+    </footer>
 
     <script src="auth.js"></script>
     <script>
@@ -45,12 +125,23 @@
                     const userData = doc.data();
                     if (userData.role !== 'admin') {
                         window.location.href = 'index.html';
+                    } else {
+                        // Load admin dashboard data
+                        loadDashboardData();
                     }
                 });
             } else {
                 window.location.href = 'login.html';
             }
         });
+
+        // Function to load dashboard data (placeholder)
+        function loadDashboardData() {
+            // This would be replaced with actual Firebase queries
+            document.getElementById('totalUsers').textContent = '186';
+            document.getElementById('activeWorkshops').textContent = '12';
+            document.getElementById('totalRegistrations').textContent = '243';
+        }
     </script>
 </body>
-</html> 
+</html>
