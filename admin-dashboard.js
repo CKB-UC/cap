@@ -229,3 +229,5 @@ function createDummyData() {
 // Uncomment this line during development to populate with test data
 // You should only run this once, then comment it out again
 // document.addEventListener('DOMContentLoaded', () => setTimeout(createDummyData, 2000));
+// bahala ni Batman haan  kon ammo aramidek
+// kaya ni Claude ken Cursor dayta HAHAHAHAH
