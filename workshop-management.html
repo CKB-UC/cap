@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workshop Management - Admin</title>
+    <!-- Tailwind CSS -->
+    <link href="css/output.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl">Workshop Admin</div>
+            <div class="nav-links space-x-6">
+                <a href="index.html" class="hover:text-indigo-200 transition">Home</a>
+                <a href="admin-dashboard.html" class="hover:text-indigo-200 transition">Dashboard</a>
+                <a href="workshops.html" class="hover:text-indigo-200 transition">Workshops</a>
+                <a href="aboutus.html" class="hover:text-indigo-200 transition">About Us</a>
+                <a href="contact.html" class="hover:text-indigo-200 transition">Contact</a>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-1 rounded text-white ml-4 transition">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-6xl mx-auto">
+            <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-gray-800">Workshop Management</h1>
+                <button id="createWorkshopBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition">
+                    Create New Workshop
+                </button>
+            </div>
+            
+            <!-- Workshop List -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold text-gray-700">All Workshops</h2>
+                    <div class="flex space-x-2">
+                        <select id="statusFilter" class="border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="all">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                        <input type="text" id="searchWorkshops" placeholder="Search workshops..." class="border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="py-2 px-4 border-b text-left">Title</th>
+                                <th class="py-2 px-4 border-b text-left">Status</th>
+                                <th class="py-2 px-4 border-b text-left">Date</th>
+                                <th class="py-2 px-4 border-b text-left">Capacity</th>
+                                <th class="py-2 px-4 border-b text-left">Registered</th>
+                                <th class="py-2 px-4 border-b text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workshopsList">
+                            <tr>
+                                <td colspan="6" class="py-4 px-4 text-center text-gray-500">Loading workshops...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create/Edit Workshop Modal -->
+    <div id="workshopModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modalTitle" class="text-xl font-bold text-gray-800">Create New Workshop</h2>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="workshopForm">
+                <input type="hidden" id="workshopId">
+                
+                <div class="mb-4">
+                    <label for="title" class="block text-gray-700 font-medium mb-2">Workshop Title</label>
+                    <input type="text" id="title" name="title" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="description" class="block text-gray-700 font-medium mb-2">Description</label>
+                    <textarea id="description" name="description" rows="4" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="date" class="block text-gray-700 font-medium mb-2">Date</label>
+                        <input type="datetime-local" id="date" name="date" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    
+                    <div>
+                        <label for="capacity" class="block text-gray-700 font-medium mb-2">Capacity</label>
+                        <input type="number" id="capacity" name="capacity" min="1" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="status" class="block text-gray-700 font-medium mb-2">Status</label>
+                    <select id="status" name="status" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="upcoming">Upcoming</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="location" class="block text-gray-700 font-medium mb-2">Location</label>
+                    <input type="text" id="location" name="location" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancelBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded transition">
+                        Cancel
+                    </button>
+                    <button type="submit" id="saveWorkshopBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition">
+                        Save Workshop
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Confirm Action</h2>
+            <p id="confirmationMessage" class="text-gray-600 mb-6">Are you sure you want to proceed?</p>
+            
+            <div class="flex justify-end space-x-3">
+                <button id="cancelConfirmation" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded transition">
+                    Cancel
+                </button>
+                <button id="confirmAction" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12 py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 Workshop Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Firebase Config -->
+    <script>
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            const firebaseConfig = {
+                apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
+                authDomain: "ratbow-454f1.firebaseapp.com",
+                projectId: "ratbow-454f1",
+                storageBucket: "ratbow-454f1.firebasestorage.app",
+                messagingSenderId: "494138400120",
+                appId: "1:494138400120:web:d8eac6dc7437431b783c8d",
+                measurementId: "G-71PNRPMEKP"
+            };
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    
+    <!-- Include the admin dashboard functions -->
+    <script src="admin-dashboard.js"></script>
+    <!-- Include the workshop management functions -->
+    <script src="workshop-management.js"></script>
+</body>
+</html>
