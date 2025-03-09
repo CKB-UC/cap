@@ -374,3 +374,88 @@ if (typeof logout !== 'function') {
             });
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Add module button
+    document.getElementById('addModuleBtn').addEventListener('click', () => {
+        addModuleField();
+    });
+
+    // Function to add a new module field
+    function addModuleField() {
+        const modulesContainer = document.getElementById('modulesContainer');
+
+        const moduleDiv = document.createElement('div');
+        moduleDiv.className = 'mb-4 p-4 border border-gray-200 rounded-lg';
+        moduleDiv.innerHTML = `
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Category</label>
+                    <input type="text" class="module-category w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Category (e.g., Documents, Videos)">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Title</label>
+                    <input type="text" class="module-title w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Module Title">
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">File URL</label>
+                <input type="text" class="module-fileUrl w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="File URL">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Description</label>
+                <textarea class="module-description w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Module Description"></textarea>
+            </div>
+            <button type="button" class="remove-module bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">Remove Module</button>
+        `;
+
+        modulesContainer.appendChild(moduleDiv);
+
+        // Add event listener to remove module button
+        moduleDiv.querySelector('.remove-module').addEventListener('click', () => {
+            modulesContainer.removeChild(moduleDiv);
+        });
+    }
+
+    // Handle workshop form submission
+    document.getElementById('workshopForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const modules = [];
+        document.querySelectorAll('#modulesContainer > div').forEach(moduleDiv => {
+            const category = moduleDiv.querySelector('.module-category').value;
+            const title = moduleDiv.querySelector('.module-title').value;
+            const fileUrl = moduleDiv.querySelector('.module-fileUrl').value;
+            const description = moduleDiv.querySelector('.module-description').value;
+
+            if (category && title && fileUrl) {
+                modules.push({ category, title, fileUrl, description });
+            }
+        });
+
+        const workshopData = {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            date: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('date').value)),
+            capacity: parseInt(document.getElementById('capacity').value),
+            location: document.getElementById('location').value,
+            status: document.getElementById('status').value,
+            modules, // Add modules to the workshop data
+        };
+
+        // Save workshop to Firestore
+        const workshopId = document.getElementById('workshopId').value;
+        const saveWorkshop = workshopId
+            ? db.collection('workshops').doc(workshopId).update(workshopData)
+            : db.collection('workshops').add(workshopData);
+
+        saveWorkshop.then(() => {
+            alert('Workshop saved successfully!');
+            closeWorkshopModal();
+            loadWorkshops();
+        }).catch((error) => {
+            console.error('Error saving workshop:', error);
+            alert(`Error saving workshop: ${error.message}`);
+        });
+    });
+});
