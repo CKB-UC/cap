@@ -125,10 +125,10 @@ function loadWorkshops() {
                 <td class="py-3 px-4 border-b">${workshop.registered || 0}</td>
                 <td class="py-3 px-4 border-b">
                     <div class="flex space-x-2">
-                        <button class="edit-workshop text-indigo-600 hover:text-indigo-800" data-id="${workshop.id}" title="Edit Workshop">
+                        <button class="edit-workshop text-indigo-600 hover:text-indigo-800 px-3 py-1 border border-indigo-300 rounded" data-id="${workshop.id}" title="Edit Workshop">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="delete-workshop text-red-600 hover:text-red-800" data-id="${workshop.id}" title="Delete Workshop">
+                        <button class="delete-workshop text-red-600 hover:text-red-800 px-3 py-1 border border-red-300 rounded" data-id="${workshop.id}" title="Delete Workshop">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
