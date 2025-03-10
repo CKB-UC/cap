@@ -113,14 +113,25 @@
                     </div>
                 </div>
                 
-                <div class="mb-4">
-                    <label for="status" class="block text-gray-700 font-medium mb-2">Status</label>
+                <!-- Status dropdown update in workshop form -->
+            <div class="mb-4">
+                <label for="status" class="block text-gray-700 font-medium mb-2">Status</label>
                     <select id="status" name="status" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="upcoming">Upcoming</option>
                         <option value="active">Active</option>
+                        <option value="postponed">Postponed</option>
                         <option value="completed">Completed</option>
                     </select>
-                </div>
+            </div>
+
+                <!-- Status filter update -->
+                    <select id="statusFilter" class="border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="upcoming">Upcoming</option>
+                        <option value="postponed">Postponed</option>
+                        <option value="completed">Completed</option>
+                    </select>
                 
                 <div class="mb-4">
                     <label for="location" class="block text-gray-700 font-medium mb-2">Location</label>

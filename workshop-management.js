@@ -103,6 +103,9 @@ function loadWorkshops() {
                 case 'completed':
                     statusClass = 'bg-gray-100 text-gray-800';
                     break;
+                case 'postponed':
+                    statusClass = 'bg-yellow-100 text-yellow-800';
+                    break;
                 default:
                     statusClass = 'bg-gray-100 text-gray-800';
             }
@@ -122,17 +125,22 @@ function loadWorkshops() {
                 <td class="py-3 px-4 border-b">${workshop.registered || 0}</td>
                 <td class="py-3 px-4 border-b">
                     <div class="flex space-x-2">
-                        <button class="edit-workshop text-indigo-600 hover:text-indigo-800" data-id="${workshop.id}">
+                        <button class="edit-workshop text-indigo-600 hover:text-indigo-800" data-id="${workshop.id}" title="Edit Workshop">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                         </button>
-                        <button class="delete-workshop text-red-600 hover:text-red-800" data-id="${workshop.id}">
+                        <button class="postpone-workshop text-yellow-600 hover:text-yellow-800" data-id="${workshop.id}" title="Postpone Workshop">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </button>
+                        <button class="delete-workshop text-red-600 hover:text-red-800" data-id="${workshop.id}" title="Delete Workshop">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                         </button>
-                        <button class="view-registrations text-green-600 hover:text-green-800" data-id="${workshop.id}">
+                        <button class="view-registrations text-green-600 hover:text-green-800" data-id="${workshop.id}" title="View Registrations">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
@@ -160,6 +168,14 @@ function addActionButtonListeners() {
         button.addEventListener('click', () => {
             const workshopId = button.getAttribute('data-id');
             editWorkshop(workshopId);
+        });
+    });
+    
+    // Postpone workshop buttons
+    document.querySelectorAll('.postpone-workshop').forEach(button => {
+        button.addEventListener('click', () => {
+            const workshopId = button.getAttribute('data-id');
+            confirmPostponeWorkshop(workshopId);
         });
     });
     
@@ -294,6 +310,87 @@ function editWorkshop(workshopId) {
     });
 }
 
+// Confirm postpone workshop
+function confirmPostponeWorkshop(workshopId) {
+    // Get workshop title first
+    db.collection('workshops').doc(workshopId).get().then((doc) => {
+        if (doc.exists) {
+            const workshop = doc.data();
+            
+            // Set up confirmation modal
+            const modal = document.getElementById('confirmationModal');
+            const message = document.getElementById('confirmationMessage');
+            const confirmBtn = document.getElementById('confirmAction');
+            
+            message.textContent = `Are you sure you want to postpone the workshop "${workshop.title}"? This will mark it as postponed and allow you to reschedule it.`;
+            
+            // Set up confirm button
+            confirmBtn.onclick = () => {
+                postponeWorkshop(workshopId, workshop.title);
+                closeConfirmationModal();
+            };
+            
+            // Show the modal
+            modal.classList.remove('hidden');
+        } else {
+            alert("Workshop not found!");
+        }
+    }).catch((error) => {
+        console.error("Error getting workshop:", error);
+        alert(`Error getting workshop: ${error.message}`);
+    });
+}
+
+// Postpone a workshop
+function postponeWorkshop(workshopId, workshopTitle) {
+    // First open a modal to get a new date
+    const modal = document.getElementById('workshopModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const form = document.getElementById('workshopForm');
+    const workshopIdField = document.getElementById('workshopId');
+    
+    db.collection('workshops').doc(workshopId).get().then((doc) => {
+        if (doc.exists) {
+            const workshopData = doc.data();
+            workshopData.id = doc.id;
+            
+            // Set status to postponed
+            workshopData.status = 'postponed';
+            
+            // Open the edit modal with postponed status
+            modalTitle.textContent = 'Reschedule Workshop';
+            workshopIdField.value = workshopData.id;
+            
+            // Fill form with workshop data
+            document.getElementById('title').value = workshopData.title || '';
+            document.getElementById('description').value = workshopData.description || '';
+            document.getElementById('status').value = 'postponed'; // Set to postponed
+            document.getElementById('capacity').value = workshopData.capacity || '';
+            document.getElementById('location').value = workshopData.location || '';
+            
+            // Format date for datetime-local input
+            if (workshopData.date) {
+                const date = workshopData.date.toDate();
+                const formattedDate = date.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+                document.getElementById('date').value = formattedDate;
+            }
+            
+            // Add a note to the description about the postponement
+            const originalDesc = document.getElementById('description').value;
+            const postponeNote = `\n\n[POSTPONED: This workshop was originally scheduled for ${workshopData.date.toDate().toLocaleDateString()}]`;
+            document.getElementById('description').value = originalDesc + postponeNote;
+            
+            // Show the modal
+            modal.classList.remove('hidden');
+        } else {
+            alert("Workshop not found!");
+        }
+    }).catch((error) => {
+        console.error("Error getting workshop:", error);
+        alert(`Error getting workshop: ${error.message}`);
+    });
+}
+
 // Delete a workshop - confirmation
 function confirmDeleteWorkshop(workshopId) {
     // Get workshop title first
@@ -374,88 +471,3 @@ if (typeof logout !== 'function') {
             });
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Add module button
-    document.getElementById('addModuleBtn').addEventListener('click', () => {
-        addModuleField();
-    });
-
-    // Function to add a new module field
-    function addModuleField() {
-        const modulesContainer = document.getElementById('modulesContainer');
-
-        const moduleDiv = document.createElement('div');
-        moduleDiv.className = 'mb-4 p-4 border border-gray-200 rounded-lg';
-        moduleDiv.innerHTML = `
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-gray-700 font-medium mb-2">Category</label>
-                    <input type="text" class="module-category w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Category (e.g., Documents, Videos)">
-                </div>
-                <div>
-                    <label class="block text-gray-700 font-medium mb-2">Title</label>
-                    <input type="text" class="module-title w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Module Title">
-                </div>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 font-medium mb-2">File URL</label>
-                <input type="text" class="module-fileUrl w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="File URL">
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 font-medium mb-2">Description</label>
-                <textarea class="module-description w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Module Description"></textarea>
-            </div>
-            <button type="button" class="remove-module bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">Remove Module</button>
-        `;
-
-        modulesContainer.appendChild(moduleDiv);
-
-        // Add event listener to remove module button
-        moduleDiv.querySelector('.remove-module').addEventListener('click', () => {
-            modulesContainer.removeChild(moduleDiv);
-        });
-    }
-
-    // Handle workshop form submission
-    document.getElementById('workshopForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const modules = [];
-        document.querySelectorAll('#modulesContainer > div').forEach(moduleDiv => {
-            const category = moduleDiv.querySelector('.module-category').value;
-            const title = moduleDiv.querySelector('.module-title').value;
-            const fileUrl = moduleDiv.querySelector('.module-fileUrl').value;
-            const description = moduleDiv.querySelector('.module-description').value;
-
-            if (category && title && fileUrl) {
-                modules.push({ category, title, fileUrl, description });
-            }
-        });
-
-        const workshopData = {
-            title: document.getElementById('title').value,
-            description: document.getElementById('description').value,
-            date: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('date').value)),
-            capacity: parseInt(document.getElementById('capacity').value),
-            location: document.getElementById('location').value,
-            status: document.getElementById('status').value,
-            modules, // Add modules to the workshop data
-        };
-
-        // Save workshop to Firestore
-        const workshopId = document.getElementById('workshopId').value;
-        const saveWorkshop = workshopId
-            ? db.collection('workshops').doc(workshopId).update(workshopData)
-            : db.collection('workshops').add(workshopData);
-
-        saveWorkshop.then(() => {
-            alert('Workshop saved successfully!');
-            closeWorkshopModal();
-            loadWorkshops();
-        }).catch((error) => {
-            console.error('Error saving workshop:', error);
-            alert(`Error saving workshop: ${error.message}`);
-        });
-    });
-});
