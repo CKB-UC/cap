@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Workshop</title>
+    <!-- Tailwind CSS -->
+    <link href="css/output.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl">Workshop Admin</div>
+            <div class="nav-links space-x-6">
+                <a href="index.html" class="hover:text-indigo-200 transition">Home</a>
+                <a href="workshops.html" class="hover:text-indigo-200 transition">Workshops</a>
+                <a href="aboutus.html" class="hover:text-indigo-200 transition">About Us</a>
+                <a href="contact.html" class="hover:text-indigo-200 transition">Contact</a>
+                <a href="admin-dashboard.html" class="hover:text-indigo-200 transition">Dashboard</a>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-1 rounded text-white ml-4 transition">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-6xl mx-auto">
+            <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-gray-800">Analytics Dashboard</h1>
+                <div class="flex space-x-4">
+                    <select id="timeRange" class="rounded border-gray-300 shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30">Last 30 Days</option>
+                        <option value="90">Last 3 Months</option>
+                        <option value="365">Last Year</option>
+                    </select>
+                    <button id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition">
+                        Export Data
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Analytics Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <div class="text-blue-500 text-lg font-semibold">Registration Rate</div>
+                    <div class="text-3xl font-bold text-gray-800 mt-2" id="registrationRate">--</div>
+                    <div class="text-sm text-gray-500 mt-1">Average per workshop</div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <div class="text-green-500 text-lg font-semibold">Completion Rate</div>
+                    <div class="text-3xl font-bold text-gray-800 mt-2" id="completionRate">--</div>
+                    <div class="text-sm text-gray-500 mt-1">Workshops completed</div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                    <div class="text-purple-500 text-lg font-semibold">User Growth</div>
+                    <div class="text-3xl font-bold text-gray-800 mt-2" id="userGrowth">--</div>
+                    <div class="text-sm text-gray-500 mt-1">New users this period</div>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                    <div class="text-yellow-500 text-lg font-semibold">Popular Time</div>
+                    <div class="text-3xl font-bold text-gray-800 mt-2" id="popularTime">--</div>
+                    <div class="text-sm text-gray-500 mt-1">Most active hours</div>
+                </div>
+            </div>
+            
+            <!-- Main Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Registration Trends Chart -->
+                <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Registration Trends</h2>
+                    <div class="h-80">
+                        <canvas id="registrationTrendsChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Workshop Popularity Chart -->
+                <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Workshop Popularity</h2>
+                    <div class="h-80">
+                        <canvas id="workshopPopularityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Secondary Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- User Demographics Chart -->
+                <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">User Demographics</h2>
+                    <div class="h-80">
+                        <canvas id="userDemographicsChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Completion Stats Chart -->
+                <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Completion Statistics</h2>
+                    <div class="h-80">
+                        <canvas id="completionStatsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Top Workshops Table -->
+            <div class="mt-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Top Workshops</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="py-2 px-4 border-b text-left">Workshop Name</th>
+                                <th class="py-2 px-4 border-b text-left">Registrations</th>
+                                <th class="py-2 px-4 border-b text-left">Completion Rate</th>
+                                <th class="py-2 px-4 border-b text-left">Average Rating</th>
+                                <th class="py-2 px-4 border-b text-left">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topWorkshops">
+                            <tr>
+                                <td colspan="5" class="py-4 px-4 text-center text-gray-500">Loading workshop data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12 py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 Workshop Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Firebase Config -->
+    <script>
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            const firebaseConfig = {
+                apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
+                authDomain: "ratbow-454f1.firebaseapp.com",
+                projectId: "ratbow-454f1",
+                storageBucket: "ratbow-454f1.firebasestorage.app",
+                messagingSenderId: "494138400120",
+                appId: "1:494138400120:web:d8eac6dc7437431b783c8d",
+                measurementId: "G-71PNRPMEKP"
+            };
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    
+    <!-- Admin Check Script -->
+    <script>
+        // Check if user is admin
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    const userData = doc.data();
+                    if (!userData || userData.role !== 'admin') {
+                        window.location.href = 'index.html';
+                    } else {
+                        // Load analytics data
+                        loadAnalyticsData();
+                        setupEventListeners();
+                        
+                        // Log admin activity
+                        logAdminActivity('Page View', 'Viewed analytics dashboard');
+                    }
+                }).catch((error) => {
+                    console.error("Error verifying admin status:", error);
+                    window.location.href = 'login.html';
+                });
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+        
+        // Logout function
+        function logout() {
+            // Log the logout activity
+            logAdminActivity('Logout', 'Admin logged out')
+                .then(() => {
+                    // Then sign out
+                    firebase.auth().signOut().then(() => {
+                        window.location.href = 'login.html';
+                    }).catch((error) => {
+                        console.error("Error signing out: ", error);
+                        alert("Error signing out: " + error.message);
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error logging activity: ", error);
+                    // Still try to sign out even if logging failed
+                    firebase.auth().signOut().then(() => {
+                        window.location.href = 'login.html';
+                    });
+                });
+        }
+    </script>
+    
+    <!-- Include the analytics.js file -->
+    <script src="analytics.js"></script>
+</body>
+</html>
