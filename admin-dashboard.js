@@ -5,6 +5,7 @@ function loadDashboardData() {
     const activeWorkshopsElement = document.getElementById('activeWorkshops');
     const totalRegistrationsElement = document.getElementById('totalRegistrations');
     const recentActivityElement = document.getElementById('recentActivity');
+    const clearActivityBtn = document.getElementById('clearActivityBtn');
     
     // Initialize with loading indicators
     totalUsersElement.textContent = 'Loading...';
@@ -39,9 +40,9 @@ function loadDashboardData() {
     });
     
     // Set up real-time listener for recent activity
-    db.collection('activity')
+    const activityListener = db.collection('activity')
         .orderBy('timestamp', 'desc')
-        .limit(10)
+        .limit(20) // Increased limit to show more activities
         .onSnapshot((snapshot) => {
             // Clear current activity
             recentActivityElement.innerHTML = '';
@@ -100,6 +101,46 @@ function loadDashboardData() {
     }, (error) => {
         console.error("Error in registrations listener: ", error);
     });
+    
+    // Setup clear activity button
+    clearActivityBtn.addEventListener('click', clearActivityHistory);
+}
+
+// Function to clear activity history
+function clearActivityHistory() {
+    if (!confirm('Are you sure you want to clear all activity history? This action cannot be undone.')) {
+        return;
+    }
+    
+    const db = firebase.firestore();
+    
+    // First log this action
+    logAdminActivity('System', 'Cleared activity history')
+        .then(() => {
+            // Get all activity documents
+            return db.collection('activity').get();
+        })
+        .then((snapshot) => {
+            // Create a batch to delete all documents
+            const batch = db.batch();
+            snapshot.forEach((doc) => {
+                // Skip the document we just created for logging this action
+                if (doc.data().type === 'System' && doc.data().details === 'Cleared activity history') {
+                    return;
+                }
+                batch.delete(doc.ref);
+            });
+            
+            // Commit the batch delete
+            return batch.commit();
+        })
+        .then(() => {
+            alert('Activity history has been cleared successfully.');
+        })
+        .catch((error) => {
+            console.error("Error clearing activity history:", error);
+            alert(`Error clearing activity history: ${error.message}`);
+        });
 }
 
 // Function to log admin activity
