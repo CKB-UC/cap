@@ -89,52 +89,11 @@ function loadWorkshops() {
             
             // Format the date
             const date = workshop.date?.toDate() || new Date();
-            const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const formattedDate = date.toLocaleDateString();
+            const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // Create status badge class based on status
-            let statusClass = '';
-            switch(workshop.status) {
-                case 'active':
-                    statusClass = 'bg-green-100 text-green-800';
-                    break;
-                case 'upcoming':
-                    statusClass = 'bg-blue-100 text-blue-800';
-                    break;
-                case 'completed':
-                    statusClass = 'bg-gray-100 text-gray-800';
-                    break;
-                case 'postponed':
-                    statusClass = 'bg-yellow-100 text-yellow-800';
-                    break;
-                default:
-                    statusClass = 'bg-gray-100 text-gray-800';
-            }
-            
-            // Create table row
-            const row = document.createElement('tr');
-            row.className = 'hover:bg-gray-50';
-            row.innerHTML = `
-                <td class="py-3 px-4 border-b">${workshop.title}</td>
-                <td class="py-3 px-4 border-b">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass}">
-                        ${workshop.status.charAt(0).toUpperCase() + workshop.status.slice(1)}
-                    </span>
-                </td>
-                <td class="py-3 px-4 border-b">${formattedDate}</td>
-                <td class="py-3 px-4 border-b">${workshop.capacity || 'N/A'}</td>
-                <td class="py-3 px-4 border-b">${workshop.registered || 0}</td>
-                <td class="py-3 px-4 border-b">
-                    <div class="flex space-x-2">
-                        <button class="edit-workshop text-indigo-600 hover:text-indigo-800 px-3 py-1 border border-indigo-300 rounded" data-id="${workshop.id}" title="Edit Workshop">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="delete-workshop text-red-600 hover:text-red-800 px-3 py-1 border border-red-300 rounded" data-id="${workshop.id}" title="Delete Workshop">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
-            
+            // Create row with status badge and color-coded buttons
+            const row = createWorkshopRow(workshop, formattedDate, formattedTime);
             workshopsList.appendChild(row);
         });
         
@@ -147,7 +106,62 @@ function loadWorkshops() {
     });
 }
 
-// Add event listeners to edit/delete/view buttons
+// Create a workshop row with proper styling
+function createWorkshopRow(workshop, formattedDate, formattedTime) {
+    const row = document.createElement('tr');
+    row.className = 'hover:bg-gray-50';
+    
+    // Determine status badge style
+    let statusBadgeClass = '';
+    switch(workshop.status) {
+        case 'active':
+            statusBadgeClass = 'bg-green-100 text-green-800 border border-green-200';
+            break;
+        case 'upcoming':
+            statusBadgeClass = 'bg-blue-100 text-blue-800 border border-blue-200';
+            break;
+        case 'completed':
+            statusBadgeClass = 'bg-gray-100 text-gray-800 border border-gray-200';
+            break;
+        case 'postponed':
+            statusBadgeClass = 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+            break;
+        default:
+            statusBadgeClass = 'bg-gray-100 text-gray-800 border border-gray-200';
+    }
+    
+    // Create the row HTML
+    row.innerHTML = `
+        <td class="py-3 px-4 border-b">${workshop.title}</td>
+        <td class="py-3 px-4 border-b">
+            <span class="px-2 py-1 inline-block rounded-full text-xs font-medium ${statusBadgeClass}">
+                ${workshop.status.charAt(0).toUpperCase() + workshop.status.slice(1)}
+            </span>
+        </td>
+        <td class="py-3 px-4 border-b">
+            <div class="flex flex-col">
+                <span class="font-medium">${formattedDate}</span>
+                <span class="text-sm text-gray-500">${formattedTime}</span>
+            </div>
+        </td>
+        <td class="py-3 px-4 border-b">${workshop.capacity || 'N/A'}</td>
+        <td class="py-3 px-4 border-b">${workshop.registered || 0}</td>
+        <td class="py-3 px-4 border-b">
+            <div class="flex space-x-2">
+                <button class="edit-workshop bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1 border border-indigo-300 rounded transition-colors" data-id="${workshop.id}" title="Edit Workshop">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="delete-workshop bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 border border-red-300 rounded transition-colors" data-id="${workshop.id}" title="Delete Workshop">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </td>
+    `;
+    
+    return row;
+}
+
+// Add event listeners to edit/delete buttons
 function addActionButtonListeners() {
     // Edit workshop buttons
     document.querySelectorAll('.edit-workshop').forEach(button => {
@@ -157,27 +171,11 @@ function addActionButtonListeners() {
         });
     });
     
-    // Postpone workshop buttons
-    document.querySelectorAll('.postpone-workshop').forEach(button => {
-        button.addEventListener('click', () => {
-            const workshopId = button.getAttribute('data-id');
-            confirmPostponeWorkshop(workshopId);
-        });
-    });
-    
     // Delete workshop buttons
     document.querySelectorAll('.delete-workshop').forEach(button => {
         button.addEventListener('click', () => {
             const workshopId = button.getAttribute('data-id');
             confirmDeleteWorkshop(workshopId);
-        });
-    });
-    
-    // View registrations buttons
-    document.querySelectorAll('.view-registrations').forEach(button => {
-        button.addEventListener('click', () => {
-            const workshopId = button.getAttribute('data-id');
-            viewRegistrations(workshopId);
         });
     });
 }
@@ -204,16 +202,31 @@ function openWorkshopModal(workshopData = null) {
         document.getElementById('capacity').value = workshopData.capacity || '';
         document.getElementById('location').value = workshopData.location || '';
         
-        // Format date for datetime-local input
+        // Format date for date and time inputs
         if (workshopData.date) {
             const date = workshopData.date.toDate();
-            const formattedDate = date.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
-            document.getElementById('date').value = formattedDate;
+            
+            // Format date as YYYY-MM-DD
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            
+            // Format time as HH:MM
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const formattedTime = `${hours}:${minutes}`;
+            
+            document.getElementById('workshopDate').value = formattedDate;
+            document.getElementById('workshopTime').value = formattedTime;
         }
     } else {
         // New workshop
         modalTitle.textContent = 'Create New Workshop';
         workshopIdField.value = '';
+        
+        // Set default status for new workshop
+        document.getElementById('status').value = 'upcoming';
     }
     
     // Show the modal
@@ -239,8 +252,20 @@ function handleWorkshopSubmit(e) {
     const status = document.getElementById('status').value;
     const capacity = parseInt(document.getElementById('capacity').value);
     const location = document.getElementById('location').value;
-    const dateString = document.getElementById('date').value;
-    const date = new Date(dateString);
+    
+    // Get date and time values
+    const dateString = document.getElementById('workshopDate').value;
+    const timeString = document.getElementById('workshopTime').value;
+    
+    // Validate inputs
+    if (!dateString || !timeString) {
+        alert('Please select both date and time for the workshop.');
+        return;
+    }
+    
+    // Combine date and time
+    const dateTimeString = `${dateString}T${timeString}`;
+    const date = new Date(dateTimeString);
     
     // Create workshop data object
     const workshopData = {
@@ -296,88 +321,7 @@ function editWorkshop(workshopId) {
     });
 }
 
-// Confirm postpone workshop
-function confirmPostponeWorkshop(workshopId) {
-    // Get workshop title first
-    db.collection('workshops').doc(workshopId).get().then((doc) => {
-        if (doc.exists) {
-            const workshop = doc.data();
-            
-            // Set up confirmation modal
-            const modal = document.getElementById('confirmationModal');
-            const message = document.getElementById('confirmationMessage');
-            const confirmBtn = document.getElementById('confirmAction');
-            
-            message.textContent = `Are you sure you want to postpone the workshop "${workshop.title}"? This will mark it as postponed and allow you to reschedule it.`;
-            
-            // Set up confirm button
-            confirmBtn.onclick = () => {
-                postponeWorkshop(workshopId, workshop.title);
-                closeConfirmationModal();
-            };
-            
-            // Show the modal
-            modal.classList.remove('hidden');
-        } else {
-            alert("Workshop not found!");
-        }
-    }).catch((error) => {
-        console.error("Error getting workshop:", error);
-        alert(`Error getting workshop: ${error.message}`);
-    });
-}
-
-// Postpone a workshop
-function postponeWorkshop(workshopId, workshopTitle) {
-    // First open a modal to get a new date
-    const modal = document.getElementById('workshopModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const form = document.getElementById('workshopForm');
-    const workshopIdField = document.getElementById('workshopId');
-    
-    db.collection('workshops').doc(workshopId).get().then((doc) => {
-        if (doc.exists) {
-            const workshopData = doc.data();
-            workshopData.id = doc.id;
-            
-            // Set status to postponed
-            workshopData.status = 'postponed';
-            
-            // Open the edit modal with postponed status
-            modalTitle.textContent = 'Reschedule Workshop';
-            workshopIdField.value = workshopData.id;
-            
-            // Fill form with workshop data
-            document.getElementById('title').value = workshopData.title || '';
-            document.getElementById('description').value = workshopData.description || '';
-            document.getElementById('status').value = 'postponed'; // Set to postponed
-            document.getElementById('capacity').value = workshopData.capacity || '';
-            document.getElementById('location').value = workshopData.location || '';
-            
-            // Format date for datetime-local input
-            if (workshopData.date) {
-                const date = workshopData.date.toDate();
-                const formattedDate = date.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
-                document.getElementById('date').value = formattedDate;
-            }
-            
-            // Add a note to the description about the postponement
-            const originalDesc = document.getElementById('description').value;
-            const postponeNote = `\n\n[POSTPONED: This workshop was originally scheduled for ${workshopData.date.toDate().toLocaleDateString()}]`;
-            document.getElementById('description').value = originalDesc + postponeNote;
-            
-            // Show the modal
-            modal.classList.remove('hidden');
-        } else {
-            alert("Workshop not found!");
-        }
-    }).catch((error) => {
-        console.error("Error getting workshop:", error);
-        alert(`Error getting workshop: ${error.message}`);
-    });
-}
-
-// Delete a workshop - confirmation
+// Confirm delete workshop
 function confirmDeleteWorkshop(workshopId) {
     // Get workshop title first
     db.collection('workshops').doc(workshopId).get().then((doc) => {
@@ -414,7 +358,7 @@ function closeConfirmationModal() {
     modal.classList.add('hidden');
 }
 
-// Actually delete the workshop
+// Delete the workshop
 function deleteWorkshop(workshopId, workshopTitle) {
     db.collection('workshops').doc(workshopId).delete().then(() => {
         // Log the activity
@@ -427,33 +371,24 @@ function deleteWorkshop(workshopId, workshopTitle) {
     });
 }
 
-// View registrations for a workshop
-function viewRegistrations(workshopId) {
-    // For now, just store the ID in session storage and redirect
-    sessionStorage.setItem('currentWorkshopId', workshopId);
-    window.location.href = 'workshop-registrations.html';
-}
-
-// Logout function (reusing from admin-dashboard.js)
-if (typeof logout !== 'function') {
-    function logout() {
-        // Log the logout activity
-        logAdminActivity('Logout', 'Admin logged out')
-            .then(() => {
-                // Then sign out
-                firebase.auth().signOut().then(() => {
-                    window.location.href = 'login.html';
-                }).catch((error) => {
-                    console.error("Error signing out: ", error);
-                    alert("Error signing out: " + error.message);
-                });
-            })
-            .catch((error) => {
-                console.error("Error logging activity: ", error);
-                // Still try to sign out even if logging failed
-                firebase.auth().signOut().then(() => {
-                    window.location.href = 'login.html';
-                });
+// Logout function
+function logout() {
+    // Log the logout activity
+    logAdminActivity('Logout', 'Admin logged out')
+        .then(() => {
+            // Then sign out
+            firebase.auth().signOut().then(() => {
+                window.location.href = 'login.html';
+            }).catch((error) => {
+                console.error("Error signing out: ", error);
+                alert("Error signing out: " + error.message);
             });
-    }
+        })
+        .catch((error) => {
+            console.error("Error logging activity: ", error);
+            // Still try to sign out even if logging failed
+            firebase.auth().signOut().then(() => {
+                window.location.href = 'login.html';
+            });
+        });
 }

@@ -102,28 +102,35 @@
                     <textarea id="description" name="description" rows="4" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                 </div>
                 
+                <!-- Update the date/time fields in the workshop form -->
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label for="date" class="block text-gray-700 font-medium mb-2">Date</label>
-                        <input type="datetime-local" id="date" name="date" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <label for="workshopDate" class="block text-gray-700 font-medium mb-2">Date</label>
+                        <input type="date" id="workshopDate" name="workshopDate" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     
                     <div>
-                        <label for="capacity" class="block text-gray-700 font-medium mb-2">Capacity</label>
-                        <input type="number" id="capacity" name="capacity" min="1" max="999 " required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <label for="workshopTime" class="block text-gray-700 font-medium mb-2">Time</label>
+                        <input type="time" id="workshopTime" name="workshopTime" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </div>
                 
-                <!-- Status dropdown update in workshop form -->
-            <div class="mb-4">
-                <label for="status" class="block text-gray-700 font-medium mb-2">Status</label>
-                    <select id="status" name="status" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="upcoming">Upcoming</option>
-                        <option value="active">Active</option>
-                        <option value="postponed">Postponed</option>
-                        <option value="completed">Completed</option>
-                    </select>
-            </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="capacity" class="block text-gray-700 font-medium mb-2">Capacity</label>
+                        <input type="number" id="capacity" name="capacity" min="1" max="999" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    
+                    <div>
+                        <label for="status" class="block text-gray-700 font-medium mb-2">Status</label>
+                        <select id="status" name="status" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="upcoming">Upcoming</option>
+                            <option value="active">Active</option>
+                            <option value="postponed">Postponed</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
                 
                 <div class="mb-4">
                     <label for="location" class="block text-gray-700 font-medium mb-2">Location</label>
