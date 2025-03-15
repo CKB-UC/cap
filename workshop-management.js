@@ -106,35 +106,63 @@ function loadWorkshops() {
     });
 }
 
-// Create a workshop row with proper styling
+// CreateWorkshopRow function with color scheme
 function createWorkshopRow(workshop, formattedDate, formattedTime) {
     const row = document.createElement('tr');
     row.className = 'hover:bg-gray-50';
     
-    // Determine status badge style
-    let statusBadgeClass = '';
+    // Determine status badge style with alternative colors
+    let statusStyles = {};
+    
     switch(workshop.status) {
         case 'active':
-            statusBadgeClass = 'bg-green-100 text-green-800 border border-green-200';
+            // Alternative Light Green for Active
+            statusStyles = {
+                backgroundColor: '#c6f6d5', // Lighter green alternative
+                color: '#000000',           // Black text
+                borderColor: '#9ae6b4'      // Light green border
+            };
             break;
         case 'upcoming':
-            statusBadgeClass = 'bg-blue-100 text-blue-800 border border-blue-200';
-            break;
-        case 'completed':
-            statusBadgeClass = 'bg-gray-100 text-gray-800 border border-gray-200';
+            // Green for Upcoming
+            statusStyles = {
+                backgroundColor: '#48bb78', // Different green shade
+                color: '#000000',           // Black text
+                borderColor: '#38a169'      // Green border
+            };
             break;
         case 'postponed':
-            statusBadgeClass = 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+            // Alternative Red for Postponed
+            statusStyles = {
+                backgroundColor: '#feb2b2', // Lighter red alternative
+                color: '#000000',           // Black text
+                borderColor: '#fc8181'      // Light red border
+            };
+            break;
+        case 'completed':
+            // Alternative Yellow for Completed
+            statusStyles = {
+                backgroundColor: '#fefcbf', // Lighter yellow alternative
+                color: '#000000',           // Black text
+                borderColor: '#faf089'      // Light yellow border
+            };
             break;
         default:
-            statusBadgeClass = 'bg-gray-100 text-gray-800 border border-gray-200';
+            statusStyles = {
+                backgroundColor: '#e5e7eb', // Light gray
+                color: '#000000',           // Black text
+                borderColor: '#d1d5db'      // Gray border
+            };
     }
     
-    // Create the row HTML
+    // Create inline style string directly
+    const styleString = `background-color:${statusStyles.backgroundColor};color:${statusStyles.color};border-color:${statusStyles.borderColor}`;
+    
+    // Create the row HTML with inline styles for reliability
     row.innerHTML = `
         <td class="py-3 px-4 border-b">${workshop.title}</td>
         <td class="py-3 px-4 border-b">
-            <span class="px-2 py-1 inline-block rounded-full text-xs font-medium ${statusBadgeClass}">
+            <span class="px-2 py-1 inline-block rounded-full text-xs font-medium" style="${styleString};border-width:1px;border-style:solid;font-weight:500;">
                 ${workshop.status.charAt(0).toUpperCase() + workshop.status.slice(1)}
             </span>
         </td>
@@ -148,10 +176,10 @@ function createWorkshopRow(workshop, formattedDate, formattedTime) {
         <td class="py-3 px-4 border-b">${workshop.registered || 0}</td>
         <td class="py-3 px-4 border-b">
             <div class="flex space-x-2">
-                <button class="edit-workshop bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1 border border-indigo-300 rounded transition-colors" data-id="${workshop.id}" title="Edit Workshop">
+                <button class="edit-workshop" data-id="${workshop.id}" title="Edit Workshop" style="background-color:#e0e7ff;color:#4338ca;border-color:#c7d2fe;padding:0.25rem 0.75rem;border-width:1px;border-radius:0.25rem;border-style:solid;transition:all 0.2s;">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="delete-workshop bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 border border-red-300 rounded transition-colors" data-id="${workshop.id}" title="Delete Workshop">
+                <button class="delete-workshop" data-id="${workshop.id}" title="Delete Workshop" style="background-color:#fee2e2;color:#b91c1c;border-color:#fecaca;padding:0.25rem 0.75rem;border-width:1px;border-radius:0.25rem;border-style:solid;transition:all 0.2s;">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>

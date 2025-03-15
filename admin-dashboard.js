@@ -114,20 +114,12 @@ function clearActivityHistory() {
     
     const db = firebase.firestore();
     
-    // First log this action
-    logAdminActivity('System', 'Cleared activity history')
-        .then(() => {
-            // Get all activity documents
-            return db.collection('activity').get();
-        })
+    // Get all activity documents
+    db.collection('activity').get()
         .then((snapshot) => {
             // Create a batch to delete all documents
             const batch = db.batch();
             snapshot.forEach((doc) => {
-                // Skip the document we just created for logging this action
-                if (doc.data().type === 'System' && doc.data().details === 'Cleared activity history') {
-                    return;
-                }
                 batch.delete(doc.ref);
             });
             
