@@ -230,6 +230,12 @@ function openWorkshopModal(workshopData = null) {
         document.getElementById('capacity').value = workshopData.capacity || '';
         document.getElementById('location').value = workshopData.location || '';
         
+        // Fill module information
+        document.getElementById('moduleDescription').value = workshopData.moduleDescription || '';
+        document.getElementById('moduleObjectives').value = workshopData.moduleObjectives || '';
+        document.getElementById('modulePrerequisites').value = workshopData.modulePrerequisites || '';
+        document.getElementById('moduleMaterials').value = workshopData.moduleMaterials || '';
+        
         // Format date for date and time inputs
         if (workshopData.date) {
             const date = workshopData.date.toDate();
@@ -271,51 +277,52 @@ function closeWorkshopModal() {
 function handleWorkshopSubmit(e) {
     e.preventDefault();
     
-    const form = document.getElementById('workshopForm');
     const workshopId = document.getElementById('workshopId').value;
-    
-    // Get form values
     const title = document.getElementById('title').value;
     const description = document.getElementById('description').value;
     const status = document.getElementById('status').value;
     const capacity = parseInt(document.getElementById('capacity').value);
     const location = document.getElementById('location').value;
     
-    // Get date and time values
-    const dateString = document.getElementById('workshopDate').value;
-    const timeString = document.getElementById('workshopTime').value;
+    // Get module information
+    const moduleDescription = document.getElementById('moduleDescription').value;
+    const moduleObjectives = document.getElementById('moduleObjectives').value;
+    const modulePrerequisites = document.getElementById('modulePrerequisites').value;
+    const moduleMaterials = document.getElementById('moduleMaterials').value;
     
-    // Validate inputs
-    if (!dateString || !timeString) {
-        alert('Please select both date and time for the workshop.');
-        return;
-    }
+    // Get date and time
+    const date = document.getElementById('workshopDate').value;
+    const time = document.getElementById('workshopTime').value;
     
-    // Combine date and time
-    const dateTimeString = `${dateString}T${timeString}`;
-    const date = new Date(dateTimeString);
+    // Combine date and time into a single Date object
+    const workshopDate = new Date(`${date}T${time}`);
     
-    // Create workshop data object
     const workshopData = {
         title,
         description,
         status,
         capacity,
         location,
-        date: firebase.firestore.Timestamp.fromDate(date),
-        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        date: firebase.firestore.Timestamp.fromDate(workshopDate),
+        moduleDescription,
+        moduleObjectives,
+        modulePrerequisites,
+        moduleMaterials
     };
     
-    // If creating a new workshop, add created timestamp
-    if (!workshopId) {
-        workshopData.created = firebase.firestore.FieldValue.serverTimestamp();
-        workshopData.registered = 0; // Initialize registered count
-    }
+    let saveWorkshop;
     
-    // Save to Firestore
-    const saveWorkshop = workshopId 
-        ? db.collection('workshops').doc(workshopId).update(workshopData) 
-        : db.collection('workshops').add(workshopData);
+    if (workshopId) {
+        // Update existing workshop
+        saveWorkshop = db.collection('workshops').doc(workshopId).update(workshopData);
+    } else {
+        // Create new workshop
+        saveWorkshop = db.collection('workshops').add({
+            ...workshopData,
+            registered: 0,
+            registeredUsers: []
+        });
+    }
     
     saveWorkshop.then(() => {
         // Log the activity

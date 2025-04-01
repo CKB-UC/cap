@@ -78,74 +78,116 @@
     </div>
     
     <!-- Create/Edit Workshop Modal -->
-    <div id="workshopModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-screen overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h2 id="modalTitle" class="text-xl font-bold text-gray-800">Create New Workshop</h2>
-                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+    <div id="workshopModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+                <!-- Header -->
+                <div class="border-b border-gray-200 px-6 py-4">
+                    <div class="flex justify-between items-center">
+                        <h2 id="modalTitle" class="text-xl font-bold text-gray-800">Create New Workshop</h2>
+                        <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Form Content - Scrollable Area -->
+                <div style="max-height: calc(100vh - 200px); overflow-y: auto;">
+                    <div class="px-6 py-4">
+                        <form id="workshopForm" class="space-y-6">
+                            <!-- Keep existing form content unchanged -->
+                            <input type="hidden" id="workshopId">
+                            
+                            <div>
+                                <label for="title" class="block text-gray-700 font-medium mb-2">Workshop Title</label>
+                                <input type="text" id="title" name="title" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            
+                            <div>
+                                <label for="description" class="block text-gray-700 font-medium mb-2">Description</label>
+                                <textarea id="description" name="description" rows="4" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="workshopDate" class="block text-gray-700 font-medium mb-2">Date</label>
+                                    <input type="date" id="workshopDate" name="workshopDate" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                
+                                <div>
+                                    <label for="workshopTime" class="block text-gray-700 font-medium mb-2">Time</label>
+                                    <input type="time" id="workshopTime" name="workshopTime" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="capacity" class="block text-gray-700 font-medium mb-2">Capacity</label>
+                                    <input type="number" id="capacity" name="capacity" min="1" max="999" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                
+                                <div>
+                                    <label for="status" class="block text-gray-700 font-medium mb-2">Status</label>
+                                    <select id="status" name="status" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                        <option value="upcoming">Upcoming</option>
+                                        <option value="active">Active</option>
+                                        <option value="postponed">Postponed</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="location" class="block text-gray-700 font-medium mb-2">Location</label>
+                                <input type="text" id="location" name="location" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+
+                            <!-- Module Information Section -->
+                            <div class="border-t border-gray-200 pt-6">
+                                <div class="flex justify-between items-center mb-4 bg-gray-50 p-4 rounded-lg">
+                                    <h3 class="text-lg font-semibold text-gray-800">Module Information</h3>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="moduleDescription" class="block text-gray-700 font-medium mb-2">Module Description</label>
+                                        <textarea id="moduleDescription" name="moduleDescription" rows="4" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="moduleObjectives" class="block text-gray-700 font-medium mb-2">Learning Objectives</label>
+                                        <textarea id="moduleObjectives" name="moduleObjectives" rows="3" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="modulePrerequisites" class="block text-gray-700 font-medium mb-2">Prerequisites</label>
+                                        <textarea id="modulePrerequisites" name="modulePrerequisites" rows="2" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="moduleMaterials" class="block text-gray-700 font-medium mb-2">Required Materials</label>
+                                        <textarea id="moduleMaterials" name="moduleMaterials" rows="2" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="border-t border-gray-200 px-6 py-4">
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancelBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded transition">
+                            Cancel
+                        </button>
+                        <button type="submit" id="saveWorkshopBtn" form="workshopForm" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition">
+                            Save Workshop
+                        </button>
+                    </div>
+                </div>
             </div>
-            
-            <form id="workshopForm">
-                <input type="hidden" id="workshopId">
-                
-                <div class="mb-4">
-                    <label for="title" class="block text-gray-700 font-medium mb-2">Workshop Title</label>
-                    <input type="text" id="title" name="title" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                
-                <div class="mb-4">
-                    <label for="description" class="block text-gray-700 font-medium mb-2">Description</label>
-                    <textarea id="description" name="description" rows="4" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                </div>
-                
-                <!-- Update the date/time fields in the workshop form -->
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label for="workshopDate" class="block text-gray-700 font-medium mb-2">Date</label>
-                        <input type="date" id="workshopDate" name="workshopDate" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    
-                    <div>
-                        <label for="workshopTime" class="block text-gray-700 font-medium mb-2">Time</label>
-                        <input type="time" id="workshopTime" name="workshopTime" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label for="capacity" class="block text-gray-700 font-medium mb-2">Capacity</label>
-                        <input type="number" id="capacity" name="capacity" min="1" max="999" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    
-                    <div>
-                        <label for="status" class="block text-gray-700 font-medium mb-2">Status</label>
-                        <select id="status" name="status" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="upcoming">Upcoming</option>
-                            <option value="active">Active</option>
-                            <option value="postponed">Postponed</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <label for="location" class="block text-gray-700 font-medium mb-2">Location</label>
-                    <input type="text" id="location" name="location" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" id="cancelBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded transition">
-                        Cancel
-                    </button>
-                    <button type="submit" id="saveWorkshopBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition">
-                        Save Workshop
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
     
@@ -166,7 +208,12 @@
         </div>
     </div>
 
-    
+    <!-- Module Details Container -->
+    <div id="moduleDetailsContainer" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <!-- Content will be dynamically inserted here -->
+        </div>
+    </div>
 
     <!-- Footer -->
     <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
