@@ -4,47 +4,225 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Module Information</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="css/video.css">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/footer.css">
-    <link rel="stylesheet" href="css/testbot.css">
-    <link rel="stylesheet" href="css/register.css">
-    <link rel="stylesheet" href="css/announce.css">
-    <link href="css/output.css" rel="stylesheet">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --dark-bg: #343a40;
+            --text-color: #333;
+            --light-text: #f8f9fa;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .main-header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+        }
+        
+        .content-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 2.2rem;
+            color: var(--secondary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .info-section {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--box-shadow);
+            transition: transform 0.3s ease;
+        }
+        
+        .info-section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .info-section h3 {
+            color: var(--primary-color);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .info-section p {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .info-section ul {
+            list-style-position: inside;
+            padding-left: 1rem;
+        }
+        
+        .info-section li {
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 1rem;
+        }
+        
+        .info-section li:before {
+            content: "•";
+            color: var(--primary-color);
+            position: absolute;
+            left: 0;
+        }
+        
+        .footer-line {
+            border: none;
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 2rem 0 0;
+        }
+        
+        .footer {
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            padding: 2rem 0;
+        }
+        
+        .footer-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .contact-info h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .contact-info, .footer-links {
+            list-style: none;
+        }
+        
+        .contact-info li, .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-links a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .main-header h1 {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <header class="main-header">
         <h1>Module Information</h1>
     </header>
     
-
     <div class="content-container">
         <a href="workshops.html" class="btn btn-primary">← Back to Workshops</a>
-        <h2 id="workshopTitle" class="section-title"></h2>
+        <h2 id="workshopTitle" class="section-title">Loading workshop...</h2>
         
         <div class="info-section">
             <h3>Description</h3>
-            <p id="moduleDescription"></p>
+            <p id="moduleDescription">Loading description...</p>
         </div>
         
         <div class="info-section">
             <h3>Learning Objectives</h3>
-            <ul id="moduleObjectives"></ul>
+            <ul id="moduleObjectives">
+                <li>Loading objectives...</li>
+            </ul>
         </div>
         
         <div class="info-section">
             <h3>Prerequisites</h3>
-            <ul id="modulePrerequisites"></ul>
+            <ul id="modulePrerequisites">
+                <li>Loading prerequisites...</li>
+            </ul>
         </div>
         
         <div class="info-section">
             <h3>Required Materials</h3>
-            <ul id="moduleMaterials"></ul>
+            <ul id="moduleMaterials">
+                <li>Loading materials...</li>
+            </ul>
         </div>
     </div>
 
@@ -134,4 +312,4 @@
         }
     </script>
 </body>
-</html> 
+</html>
