@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Information</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/video.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/footer.css">
+    <link rel="stylesheet" href="css/testbot.css">
+    <link rel="stylesheet" href="css/register.css">
+    <link rel="stylesheet" href="css/announce.css">
+    <link href="css/output.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <header class="main-header">
+        <h1>Module Information</h1>
+    </header>
+    
+
+    <div class="content-container">
+        <a href="workshops.html" class="btn btn-primary">← Back to Workshops</a>
+        <h2 id="workshopTitle" class="section-title"></h2>
+        
+        <div class="info-section">
+            <h3>Description</h3>
+            <p id="moduleDescription"></p>
+        </div>
+        
+        <div class="info-section">
+            <h3>Learning Objectives</h3>
+            <ul id="moduleObjectives"></ul>
+        </div>
+        
+        <div class="info-section">
+            <h3>Prerequisites</h3>
+            <ul id="modulePrerequisites"></ul>
+        </div>
+        
+        <div class="info-section">
+            <h3>Required Materials</h3>
+            <ul id="moduleMaterials"></ul>
+        </div>
+    </div>
+
+    <hr class="footer-line">
+    <footer class="footer">
+        <div class="footer-content">
+            <ul class="contact-info">
+                <h2>For more Info:</h2>
+                <li>Room 316 B Lopez Building</li>
+                <li>Session Road, Baguio City 2600</li>
+                <li>@JenmenManagementInc</li>
+                <li>0908-340-8351</li>
+            </ul>
+            <ul class="footer-links">
+                <li><a href="privacy.html">Privacy Policy</a></li>
+                <li><a href="terms.html">Terms of Service</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        // Check if user is logged in
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            } else {
+                // Get workshop ID from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const workshopId = urlParams.get('id');
+
+                if (workshopId) {
+                    // Initialize Firestore
+                    const db = firebase.firestore();
+
+                    // Fetch workshop data
+                    db.collection('workshops').doc(workshopId).get()
+                        .then((doc) => {
+                            if (doc.exists) {
+                                const workshop = doc.data();
+                                
+                                // Update the page content
+                                document.getElementById('workshopTitle').textContent = workshop.title;
+                                document.getElementById('moduleDescription').textContent = workshop.moduleDescription || 'No description available';
+                                
+                                // Convert objectives, prerequisites, and materials to list items
+                                const objectives = workshop.moduleObjectives ? workshop.moduleObjectives.split('\n').filter(item => item.trim()) : [];
+                                const prerequisites = workshop.modulePrerequisites ? workshop.modulePrerequisites.split('\n').filter(item => item.trim()) : [];
+                                const materials = workshop.moduleMaterials ? workshop.moduleMaterials.split('\n').filter(item => item.trim()) : [];
+                                
+                                populateList('moduleObjectives', objectives);
+                                populateList('modulePrerequisites', prerequisites);
+                                populateList('moduleMaterials', materials);
+                            } else {
+                                document.querySelector('.content-container').innerHTML = '<h1>Workshop not found</h1>';
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error getting workshop:", error);
+                            document.querySelector('.content-container').innerHTML = '<h1>Error loading workshop details</h1>';
+                        });
+                } else {
+                    document.querySelector('.content-container').innerHTML = '<h1>No workshop ID provided</h1>';
+                }
+            }
+        });
+
+        function populateList(elementId, items) {
+            const listElement = document.getElementById(elementId);
+            listElement.innerHTML = '';
+            
+            if (items.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = 'No items available';
+                listElement.appendChild(li);
+                return;
+            }
+            
+            items.forEach(item => {
+                if (item.trim()) {
+                    const li = document.createElement('li');
+                    li.textContent = item.trim();
+                    listElement.appendChild(li);
+                }
+            });
+        }
+    </script>
+</body>
+</html> 
