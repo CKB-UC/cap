@@ -173,6 +173,49 @@
             color: var(--primary-color);
         }
         
+        /* Video section styles */
+        .video-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .video-container h3 {
+            color: var(--primary-color);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+        
+        .video-wrapper iframe,
+        .video-wrapper video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .video-description {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #666;
+            margin-top: 1rem;
+        }
+        
         /* Responsive design */
         @media (max-width: 768px) {
             .main-header h1 {
@@ -198,6 +241,18 @@
     <div class="content-container">
         <a href="workshops.html" class="btn btn-primary">← Back to Workshops</a>
         <h2 id="workshopTitle" class="section-title">Loading workshop...</h2>
+        
+        <!-- Video Section -->
+        <div class="video-container">
+            <h3>Introduction Video</h3>
+            <div class="video-wrapper" id="videoWrapper">
+                <!-- Video will be inserted here by JavaScript -->
+                <img src="/api/placeholder/800/450" alt="Video placeholder" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">
+            </div>
+            <p class="video-description" id="videoDescription">
+                This introduction video will give you an overview of what to expect in this module.
+            </p>
+        </div>
         
         <div class="info-section">
             <h3>Description</h3>
@@ -277,6 +332,13 @@
                                 populateList('moduleObjectives', objectives);
                                 populateList('modulePrerequisites', prerequisites);
                                 populateList('moduleMaterials', materials);
+                                
+                                // Handle video if it exists
+                                if (workshop.videoUrl) {
+                                    setupVideo(workshop.videoUrl, workshop.videoDescription);
+                                } else {
+                                    document.getElementById('videoDescription').textContent = 'No video available for this module.';
+                                }
                             } else {
                                 document.querySelector('.content-container').innerHTML = '<h1>Workshop not found</h1>';
                             }
@@ -309,6 +371,44 @@
                     listElement.appendChild(li);
                 }
             });
+        }
+        
+        function setupVideo(videoUrl, videoDescription) {
+            const videoWrapper = document.getElementById('videoWrapper');
+            
+            // Clear the placeholder
+            videoWrapper.innerHTML = '';
+            
+            if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+                // Handle YouTube videos
+                const videoId = getYouTubeVideoId(videoUrl);
+                if (videoId) {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = `https://www.youtube.com/embed/${videoId}`;
+                    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                    iframe.allowFullscreen = true;
+                    videoWrapper.appendChild(iframe);
+                }
+            } else {
+                // Handle direct video files
+                const video = document.createElement('video');
+                video.src = videoUrl;
+                video.controls = true;
+                video.preload = 'metadata';
+                videoWrapper.appendChild(video);
+            }
+            
+            // Update video description if provided
+            if (videoDescription) {
+                document.getElementById('videoDescription').textContent = videoDescription;
+            }
+        }
+        
+        function getYouTubeVideoId(url) {
+            // Regular expressions to extract YouTube video ID from different URL formats
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
         }
     </script>
 </body>
