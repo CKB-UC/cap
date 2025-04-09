@@ -21,6 +21,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Cloudinary Configuration
+const CLOUDINARY_CONFIG = {
+    cloudName: 'dwziuduck',
+    uploadPreset: 'workshop-videos',
+    apiKey: '966829156357797'
+};
+
 // Set up event listeners
 function setupEventListeners() {
     // Create workshop button
@@ -43,6 +50,9 @@ function setupEventListeners() {
     
     // Confirmation modal
     document.getElementById('cancelConfirmation').addEventListener('click', closeConfirmationModal);
+    
+    // Video file input change
+    document.getElementById('workshopVideo').addEventListener('change', handleVideoSelect);
 }
 
 // Load workshops from Firestore
@@ -273,87 +283,156 @@ function closeWorkshopModal() {
     modal.classList.add('hidden');
 }
 
-// Handle workshop form submission
-function handleWorkshopSubmit(e) {
-    e.preventDefault();
+// Handle video file selection
+function handleVideoSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Update file name display
+    document.getElementById('videoFileName').textContent = file.name;
+
+    // Show video preview
+    const videoPreview = document.getElementById('videoPreview');
+    const videoPlayer = document.getElementById('videoPlayer');
+    videoPreview.classList.remove('hidden');
     
-    const workshopId = document.getElementById('workshopId').value;
-    const title = document.getElementById('title').value;
-    const description = document.getElementById('description').value;
-    const status = document.getElementById('status').value;
-    const capacity = parseInt(document.getElementById('capacity').value);
-    const location = document.getElementById('location').value;
-    
-    // Get module information
-    const moduleDescription = document.getElementById('moduleDescription').value;
-    const moduleObjectives = document.getElementById('moduleObjectives').value;
-    const modulePrerequisites = document.getElementById('modulePrerequisites').value;
-    const moduleMaterials = document.getElementById('moduleMaterials').value;
-    
-    // Get date and time
-    const date = document.getElementById('workshopDate').value;
-    const time = document.getElementById('workshopTime').value;
-    
-    // Combine date and time into a single Date object
-    const workshopDate = new Date(`${date}T${time}`);
-    
-    const workshopData = {
-        title,
-        description,
-        status,
-        capacity,
-        location,
-        date: firebase.firestore.Timestamp.fromDate(workshopDate),
-        moduleDescription,
-        moduleObjectives,
-        modulePrerequisites,
-        moduleMaterials
-    };
-    
-    let saveWorkshop;
-    
-    if (workshopId) {
-        // Update existing workshop
-        saveWorkshop = db.collection('workshops').doc(workshopId).update(workshopData);
-    } else {
-        // Create new workshop
-        saveWorkshop = db.collection('workshops').add({
-            ...workshopData,
-            registered: 0,
-            registeredUsers: []
-        });
-    }
-    
-    saveWorkshop.then(() => {
-        // Log the activity
-        const activityType = workshopId ? 'Workshop Updated' : 'Workshop Created';
-        const activityDetails = `${activityType}: ${title}`;
+    const videoUrl = URL.createObjectURL(file);
+    videoPlayer.src = videoUrl;
+}
+
+// Upload video to Cloudinary
+async function uploadVideoToCloudinary(file) {
+    return new Promise((resolve, reject) => {
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        const uploadStatus = document.getElementById('uploadStatus');
         
-        logAdminActivity(activityType, activityDetails).then(() => {
-            // Close modal and reload workshops
-            closeWorkshopModal();
-            loadWorkshops();
-        });
-    }).catch((error) => {
-        console.error("Error saving workshop:", error);
-        alert(`Error saving workshop: ${error.message}`);
+        uploadProgress.classList.remove('hidden');
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+        formData.append('cloud_name', CLOUDINARY_CONFIG.cloudName);
+        formData.append('api_key', CLOUDINARY_CONFIG.apiKey);
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/video/upload`, true);
+        
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = `${percent}%`;
+                uploadStatus.textContent = `Uploading: ${percent}%`;
+            }
+        };
+        
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                uploadStatus.textContent = 'Upload complete!';
+                setTimeout(() => {
+                    uploadProgress.classList.add('hidden');
+                }, 2000);
+                resolve(response.secure_url);
+            } else {
+                console.error('Error uploading video:', xhr.responseText);
+                uploadProgress.classList.add('hidden');
+                reject(new Error('Upload failed'));
+            }
+        };
+        
+        xhr.onerror = () => {
+            console.error('Error uploading video');
+            uploadProgress.classList.add('hidden');
+            reject(new Error('Upload failed'));
+        };
+        
+        xhr.send(formData);
     });
 }
 
-// Edit a workshop
-function editWorkshop(workshopId) {
-    db.collection('workshops').doc(workshopId).get().then((doc) => {
-        if (doc.exists) {
-            const workshopData = doc.data();
-            workshopData.id = doc.id;
-            openWorkshopModal(workshopData);
-        } else {
-            alert("Workshop not found!");
+// Handle workshop form submission
+async function handleWorkshopSubmit(e) {
+    e.preventDefault();
+    
+    const workshopId = document.getElementById('workshopId').value;
+    const videoFile = document.getElementById('workshopVideo').files[0];
+    
+    try {
+        let videoUrl = null;
+        if (videoFile) {
+            videoUrl = await uploadVideoToCloudinary(videoFile);
         }
-    }).catch((error) => {
-        console.error("Error getting workshop:", error);
-        alert(`Error getting workshop: ${error.message}`);
-    });
+        
+        const workshopData = {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            date: new Date(`${document.getElementById('workshopDate').value}T${document.getElementById('workshopTime').value}`),
+            capacity: parseInt(document.getElementById('capacity').value),
+            status: document.getElementById('status').value,
+            location: document.getElementById('location').value,
+            moduleDescription: document.getElementById('moduleDescription').value,
+            moduleObjectives: document.getElementById('moduleObjectives').value,
+            modulePrerequisites: document.getElementById('modulePrerequisites').value,
+            moduleMaterials: document.getElementById('moduleMaterials').value,
+            videoUrl: videoUrl,
+            updatedAt: new Date()
+        };
+        
+        if (workshopId) {
+            // Update existing workshop
+            await db.collection('workshops').doc(workshopId).update(workshopData);
+        } else {
+            // Create new workshop
+            workshopData.createdAt = new Date();
+            workshopData.registered = 0;
+            await db.collection('workshops').add(workshopData);
+        }
+        
+        closeWorkshopModal();
+        loadWorkshops();
+    } catch (error) {
+        console.error('Error saving workshop:', error);
+        alert('Error saving workshop. Please try again.');
+    }
+}
+
+// Edit workshop function
+async function editWorkshop(workshopId) {
+    try {
+        const workshopDoc = await db.collection('workshops').doc(workshopId).get();
+        if (!workshopDoc.exists) {
+            throw new Error('Workshop not found');
+        }
+        
+        const workshop = workshopDoc.data();
+        document.getElementById('workshopId').value = workshopId;
+        document.getElementById('title').value = workshop.title;
+        document.getElementById('description').value = workshop.description;
+        document.getElementById('workshopDate').value = workshop.date.toDate().toISOString().split('T')[0];
+        document.getElementById('workshopTime').value = workshop.date.toDate().toTimeString().slice(0, 5);
+        document.getElementById('capacity').value = workshop.capacity;
+        document.getElementById('status').value = workshop.status;
+        document.getElementById('location').value = workshop.location;
+        document.getElementById('moduleDescription').value = workshop.moduleDescription || '';
+        document.getElementById('moduleObjectives').value = workshop.moduleObjectives || '';
+        document.getElementById('modulePrerequisites').value = workshop.modulePrerequisites || '';
+        document.getElementById('moduleMaterials').value = workshop.moduleMaterials || '';
+        
+        // Handle existing video
+        if (workshop.videoUrl) {
+            document.getElementById('videoFileName').textContent = 'Video already uploaded';
+            const videoPreview = document.getElementById('videoPreview');
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPreview.classList.remove('hidden');
+            videoPlayer.src = workshop.videoUrl;
+        }
+        
+        openWorkshopModal();
+    } catch (error) {
+        console.error('Error loading workshop:', error);
+        alert('Error loading workshop details. Please try again.');
+    }
 }
 
 // Confirm delete workshop

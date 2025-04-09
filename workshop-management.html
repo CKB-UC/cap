@@ -11,6 +11,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Cloudinary SDK -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <!-- Navigation -->
@@ -142,6 +144,31 @@
                             <div>
                                 <label for="location" class="block text-gray-700 font-medium mb-2">Location</label>
                                 <input type="text" id="location" name="location" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+
+                            <!-- Video Upload Section -->
+                            <div class="border-t border-gray-200 pt-6">
+                                <div class="flex justify-between items-center mb-4 bg-gray-50 p-4 rounded-lg">
+                                    <h3 class="text-lg font-semibold text-gray-800">Workshop Video</h3>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="flex items-center">
+                                        <input type="file" id="workshopVideo" accept="video/*" class="hidden">
+                                        <label for="workshopVideo" class="cursor-pointer bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+                                            Choose Video
+                                        </label>
+                                        <span id="videoFileName" class="ml-2 text-sm text-gray-500">No video selected</span>
+                                    </div>
+                                    <div id="videoPreview" class="hidden">
+                                        <video id="videoPlayer" controls class="w-full rounded-md"></video>
+                                    </div>
+                                    <div id="uploadProgress" class="hidden">
+                                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div id="progressBar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                                        </div>
+                                        <p id="uploadStatus" class="text-sm text-gray-500 mt-1">Uploading...</p>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Module Information Section -->
