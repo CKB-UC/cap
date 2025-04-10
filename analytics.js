@@ -43,27 +43,26 @@ function showLoadingState() {
 
 // Fetch overview metrics for the dashboard cards
 function fetchOverviewMetrics(startDate, endDate) {
-    // Get registrations
-    db.collection('registrations')
-        .where('timestamp', '>=', startDate)
-        .where('timestamp', '<=', endDate)
-        .get()
-        .then((registrationSnapshot) => {
-            // Count registrations
-            const registrationCount = registrationSnapshot.size;
+    // Get workshops and their registrations
+    db.collection('workshops').get()
+        .then((workshopSnapshot) => {
+            let totalRegistrations = 0;
+            let activeWorkshops = 0;
             
-            // Get unique workshops
-            const workshopIds = new Set();
-            registrationSnapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.workshopId) {
-                    workshopIds.add(data.workshopId);
+            // Count total registrations and active workshops
+            workshopSnapshot.forEach(doc => {
+                const workshop = doc.data();
+                if (workshop.registeredUsers) {
+                    totalRegistrations += workshop.registeredUsers.length;
+                }
+                if (workshop.status === 'active') {
+                    activeWorkshops++;
                 }
             });
             
             // Calculate average registrations per workshop
-            const avgRegistrations = workshopIds.size > 0 ? 
-                (registrationCount / workshopIds.size).toFixed(1) : 0;
+            const avgRegistrations = activeWorkshops > 0 ? 
+                (totalRegistrations / activeWorkshops).toFixed(1) : 0;
             
             document.getElementById('registrationRate').textContent = avgRegistrations;
             
@@ -74,8 +73,8 @@ function fetchOverviewMetrics(startDate, endDate) {
                 .get()
                 .then((completionSnapshot) => {
                     // Calculate completion rate
-                    const completionRate = registrationCount > 0 ? 
-                        ((completionSnapshot.size / registrationCount) * 100).toFixed(1) + '%' : '0%';
+                    const completionRate = totalRegistrations > 0 ? 
+                        ((completionSnapshot.size / totalRegistrations) * 100).toFixed(1) + '%' : '0%';
                     
                     document.getElementById('completionRate').textContent = completionRate;
                 });
@@ -94,7 +93,9 @@ function fetchOverviewMetrics(startDate, endDate) {
         })
         .catch((error) => {
             console.error("Error fetching overview metrics:", error);
-            alert("Error loading metrics data. Please try again.");
+            document.getElementById('registrationRate').textContent = 'Error';
+            document.getElementById('completionRate').textContent = 'Error';
+            document.getElementById('userGrowth').textContent = 'Error';
         });
 }
 
