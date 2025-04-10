@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function viewModule(workshopId) {
-    // Redirect to the module details page with the workshop ID using the correct path
-    window.location.href = `../module-details.html?id=${workshopId}`;
+    // Redirect to the module details page with the workshop ID
+    window.location.href = `module-details.html?id=${workshopId}`;
 }
 
