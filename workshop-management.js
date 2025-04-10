@@ -249,20 +249,17 @@ function openWorkshopModal(workshopData = null) {
         // Format date for date and time inputs
         if (workshopData.date) {
             const date = workshopData.date.toDate();
-            
-            // Format date as YYYY-MM-DD
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const formattedDate = `${year}-${month}-${day}`;
-            
-            // Format time as HH:MM
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            const formattedTime = `${hours}:${minutes}`;
-            
-            document.getElementById('workshopDate').value = formattedDate;
-            document.getElementById('workshopTime').value = formattedTime;
+            document.getElementById('workshopDate').value = date.toISOString().split('T')[0];
+            document.getElementById('workshopTime').value = date.toTimeString().slice(0, 5);
+        }
+        
+        // Handle existing video
+        if (workshopData.videoUrl) {
+            document.getElementById('videoFileName').textContent = 'Video already uploaded';
+            const videoPreview = document.getElementById('videoPreview');
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPreview.classList.remove('hidden');
+            videoPlayer.src = workshopData.videoUrl;
         }
     } else {
         // New workshop
@@ -375,17 +372,35 @@ async function handleWorkshopSubmit(e) {
             moduleObjectives: document.getElementById('moduleObjectives').value,
             modulePrerequisites: document.getElementById('modulePrerequisites').value,
             moduleMaterials: document.getElementById('moduleMaterials').value,
-            videoUrl: videoUrl,
             updatedAt: new Date()
         };
+
+        // Only add videoUrl if a new video was uploaded
+        if (videoUrl) {
+            workshopData.videoUrl = videoUrl;
+        }
         
         if (workshopId) {
             // Update existing workshop
-            await db.collection('workshops').doc(workshopId).update(workshopData);
+            const workshopRef = db.collection('workshops').doc(workshopId);
+            const workshopDoc = await workshopRef.get();
+            
+            if (!workshopDoc.exists) {
+                throw new Error('Workshop not found');
+            }
+            
+            // Preserve existing registration data
+            const existingData = workshopDoc.data();
+            workshopData.registered = existingData.registered || 0;
+            workshopData.registeredUsers = existingData.registeredUsers || [];
+            workshopData.createdAt = existingData.createdAt;
+            
+            await workshopRef.update(workshopData);
         } else {
             // Create new workshop
             workshopData.createdAt = new Date();
             workshopData.registered = 0;
+            workshopData.registeredUsers = [];
             await db.collection('workshops').add(workshopData);
         }
         
@@ -406,29 +421,10 @@ async function editWorkshop(workshopId) {
         }
         
         const workshop = workshopDoc.data();
-        document.getElementById('workshopId').value = workshopId;
-        document.getElementById('title').value = workshop.title;
-        document.getElementById('description').value = workshop.description;
-        document.getElementById('workshopDate').value = workshop.date.toDate().toISOString().split('T')[0];
-        document.getElementById('workshopTime').value = workshop.date.toDate().toTimeString().slice(0, 5);
-        document.getElementById('capacity').value = workshop.capacity;
-        document.getElementById('status').value = workshop.status;
-        document.getElementById('location').value = workshop.location;
-        document.getElementById('moduleDescription').value = workshop.moduleDescription || '';
-        document.getElementById('moduleObjectives').value = workshop.moduleObjectives || '';
-        document.getElementById('modulePrerequisites').value = workshop.modulePrerequisites || '';
-        document.getElementById('moduleMaterials').value = workshop.moduleMaterials || '';
+        workshop.id = workshopId; // Add the ID to the workshop data
         
-        // Handle existing video
-        if (workshop.videoUrl) {
-            document.getElementById('videoFileName').textContent = 'Video already uploaded';
-            const videoPreview = document.getElementById('videoPreview');
-            const videoPlayer = document.getElementById('videoPlayer');
-            videoPreview.classList.remove('hidden');
-            videoPlayer.src = workshop.videoUrl;
-        }
-        
-        openWorkshopModal();
+        // Pass the workshop data to openWorkshopModal
+        openWorkshopModal(workshop);
     } catch (error) {
         console.error('Error loading workshop:', error);
         alert('Error loading workshop details. Please try again.');
