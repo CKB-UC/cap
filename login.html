@@ -3,79 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - UpSkill</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/footer.css">
-    <link rel="stylesheet" href="css/register-login.css">
-</head>
-<body>
-    <header class="main-header">
-        <h1>Welcome to Our Corporate Training Hub</h1>
-        <p>Delivering Excellence in Workshops & Trainings</p>
-    </header>
-    
-    <nav class="navbar">
-        <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="workshops.html">Workshops</a></li>
-            <li><a href="aboutus.html">About Us</a></li>
-            <li><a href="contact.html">Contact Us</a></li>
-            <li><a href="login.html" class="active">Login</a></li>
-            <li><a href="register.html">Register</a></li>
-        </ul>
-    </nav>
-
-    <div class="auth-container">
-        <div class="auth-card">
-            <h2>Login to Your Account</h2>
-            <div id="error-message" class="error-message"></div>
-            <form id="login-form">
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                
-                <div class="form-group forgot-password">
-                    <a href="forgot-password.html">Forgot Password?</a>
-                </div>
-                
-                <button type="submit" class="auth-button">Login</button>
-            </form>
-            
-            <div class="auth-footer">
-                <p>Don't have an account? <a href="register.html">Register</a></p>
-            </div>
-        </div>
-    </div>
-
-    <hr class="footer-line">
-
-    <footer class="footer">
-        <div class="footer-content">
-            <ul class="contact-info">
-                <h2>For more Info:</h2>
-                <li>Room 316 B Lopez Building</li>
-                <li>Session Road, Baguio City 2600</li>
-                <li>@JenmenManagementInc</li>
-                <li>0908-340-8351</li>
-            </ul>
-            <ul class="footer-links">
-                <li><a href="privacy.html">Privacy Policy</a></li>
-                <li><a href="terms.html">Terms of Service</a></li>
-            </ul>
-        </div>
-    </footer>
-
+    <title>Login - Workshop</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="css/output.css" rel="stylesheet">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js"></script>
+    <script>window.location.replace("login.html");</script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+            <p>Don't have an account? <a href="register.html">Register here</a></p>
+        </div>
+    </div>
+    <script src="auth.js"></script>
 </body>
-</html>
+</html> 

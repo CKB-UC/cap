@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Workshop</title>
+    <!-- Tailwind CSS -->
+    <link href="css/output.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl">Workshop Admin</div>
+            <div class="nav-links space-x-6">
+                <a href="index.html" class="hover:text-indigo-200 transition">Home</a>
+                <a href="workshops.html" class="hover:text-indigo-200 transition">Workshops</a>
+                <a href="aboutus.html" class="hover:text-indigo-200 transition">About Us</a>
+                <a href="contact.html" class="hover:text-indigo-200 transition">Contact</a>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-1 rounded text-white ml-4 transition">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">Admin Dashboard</h1>
+            
+            <!-- Admin Stats Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <div class="text-blue-500 text-lg font-semibold">Total Users</div>
+                    <div class="text-3xl font-bold text-gray-800 mt-2" id="totalUsers">--</div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <div class="text-green-500 text-lg font-semibold">Active Workshops</div>
+                    <div class="text-3xl font-bold text-gray-800 mt-2" id="activeWorkshops">--</div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                    <div class="text-purple-500 text-lg font-semibold">Total Registrations</div>
+                    <div class="text-3xl font-bold text-gray-800 mt-2" id="totalRegistrations">--</div>
+                </div>
+            </div>
+            
+            <!-- Mini Chart -->
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Registration Trends</h2>
+                <div class="h-64 bg-white p-4 rounded-lg shadow border border-gray-200">
+                    <canvas id="registrationChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Admin Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="adminContent">
+                <div class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Manage Users</h3>
+                    <p class="text-gray-600 mb-4">View, edit, and manage user accounts and permissions.</p>
+                    <button id="userManagementBtn" onclick="window.location.href = 'workshop-management.html';" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
+                        User Management
+                    </button>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Manage Workshops</h3>
+                    <p class="text-gray-600 mb-4">Create, edit, and schedule workshops and events.</p>
+                    <button id="workshopManagementBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
+                        Workshop Management
+                    </button>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Analytics</h3>
+                    <p class="text-gray-600 mb-4">View detailed statistics and reports on platform usage.</p>
+                    <button id="analyticsBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
+                        View Analytics
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Recent Activity Section -->
+            <div class="mt-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
+                <div class="flex justify-between items-center mb-3">
+                    <div class="text-sm text-gray-500"></div>
+                    <button id="clearActivityBtn" class="bg-red-500 hover:bg-red-600 text-white text-sm py-1 px-3 rounded transition">
+                        Clear Activity History
+                    </button>
+                </div>
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="overflow-y-auto max-h-80">
+                        <table class="min-w-full bg-white">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="py-2 px-4 border-b text-left">Action</th>
+                                    <th class="py-2 px-4 border-b text-left">User</th>
+                                    <th class="py-2 px-4 border-b text-left">Date</th>
+                                    <th class="py-2 px-4 border-b text-left">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentActivity">
+                                <tr>
+                                    <td colspan="4" class="py-4 px-4 text-center text-gray-500">Loading activity data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12 py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 Workshop Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Firebase Config -->
+    <script>
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            const firebaseConfig = {
+                apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
+                authDomain: "ratbow-454f1.firebaseapp.com",
+                projectId: "ratbow-454f1",
+                storageBucket: "ratbow-454f1.firebasestorage.app",
+                messagingSenderId: "494138400120",
+                appId: "1:494138400120:web:d8eac6dc7437431b783c8d",
+                measurementId: "G-71PNRPMEKP"
+            };
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    
+    <script>
+        // Check if user is admin
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    const userData = doc.data();
+                    if (!userData || userData.role !== 'admin') {
+                        window.location.href = 'index.html';
+                    } else {
+                        // Load admin dashboard data
+                        loadDashboardData();
+                        setupRegistrationChart();
+                        setupAdminButtons();
+                    }
+                }).catch((error) => {
+                    console.error("Error verifying admin status:", error);
+                    window.location.href = 'login.html';
+                });
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+        
+        // Setup admin action buttons
+        function setupAdminButtons() {
+            document.getElementById('userManagementBtn').addEventListener('click', () => {
+                window.location.href = 'user-management.html';
+            });
+            
+            document.getElementById('workshopManagementBtn').addEventListener('click', () => {
+                window.location.href = 'workshop-management.html';
+            });
+            
+            document.getElementById('analyticsBtn').addEventListener('click', () => {
+                window.location.href = 'analytics.html';
+            });
+        }
+        
+        // Setup registration chart
+        function setupRegistrationChart() {
+            const ctx = document.getElementById('registrationChart').getContext('2d');
+            
+            // Get the last 7 days of registration data
+            const today = new Date();
+            const labels = [];
+            const data = [];
+            
+            // Create labels for the last 7 days
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(today.getDate() - i);
+                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                data.push(0); // Initialize with zeros
+            }
+            
+            // Create chart with initial empty data
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'New Registrations',
+                        data: data,
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        borderColor: 'rgba(79, 70, 229, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Query for registration data in the last 7 days
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(today.getDate() - 7);
+            
+            db.collection('registrations')
+                .where('timestamp', '>=', oneWeekAgo)
+                .get()
+                .then((snapshot) => {
+                    // Reset data counts
+                    data.fill(0);
+                    
+                    // Count registrations for each day
+                    snapshot.forEach((doc) => {
+                        const registration = doc.data();
+                        if (registration.timestamp) {
+                            const date = registration.timestamp.toDate();
+                            const dayDiff = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+                            
+                            if (dayDiff >= 0 && dayDiff < 7) {
+                                data[6 - dayDiff]++;
+                            }
+                        }
+                    });
+                    
+                    // Update chart
+                    chart.data.datasets[0].data = data;
+                    chart.update();
+                })
+                .catch((error) => {
+                    console.error("Error getting registration data for chart:", error);
+                });
+        }
+    </script>
+
+    <!-- Include the dashboard functions -->
+    <script src="admin-dashboard.js"></script>
+</body>
+</html>

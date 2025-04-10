@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Details</title>
+    <!-- Tailwind CSS -->
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl">Workshop Platform</div>
+            <div class="nav-links space-x-6">
+                <a href="index.html" class="hover:text-indigo-200 transition">Home</a>
+                <a href="workshops.html" class="hover:text-indigo-200 transition">Workshops</a>
+                <a href="aboutus.html" class="hover:text-indigo-200 transition">About Us</a>
+                <a href="contact.html" class="hover:text-indigo-200 transition">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Back Button -->
+        <div class="mb-4">
+            <a href="workshops.html" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to Workshops
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h1 id="moduleTitle" class="text-2xl font-bold text-gray-800 mb-2">Loading...</h1>
+                <p id="moduleDate" class="text-gray-600"></p>
+            </div>
+
+            <!-- Video Section -->
+            <div id="videoSection" class="mb-8 hidden">
+                <div class="aspect-w-16 aspect-h-9">
+                    <video id="moduleVideo" controls class="w-full rounded-lg"></video>
+                </div>
+            </div>
+
+            <!-- Module Details -->
+            <div class="space-y-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-2">Description</h2>
+                    <p id="moduleDescription" class="text-gray-700"></p>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-2">Learning Objectives</h2>
+                    <ul id="moduleObjectives" class="list-disc list-inside text-gray-700 space-y-1"></ul>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-2">Prerequisites</h2>
+                    <p id="modulePrerequisites" class="text-gray-700"></p>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-2">Required Materials</h2>
+                    <p id="moduleMaterials" class="text-gray-700"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12 py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 Workshop Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Firebase Config -->
+    <script>
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            const firebaseConfig = {
+                apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
+                authDomain: "ratbow-454f1.firebaseapp.com",
+                projectId: "ratbow-454f1",
+                storageBucket: "ratbow-454f1.firebasestorage.app",
+                messagingSenderId: "494138400120",
+                appId: "1:494138400120:web:d8eac6dc7437431b783c8d",
+                measurementId: "G-71PNRPMEKP"
+            };
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+
+    <!-- Module Details Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const workshopId = urlParams.get('id');
+
+            if (workshopId) {
+                loadModuleDetails(workshopId);
+            } else {
+                document.getElementById('moduleTitle').textContent = 'Error: Workshop ID not found';
+            }
+        });
+
+        async function loadModuleDetails(workshopId) {
+            try {
+                const workshopDoc = await db.collection('workshops').doc(workshopId).get();
+                
+                if (!workshopDoc.exists) {
+                    throw new Error('Workshop not found');
+                }
+
+                const workshop = workshopDoc.data();
+                
+                // Update the page content
+                document.getElementById('moduleTitle').textContent = workshop.title;
+                
+                // Format and display date
+                const date = workshop.date.toDate();
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                document.getElementById('moduleDate').textContent = formattedDate;
+
+                // Handle video if exists
+                if (workshop.videoUrl) {
+                    const videoSection = document.getElementById('videoSection');
+                    const videoPlayer = document.getElementById('moduleVideo');
+                    videoSection.classList.remove('hidden');
+                    videoPlayer.src = workshop.videoUrl;
+                }
+
+                // Update module details
+                document.getElementById('moduleDescription').textContent = workshop.moduleDescription || 'No description available';
+                
+                // Handle objectives as a list
+                const objectivesList = document.getElementById('moduleObjectives');
+                if (workshop.moduleObjectives) {
+                    const objectives = workshop.moduleObjectives.split('\n').filter(obj => obj.trim());
+                    objectivesList.innerHTML = objectives.map(obj => `<li>${obj}</li>`).join('');
+                } else {
+                    objectivesList.innerHTML = '<li>No objectives specified</li>';
+                }
+
+                document.getElementById('modulePrerequisites').textContent = workshop.modulePrerequisites || 'No prerequisites specified';
+                document.getElementById('moduleMaterials').textContent = workshop.moduleMaterials || 'No materials specified';
+
+            } catch (error) {
+                console.error('Error loading module details:', error);
+                document.getElementById('moduleTitle').textContent = 'Error loading module details';
+            }
+        }
+    </script>
+</body>
+</html>

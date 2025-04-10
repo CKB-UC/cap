@@ -4,17 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workshops</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/video.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/footer.css">
     <link rel="stylesheet" href="css/testbot.css">
     <link rel="stylesheet" href="css/register.css">
     <link rel="stylesheet" href="css/announce.css">
-    <link rel="stylesheet" href="css/calendar.css">
-    <script src="workshop.js"></script>
-    <script src="announce.js"></script>
+    <link href="css/output.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+    <header class="main-header">
+        <h1>Welcome to Our Corporate Training Hub</h1>
+        <p>Delivering Excellence in Workshops & Trainings</p>
+    </header>
+    <nav class="navbar">
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="workshops.html" class="active">Workshops</a>
+            <a href="aboutus.html">About Us</a>
+            <a href="contact.html">Contact</a>
+            <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
+            <button onclick="logout()" class="btn-logout">Logout</button>
+        </div>
+    </nav>
+
+
     <div id="chatbot-container">
         <div id="chat-window">
             <div id="chat-header">
@@ -31,238 +50,22 @@
             💬
         </div>
     </div>
-    <script src="testbot.js"></script>
-
-    <header class="main-header">
-        <h1>Welcome to Our Corporate Training Hub</h1>
-        <p>Delivering Excellence in Workshops & Trainings</p>
-    </header>
-    
-    <nav class="navbar">
-        <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="workshops.html" class="active">Workshops</a></li>
-            <li><a href="aboutus.html">About Us</a></li>
-            <li><a href="contact.html">Contact</a></li>
-            <li class="announce-tab">
-                <a href="#" id="announce-toggle">
-                    <i class="announce-icon">🔔</i>
-                </a>
-            </li>
-            <li class="calendar-tab">
-                <a href="#" id="calendar-toggle">
-                    <i class="calendar-icon">📅</i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-
-    <!-- Calendar Popup -->
-    <div id="announce-popup" class="announce-popup">
-        <div class="announce-content">
-            <span class="close-announce">&times;</span>
-            <h2>Upcoming Workshops</h2>
-            <div class="announcements-container">
-                <div class="announcement-card">
-                    <h3>Critical Thinking Workshop</h3>
-                    <p><strong>Date:</strong> November 15, 2024</p>
-                    <p><strong>Time:</strong> 10:00 AM - 2:00 PM</p>
-                    <p><strong>Where:</strong> Baguio City</p>
-                    <p><strong>What:</strong>Advanced techniques for analytical problem-solving</p>
-                    <button class="register-btn">Register Now</button>
-                </div>
-                <div class="announcement-card">
-                    <h3>Interview Mastery Seminar</h3>
-                    <p><strong>Date:</strong> December 5, 2024</p>
-                    <p><strong>Time:</strong> 9:00 AM - 1:00 PM</p>
-                    <p><strong>Where:</strong> Baguio City</p>
-                    <p><strong>What:</strong>Comprehensive interview preparation and communication skills</p>
-                    <button class="register-btn">Register Now</button>
-                </div>
-                <div class="announcement-card">
-                    <h3>Time Management Bootcamp</h3>
-                    <p><strong>Date:</strong> January 20, 2025</p>
-                    <p><strong>Time:</strong> 11:00 AM - 3:00 PM</p>
-                    <p><strong>Where:</strong> Baguio City</p>
-                    <p><strong>What:</strong>Strategies for maximizing productivity and efficiency</p>
-                    <button class="register-btn">Register Now</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Back Button  -->
     <button id="back-to-categories" class="back-btn" style="display:none;">← Back to Categories</button>
 
-
-    <div id="category-page" class="container">
-        <h1 class="page-title">Welcome to the Workshop</h1>
-        <div class="categories-container">
-            <div class="category-card" data-category="time">
-                <h2>TIME MANAGEMENT</h2>
-                <p>Learn to communicate effectively and build strong relationships with others. <br>
-                    This involves active listening, empathy, and effective use of non-verbal cues</p>
-                <button class="category-btn" data-category="time">Explore</button>
-            </div>
-            <div class="category-card" data-category="interviews">
-                <h2>INTERVIEWS</h2>
-                <p>A formal conversation between two or more people, typically asking questions to obtain information,
-                     or evaluate the suitability of a candidate for a job</p>
-                <button class="category-btn" data-category="interviews">Explore</button>
-            </div>
-            <div class="category-card" data-category="critical">
-                <h2>CRITICAL THINKING</h2>
-                <p>It is a form of emotional intelligence. Learn the ability to analyze facts objectively and form a judgment</p>
-                <button class="category-btn" data-category="critical">Explore</button>
-            </div>
-            <div class="category-card" data-category="problem">
-                <h2>PROBLEM SOLVING</h2>
-                <p>Learn to break a large problem down into smaller components, making each one easier to address</p>
-                <button class="category-btn" data-category="problem">Explore</button>
+    <div id="workshops-container" class="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12">
+        <div class="w-full max-w-4xl px-4">
+            <!-- Page Title -->
+            <h1 class="text-4xl font-bold text-gray-800 text-center mb-8">Upcoming Workshops</h1>
+    
+            <!-- Workshops List -->
+            <div id="workshops-list" class="space-y-6">
+                <!-- Workshops will be dynamically inserted here -->
             </div>
         </div>
     </div>
-
-    
-    <div id="video-page" class="container" style="display:none;">
-        
-        <div class="video-gallery">
-<!--
-            <div class="video-card" data-category="interview">
-                <div class="video-content">
-                    <h2>Active Listening Skills  Soft Skills Skills training TutorialsPoint</h2>
-                    <video controls>
-                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/Active%20Listening%20Skills%20_%20Soft%20Skills%20_%20Skills%20training%20_%20TutorialsPoint.mp4?alt=media&token=a05e9f99-3e51-4788-8245-ea90d8ba56b7" type="video/mp4">
-                    </video>
-                </div>
-                <div class="video-description">
-                    <h3>Active Listening Skills Soft Skills Skills training TutorialsPoint</h3>
-                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
-                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
-                </div>
-            </div>
--->
-
-            <div class="video-card" data-category="problem">
-                <div class="video-content">
-                    <h2>DECISION MAKING and CREATIVITY by TutorialsPoint</h2>
-                    <video controls>
-                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/DECISION%20MAKING%20and%20CREATIVITY%20_%20Soft%20Skills%20_%20Skills%20training%20_%20TutorialsPoint.mp4?alt=media&token=099426e1-3fe2-4044-95ad-48db6c41d405" type="video/mp4">
-                    </video>
-                </div>
-                <div class="video-description">
-                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
-                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
-                </div>
-            </div>
-
-            <div class="video-card" data-category="interviews">
-                <div class="video-content">
-                    <h2>Isidora Brieba Vial on Managing Conflicts</h2>
-                    <video controls>
-                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/Isidora%20Brieba%20Vial%20on%20Managing%20Conflicts.webm?alt=media&token=2c3672ca-d8ae-4bde-8be5-575e9b35d58e" type="video/mp4">
-                    </video>
-                </div>
-                <div class="video-description">
-                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
-                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
-                </div>
-            </div>
-<!--
-            <div class="video-card" data-category="time management">
-                <div class="video-content">
-                    <h2>Anger Management by Tutorialspoint</h2>
-                    <video controls>
-                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/Soft%20Skills%20_%20Anger%20Management%20_%20Skills%20Training%20_%20Tutorialspoint.mp4?alt=media&token=4f5736e6-64e1-499e-b787-5b70a5d5baf3" type="video/mp4">
-                    </video>
-                </div>
-                <div class="video-description">
-                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
-                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
-                </div>
-            </div>
--->
-            <div class="video-card" data-category="critical">
-                <div class="video-content">
-                    <h2>Critical Thinking Training by TutorialsPoint</h2>
-                    <video controls>
-                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/Soft%20Skills%20_%20Critical%20Thinking%20_%20Skills%20Training%20_%20TutorialsPoint.mp4?alt=media&token=5d10fcea-cbde-494e-889c-37738e724418" type="video/mp4">
-                    </video>
-                </div>
-                <div class="video-description">
-                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
-                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
-                </div>
-            </div>
-
-            <div class="video-card" data-category="problem">
-                <div class="video-content">
-                    <h2>Problem Solving training by TutorialsPoint</h2>
-                    <video controls>
-                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/Soft%20Skills%20_%20Problem%20Solving%20_%20Skills%20training%20_%20TutorialsPoint.mp4?alt=media&token=cfd1b761-16fa-40fa-964f-2d2f4054038b" type="video/mp4">
-                    </video>
-                </div>
-                <div class="video-description">
-                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
-                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
-                </div>
-            </div>
-<!--
-            <div class="video-card" data-category="time management">
-                <div class="video-content">
-                    <h2>Soft Skills _ Self Confidence _ Skills Training _ Tutorialspoint</h2>
-                    <video controls>
-                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/Soft%20Skills%20_%20Self%20Confidence%20_%20Skills%20Training%20_%20Tutorialspoint.mp4?alt=media&token=12415cbc-3841-4544-a858-e79c595923a2" type="video/mp4">
-                    </video>
-                </div>
-                <div class="video-description">
-                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
-                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
-                </div>
-            </div>
--->
-            <div class="video-card" data-category="interviews">
-                <div class="video-content">
-                    <h2>Christopher MacGuire on Effective Communication</h2>
-                    <video controls>
-                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/The%20English%20UC%20Interviews%20Christopher%20MacGuire%20on%20Effective%20Communication.webm?alt=media&token=9c9b3665-e84f-4ece-b0cd-338305a0ddd0" type="video/mp4">
-                    </video>
-                </div>
-                <div class="video-description">
-                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
-                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
-                </div>
-            </div>
-
-            <div class="video-card" data-category="interviews">
-                <div class="video-content">
-                    <h2>Rodrigo Jordán on Meeting Management</h2>
-                    <video controls>
-                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/The%20English%20UC%20Interviews%20Rodrigo%20Jord%C3%A1n%20on%20Meeting%20Management.webm?alt=media&token=0d2da95c-ec19-48dc-81e7-86e0de8545ba" type="video/mp4">
-                    </video>
-                </div>
-                <div class="video-description">
-                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
-                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
-                </div>
-            </div>
-
-
-            <div class="video-card" data-category="time">
-                <div class="video-content">
-                    <h2>Time Management by TutorialsPoint</h2>
-                    <video controls>
-                        <source src="https://firebasestorage.googleapis.com/v0/b/caps-bb602.appspot.com/o/Time%20Management%20_%20Soft%20Skills%20_%20Skills%20Training%20_%20TutorialsPoint.mp4?alt=media&token=870965e4-376d-4829-869d-067f287c7bff" type="video/mp4">
-                    </video>
-                </div>
-                <div class="video-description">
-                    <p><strong>Schedule Date:</strong> October 28, 2024</p>
-                    <strong>Description:</strong> Learn Firebase Storage setup and integration.
-                </div>
-            </div>
-
-
-            <!-- Additional video cards here -->
+   
 
         </div>
     </div>
@@ -284,8 +87,19 @@
             </ul>
         </div>
     </footer>
+    <script src="auth.js"></script>
+    <script src="workshop.js"></script>
+    <script src="announce.js"></script>
+    <script src="testbot.js"></script>
     <script src="register.js"></script>
     <script src="register2.js"></script>
-    <script src="calendar.js"></script>
+    <script>
+        // Check if user is logged in
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
 </body>
 </html>
