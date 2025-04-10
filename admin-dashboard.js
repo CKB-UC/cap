@@ -264,3 +264,39 @@ function createDummyData() {
 // document.addEventListener('DOMContentLoaded', () => setTimeout(createDummyData, 2000));
 // bahala ni Batman haan  kon ammo aramidek
 // kaya ni Claude ken Cursor dayta HAHAHAHAH
+
+// Function to recalculate analytics
+async function recalculateAnalytics() {
+    try {
+        const analyticsRef = db.collection('analytics').doc('workshopStats');
+        const workshopsSnapshot = await db.collection('workshops').get();
+        let totalRegs = 0;
+        
+        workshopsSnapshot.forEach(workshopDoc => {
+            const workshop = workshopDoc.data();
+            if (workshop.registeredUsers) {
+                totalRegs += workshop.registeredUsers.length;
+            }
+        });
+        
+        await analyticsRef.set({
+            totalRegistrations: totalRegs,
+            lastUpdated: new Date()
+        }, { merge: true });
+        
+        alert('Analytics recalculated successfully! Total registrations: ' + totalRegs);
+    } catch (error) {
+        console.error('Error recalculating analytics:', error);
+        alert('Error recalculating analytics. Check console for details.');
+    }
+}
+
+// Add recalculate button to the page
+document.addEventListener('DOMContentLoaded', function() {
+    const totalRegistrationsDiv = document.querySelector('.text-purple-500').parentElement;
+    const recalculateButton = document.createElement('button');
+    recalculateButton.className = 'mt-2 text-sm bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded';
+    recalculateButton.textContent = 'Recalculate';
+    recalculateButton.onclick = recalculateAnalytics;
+    totalRegistrationsDiv.appendChild(recalculateButton);
+});

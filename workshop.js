@@ -5,11 +5,41 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged((user) => {
         if (user) {
             currentUser = user; // Store the current user
+            initializeAnalytics(); // Initialize analytics
             loadWorkshops();
         } else {
             window.location.href = 'login.html';
         }
     });
+
+    // Initialize analytics document if it doesn't exist
+    async function initializeAnalytics() {
+        const analyticsRef = db.collection('analytics').doc('workshopStats');
+        try {
+            const doc = await analyticsRef.get();
+            
+            // Calculate total registrations from all workshops
+            const workshopsSnapshot = await db.collection('workshops').get();
+            let totalRegs = 0;
+            
+            workshopsSnapshot.forEach(workshopDoc => {
+                const workshop = workshopDoc.data();
+                if (workshop.registeredUsers) {
+                    totalRegs += workshop.registeredUsers.length;
+                }
+            });
+            
+            // Update or create the analytics document
+            await analyticsRef.set({
+                totalRegistrations: totalRegs,
+                lastUpdated: new Date()
+            }, { merge: true });
+            
+            console.log('Analytics initialized/updated with total registrations:', totalRegs);
+        } catch (error) {
+            console.error('Error initializing analytics:', error);
+        }
+    }
 
     // Load workshops from Firestore
     function loadWorkshops() {
@@ -97,45 +127,65 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to handle workshop registration
     function registerForWorkshop(workshopId, userId) {
         const workshopRef = db.collection('workshops').doc(workshopId);
+        const analyticsRef = db.collection('analytics').doc('workshopStats');
 
-        db.runTransaction((transaction) => {
-            return transaction.get(workshopRef).then((doc) => {
-                if (!doc.exists) {
-                    throw new Error('Workshop does not exist!');
-                }
+        db.runTransaction(async (transaction) => {
+            // Get the workshop document
+            const workshopDoc = await transaction.get(workshopRef);
+            if (!workshopDoc.exists) {
+                throw new Error('Workshop does not exist!');
+            }
 
-                const workshop = doc.data();
-                const registeredUsers = workshop.registeredUsers || [];
-                const registeredCount = workshop.registered || 0;
+            // Get the analytics document
+            const analyticsDoc = await transaction.get(analyticsRef);
+            
+            const workshop = workshopDoc.data();
+            const registeredUsers = workshop.registeredUsers || [];
+            const registeredCount = registeredUsers.length;
 
-                // Check if the user is already registered
-                if (registeredUsers.includes(userId)) {
-                    throw new Error('You are already registered for this workshop.');
-                }
+            // Check if the user is already registered
+            if (registeredUsers.includes(userId)) {
+                throw new Error('You are already registered for this workshop.');
+            }
 
-                // Check if the workshop is full
-                if (registeredCount >= workshop.capacity) {
-                    throw new Error('This workshop is full.');
-                }
+            // Check if the workshop is full
+            if (registeredCount >= workshop.capacity) {
+                throw new Error('This workshop is full.');
+            }
 
-                // Add the user to the registeredUsers array
-                registeredUsers.push(userId);
+            // Add the user to the registeredUsers array
+            registeredUsers.push(userId);
 
-                // Update the workshop document
-                transaction.update(workshopRef, {
-                    registeredUsers,
-                    registered: registeredCount + 1,
+            // Update the workshop document
+            transaction.update(workshopRef, {
+                registeredUsers,
+                registered: registeredUsers.length
+            });
+
+            // Update analytics
+            if (analyticsDoc.exists) {
+                const analyticsData = analyticsDoc.data();
+                transaction.update(analyticsRef, {
+                    totalRegistrations: (analyticsData.totalRegistrations || 0) + 1,
+                    lastUpdated: new Date()
                 });
-            });
+            } else {
+                transaction.set(analyticsRef, {
+                    totalRegistrations: 1,
+                    lastUpdated: new Date()
+                });
+            }
+
+            return Promise.resolve();
         })
-            .then(() => {
-                alert('You have successfully registered for the workshop!');
-                loadWorkshops(); // Reload workshops to reflect the changes
-            })
-            .catch((error) => {
-                console.error('Registration failed: ', error);
-                alert(`Registration failed: ${error.message}`);
-            });
+        .then(() => {
+            alert('You have successfully registered for the workshop!');
+            loadWorkshops(); // Reload workshops to reflect the changes
+        })
+        .catch((error) => {
+            console.error('Registration failed: ', error);
+            alert(`Registration failed: ${error.message}`);
+        });
     }
 
     // Helper function to get status color

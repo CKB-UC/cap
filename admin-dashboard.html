@@ -261,5 +261,44 @@
 
     <!-- Include the dashboard functions -->
     <script src="admin-dashboard.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const totalUsersElement = document.getElementById('totalUsers');
+            const activeWorkshopsElement = document.getElementById('activeWorkshops');
+            const totalRegistrationsElement = document.getElementById('totalRegistrations');
+            
+            // Set up real-time listeners for analytics
+            db.collection('analytics').doc('workshopStats')
+                .onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        totalRegistrationsElement.textContent = data.totalRegistrations || 0;
+                    } else {
+                        totalRegistrationsElement.textContent = '0';
+                    }
+                }, (error) => {
+                    console.error("Error in analytics listener:", error);
+                    totalRegistrationsElement.textContent = 'Error';
+                });
+            
+            // Set up real-time listeners for other stats
+            db.collection('users').onSnapshot((snapshot) => {
+                totalUsersElement.textContent = snapshot.size;
+            }, (error) => {
+                console.error("Error in users listener:", error);
+                totalUsersElement.textContent = 'Error';
+            });
+            
+            db.collection('workshops')
+                .where('status', '==', 'active')
+                .onSnapshot((snapshot) => {
+                    activeWorkshopsElement.textContent = snapshot.size;
+                }, (error) => {
+                    console.error("Error in workshops listener:", error);
+                    activeWorkshopsElement.textContent = 'Error';
+                });
+        });
+    </script>
 </body>
 </html>
