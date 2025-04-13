@@ -396,12 +396,18 @@ async function handleWorkshopSubmit(e) {
             workshopData.createdAt = existingData.createdAt;
             
             await workshopRef.update(workshopData);
+            
+            // Log the workshop edit activity
+            await logAdminActivity('Workshop Edited', `Edited workshop: ${workshopData.title}`);
         } else {
             // Create new workshop
             workshopData.createdAt = new Date();
             workshopData.registered = 0;
             workshopData.registeredUsers = [];
             await db.collection('workshops').add(workshopData);
+            
+            // Log the workshop creation activity
+            await logAdminActivity('Workshop Created', `Created new workshop: ${workshopData.title}`);
         }
         
         closeWorkshopModal();
