@@ -67,10 +67,12 @@ function loadUsers(searchTerm = '', roleFilter = '') {
     // Apply role filter if specified
     if (roleFilter) {
         query = query.where('role', '==', roleFilter);
+        // When filtering by role, we need to order by role first, then name
+        query = query.orderBy('role').orderBy('name');
+    } else {
+        // If no role filter, just order by name
+        query = query.orderBy('name');
     }
-    
-    // Order by name
-    query = query.orderBy('name');
     
     // Apply pagination
     query = query.limit(usersPerPage);
@@ -103,15 +105,16 @@ function loadUsers(searchTerm = '', roleFilter = '') {
         snapshot.forEach((doc) => {
             const user = doc.data();
             user.id = doc.id;
-            usersList.push(user);
             
-            // If searching, filter by name or email
+            // Apply search filter
             if (searchTerm && !(
                 user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 user.email?.toLowerCase().includes(searchTerm.toLowerCase())
             )) {
                 return;
             }
+            
+            usersList.push(user);
             
             const row = document.createElement('tr');
             row.className = 'hover:bg-gray-50';
@@ -151,11 +154,20 @@ function loadUsers(searchTerm = '', roleFilter = '') {
         }
     }).catch((error) => {
         console.error("Error getting users: ", error);
+        // Show more detailed error message to help with debugging
         usersTable.innerHTML = `
             <tr>
-                <td colspan="6" class="py-4 px-4 text-center text-red-500">Error loading users: ${error.message}</td>
+                <td colspan="6" class="py-4 px-4 text-center text-red-500">
+                    Error loading users: ${error.message}. You may need to create a composite index for role and name fields.
+                </td>
             </tr>
         `;
+        document.getElementById('userCount').textContent = 'Error loading users';
+        
+        // If this is an index error, log it and provide instructions
+        if (error.message.includes('index')) {
+            console.log('Please create a composite index for the users collection with fields: role (Ascending) and name (Ascending)');
+        }
     });
 }
 
@@ -396,10 +408,12 @@ function navigatePages(direction) {
         
         if (roleFilter) {
             query = query.where('role', '==', roleFilter);
+            query = query.orderBy('role').orderBy('name');
+        } else {
+            query = query.orderBy('name');
         }
         
-        query = query.orderBy('name')
-            .endBefore(firstVisible)
+        query = query.endBefore(firstVisible)
             .limitToLast(usersPerPage);
         
         query.get().then((snapshot) => {
@@ -411,6 +425,9 @@ function navigatePages(direction) {
                 const searchTerm = document.getElementById('searchUser').value;
                 loadUsers(searchTerm, roleFilter);
             }
+        }).catch((error) => {
+            console.error("Error navigating pages:", error);
+            alert("Error loading previous page: " + error.message);
         });
     } else if (direction === 'next') {
         currentPage++;
