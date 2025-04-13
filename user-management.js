@@ -59,6 +59,7 @@ function setupEventListeners() {
 
 // Load users data
 function loadUsers(searchTerm = '', roleFilter = '') {
+    console.log('Loading users with search:', searchTerm, 'and role filter:', roleFilter);
     const usersTable = document.getElementById('usersTable');
     usersTable.innerHTML = '<tr><td colspan="6" class="py-4 px-4 text-center text-gray-500">Loading users...</td></tr>';
     
@@ -67,17 +68,14 @@ function loadUsers(searchTerm = '', roleFilter = '') {
     // Apply role filter if specified
     if (roleFilter) {
         query = query.where('role', '==', roleFilter);
-        // When filtering by role, we need to order by role first, then name
         query = query.orderBy('role').orderBy('name');
     } else {
-        // If no role filter, just order by name
         query = query.orderBy('name');
     }
     
     // Apply pagination
     query = query.limit(usersPerPage);
     
-    // If we have a last visible document and we're not on the first page, start after it
     if (lastVisible && currentPage > 1) {
         query = query.startAfter(lastVisible);
     }
@@ -89,24 +87,19 @@ function loadUsers(searchTerm = '', roleFilter = '') {
             return;
         }
         
-        // Store first and last visible documents for pagination
         firstVisible = snapshot.docs[0];
         lastVisible = snapshot.docs[snapshot.docs.length - 1];
         
-        // Update pagination buttons
         document.getElementById('prevPageBtn').disabled = currentPage === 1;
         document.getElementById('nextPageBtn').disabled = snapshot.docs.length < usersPerPage;
         
-        // Clear the table
         usersTable.innerHTML = '';
         usersList = [];
         
-        // Populate table with users
         snapshot.forEach((doc) => {
             const user = doc.data();
             user.id = doc.id;
             
-            // Apply search filter
             if (searchTerm && !(
                 user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 user.email?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -145,29 +138,21 @@ function loadUsers(searchTerm = '', roleFilter = '') {
             usersTable.appendChild(row);
         });
         
-        // Update user count
         document.getElementById('userCount').textContent = `Showing ${usersList.length} users`;
         
-        // If no results after filtering, show message
         if (usersTable.innerHTML === '') {
             usersTable.innerHTML = '<tr><td colspan="6" class="py-4 px-4 text-center text-gray-500">No users matching your search</td></tr>';
         }
     }).catch((error) => {
         console.error("Error getting users: ", error);
-        // Show more detailed error message to help with debugging
         usersTable.innerHTML = `
             <tr>
                 <td colspan="6" class="py-4 px-4 text-center text-red-500">
-                    Error loading users: ${error.message}. You may need to create a composite index for role and name fields.
+                    Error loading users: ${error.message}
                 </td>
             </tr>
         `;
         document.getElementById('userCount').textContent = 'Error loading users';
-        
-        // If this is an index error, log it and provide instructions
-        if (error.message.includes('index')) {
-            console.log('Please create a composite index for the users collection with fields: role (Ascending) and name (Ascending)');
-        }
     });
 }
 
@@ -205,10 +190,12 @@ function getStatusBadgeClass(status) {
 
 // Show user modal
 function showUserModal(userId = null) {
+    console.log('Showing user modal for:', userId);
     currentUserId = userId;
     const modalTitle = document.getElementById('modalTitle');
     const userForm = document.getElementById('userForm');
     const passwordField = document.getElementById('userPassword');
+    const userModal = document.getElementById('userModal');
     
     // Reset form
     userForm.reset();
@@ -222,6 +209,7 @@ function showUserModal(userId = null) {
         const user = usersList.find(u => u.id === userId);
         
         if (user) {
+            console.log('Found user in list:', user);
             document.getElementById('userName').value = user.name || '';
             document.getElementById('userEmail').value = user.email || '';
             document.getElementById('userRole').value = user.role || 'user';
@@ -230,6 +218,7 @@ function showUserModal(userId = null) {
             // Disable email field since we can't change Firebase Auth email directly
             document.getElementById('userEmail').disabled = true;
         } else {
+            console.log('Fetching user from database:', userId);
             // Fetch user data if not in current list
             db.collection('users').doc(userId).get().then((doc) => {
                 if (doc.exists) {
@@ -254,6 +243,7 @@ function showUserModal(userId = null) {
         }
     } else {
         // Add new user
+        console.log('Opening modal for new user');
         modalTitle.textContent = 'Add New User';
         passwordField.required = true;
         
@@ -262,24 +252,50 @@ function showUserModal(userId = null) {
     }
     
     // Show modal
-    document.getElementById('userModal').classList.remove('hidden');
+    if (userModal) {
+        userModal.style.display = 'flex';
+        userModal.classList.remove('hidden');
+        console.log('User modal is now visible');
+    } else {
+        console.error('User modal element not found in the DOM');
+    }
 }
 
 // Hide user modal
 function hideUserModal() {
-    document.getElementById('userModal').classList.add('hidden');
+    console.log('Hiding user modal');
+    const userModal = document.getElementById('userModal');
+    if (userModal) {
+        userModal.style.display = 'none';
+        userModal.classList.add('hidden');
+        console.log('User modal is now hidden');
+    }
     currentUserId = null;
 }
 
 // Show delete confirmation modal
 function showDeleteModal(userId) {
+    console.log('Showing delete modal for user:', userId);
     currentUserId = userId;
-    document.getElementById('deleteModal').classList.remove('hidden');
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.style.display = 'flex';
+        deleteModal.classList.remove('hidden');
+        console.log('Delete modal is now visible');
+    } else {
+        console.error('Delete modal element not found in the DOM');
+    }
 }
 
 // Hide delete confirmation modal
 function hideDeleteModal() {
-    document.getElementById('deleteModal').classList.add('hidden');
+    console.log('Hiding delete modal');
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.style.display = 'none';
+        deleteModal.classList.add('hidden');
+        console.log('Delete modal is now hidden');
+    }
     currentUserId = null;
 }
 
@@ -343,17 +359,21 @@ function handleUserFormSubmit(event) {
 
 // Confirm delete user
 function confirmDeleteUser() {
+    console.log('Confirming delete for user:', currentUserId);
     if (!currentUserId) {
+        console.error('No user ID found for deletion');
         hideDeleteModal();
         return;
     }
     
     // Get user data for logging
     const user = usersList.find(u => u.id === currentUserId);
+    console.log('User to delete:', user);
     
     // Delete user document from Firestore
     db.collection('users').doc(currentUserId).delete()
         .then(() => {
+            console.log('User deleted successfully');
             // Log activity
             if (user) {
                 logAdminActivity('User Deleted', `Deleted user: ${user.name} (${user.email})`);
