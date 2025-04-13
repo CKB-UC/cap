@@ -42,41 +42,64 @@ function loadDashboardData() {
     // Set up real-time listener for recent activity
     const activityListener = db.collection('activity')
         .orderBy('timestamp', 'desc')
-        .limit(20) // Increased limit to show more activities
+        .limit(20)
         .onSnapshot((snapshot) => {
             // Clear current activity
             recentActivityElement.innerHTML = '';
             
-            snapshot.forEach((doc) => {
-                const activity = doc.data();
-                const date = new Date(activity.timestamp?.toDate() || new Date());
-                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-                
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50';
-                row.innerHTML = `
-                    <td class="py-2 px-4 border-b">${activity.type || 'Unknown'}</td>
-                    <td class="py-2 px-4 border-b">${activity.user || 'Unknown'}</td>
-                    <td class="py-2 px-4 border-b">${formattedDate}</td>
-                    <td class="py-2 px-4 border-b">${activity.details || 'No details'}</td>
-                `;
-                
-                recentActivityElement.appendChild(row);
-            });
-            
-            // If no activities, show message
             if (snapshot.empty) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td colspan="4" class="py-4 px-4 text-center text-gray-500">No recent activity</td>
                 `;
                 recentActivityElement.appendChild(row);
+                return;
             }
+            
+            snapshot.forEach((doc) => {
+                const activity = doc.data();
+                const date = new Date(activity.timestamp?.toDate() || new Date());
+                const formattedDate = new Intl.DateTimeFormat('en-US', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short'
+                }).format(date);
+                
+                // Determine activity type color
+                let typeColor = 'text-gray-600';
+                switch(activity.type?.toLowerCase()) {
+                    case 'login':
+                        typeColor = 'text-blue-600';
+                        break;
+                    case 'registration':
+                        typeColor = 'text-green-600';
+                        break;
+                    case 'workshop created':
+                        typeColor = 'text-purple-600';
+                        break;
+                    case 'profile updated':
+                        typeColor = 'text-orange-600';
+                        break;
+                }
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors duration-150';
+                row.innerHTML = `
+                    <td class="py-2 px-4 border-b ${typeColor} font-medium">${activity.type || 'Unknown'}</td>
+                    <td class="py-2 px-4 border-b">${activity.user || 'Unknown'}</td>
+                    <td class="py-2 px-4 border-b text-gray-600">${formattedDate}</td>
+                    <td class="py-2 px-4 border-b">${activity.details || 'No details'}</td>
+                `;
+                
+                recentActivityElement.appendChild(row);
+            });
         }, (error) => {
             console.error("Error getting activities: ", error);
             recentActivityElement.innerHTML = `
                 <tr>
-                    <td colspan="4" class="py-4 px-4 text-center text-red-500">Error loading activities: ${error.message}</td>
+                    <td colspan="4" class="py-4 px-4 text-center">
+                        <div class="text-red-500 font-medium">Error loading activities</div>
+                        <div class="text-sm text-gray-500 mt-1">${error.message}</div>
+                    </td>
                 </tr>
             `;
         });
