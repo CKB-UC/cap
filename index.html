@@ -68,7 +68,6 @@
             <a href="aboutus.html">About Us</a>
             <a href="contact.html">Contact</a>
             <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
-            <button onclick="logout()" class="btn-logout">Logout</button>
         </div>
     </nav>
 
@@ -118,5 +117,13 @@
         </div>
     </footer>
     <script src="auth.js"></script>
+    <script>
+    // Initialize auth state for navigation
+    document.addEventListener('DOMContentLoaded', () => {
+        auth.onAuthStateChanged((user) => {
+            updateNavigationAuthState(user);
+        });
+    });
+</script>
 </body>
 </html>

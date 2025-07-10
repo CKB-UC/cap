@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/register.css">
     <link rel="stylesheet" href="css/announce.css">
     <link href="css/output.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -29,7 +30,6 @@
             <a href="aboutus.html">About Us</a>
             <a href="contact.html">Contact</a>
             <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
-            <button onclick="logout()" class="btn-logout">Logout</button>
         </div>
     </nav>
 
@@ -115,12 +115,12 @@
     <script src="register.js"></script>
     <script src="register2.js"></script>
     <script>
-        // Check if user is logged in
+    // Initialize auth state for navigation
+    document.addEventListener('DOMContentLoaded', () => {
         auth.onAuthStateChanged((user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-            }
+            updateNavigationAuthState(user);
         });
-    </script>
+    });
+</script>
 </body>
 </html>

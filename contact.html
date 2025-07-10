@@ -27,7 +27,6 @@
             <a href="aboutus.html">About Us</a>
             <a href="contact.html" class="active">Contact</a>
             <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
-            <button onclick="logout()" class="btn-logout">Logout</button>
         </div>
     </nav>
 
@@ -109,12 +108,12 @@
     <script src="auth.js"></script>
     <script src="testbot.js"></script>
     <script>
-        // Check if user is logged in
+    // Initialize auth state for navigation
+    document.addEventListener('DOMContentLoaded', () => {
         auth.onAuthStateChanged((user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-            }
+            updateNavigationAuthState(user);
         });
-    </script>
+    });
+</script>
 </body>
 </html>
