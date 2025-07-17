@@ -200,9 +200,12 @@ function sendWorkshopConfirmation(email, workshopData) {
 function updateNavigationAuthState(user) {
     const navLinks = document.querySelector('.nav-links');
     const logoutBtn = document.querySelector('.btn-logout');
+    const authButtons = document.querySelector('.auth-buttons');
     
     if (user) {
-        // User is logged in
+        // User is logged in - hide auth buttons
+        if (authButtons) authButtons.style.display = 'none';
+        
         if (!logoutBtn) {
             // Create logout button if it doesn't exist
             const logoutButton = document.createElement('button');
@@ -213,11 +216,12 @@ function updateNavigationAuthState(user) {
         }
         
         // Show admin dashboard link if user is admin
-        if (user.email && user.email.endsWith('@admin.com')) { // Adjust this condition as needed
+        if (user.email && user.email.endsWith('@admin.com')) {
             document.querySelector('.admin-dashboard').style.display = 'inline-block';
         }
     } else {
-        // User is logged out
+        // User is logged out - show auth buttons
+        if (authButtons) authButtons.style.display = 'flex';
         if (logoutBtn) {
             logoutBtn.remove();
         }
