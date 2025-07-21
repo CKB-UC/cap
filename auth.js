@@ -197,60 +197,48 @@ function sendWorkshopConfirmation(email, workshopData) {
     });
 }
 
-function updateNavigationAuthState(user) {
-    const navLinks = document.querySelector('.nav-links');
-    const logoutBtn = document.querySelector('.btn-logout');
-    const authButtons = document.querySelector('.auth-buttons');
-    const adminDashboard = document.querySelector('.admin-dashboard');
+    function updateNavigationAuthState(user) {
+        const navLinks = document.querySelector('.nav-links');
+        const logoutBtn = document.querySelector('.btn-logout');
+        const authButtons = document.querySelector('.auth-buttons');
+        const adminDashboard = document.querySelector('.admin-dashboard');
 
-    if (user) {
-        // User is logged in - hide auth buttons
-        if (authButtons) authButtons.style.display = 'none';
-        
-        // Create/show logout button
-        if (!logoutBtn && navLinks) {
-            const logoutButton = document.createElement('button');
-            logoutButton.className = 'btn-logout';
-            logoutButton.textContent = 'Logout';
-            logoutButton.onclick = logout;
-            navLinks.appendChild(logoutButton);
-        }
+        if (user) {
+            // User is logged in - hide auth buttons
+            if (authButtons) authButtons.style.display = 'none';
+            
+            // Create/show logout button
+            if (!logoutBtn && navLinks) {
+                const logoutButton = document.createElement('button');
+                logoutButton.className = 'btn-logout';
+                logoutButton.textContent = 'Logout';
+                logoutButton.onclick = logout;
+                navLinks.appendChild(logoutButton);
+            }
 
-        // Check for admin status
-        db.collection('admins').doc(user.uid).get().then((doc) => {
-            if (doc.exists || (user.email && user.email.endsWith('@admin.com'))) {
+            // Check for admin status - updated to be consistent
+            db.collection('users').doc(user.uid).get().then((doc) => {
+                const userData = doc.data();
                 if (adminDashboard) {
-                    adminDashboard.style.display = 'inline-block';
+                    adminDashboard.style.display = (userData && userData.role === 'admin') ? 'inline-block' : 'none';
                 }
-            } else {
+            }).catch((error) => {
+                console.error("Error checking user status:", error);
                 if (adminDashboard) {
                     adminDashboard.style.display = 'none';
                 }
+            });
+        } else {
+            // User is logged out - show auth buttons
+            if (authButtons) authButtons.style.display = 'flex';
+            if (logoutBtn) {
+                logoutBtn.remove();
             }
-        }).catch((error) => {
-            console.error("Error checking admin status:", error);
-            // Fallback to email check
-            if (user.email && user.email.endsWith('@admin.com')) {
-                if (adminDashboard) {
-                    adminDashboard.style.display = 'inline-block';
-                }
-            } else {
-                if (adminDashboard) {
-                    adminDashboard.style.display = 'none';
-                }
+            if (adminDashboard) {
+                adminDashboard.style.display = 'none';
             }
-        });
-    } else {
-        // User is logged out - show auth buttons
-        if (authButtons) authButtons.style.display = 'flex';
-        if (logoutBtn) {
-            logoutBtn.remove();
-        }
-        if (adminDashboard) {
-            adminDashboard.style.display = 'none';
         }
     }
-}
 
 // Update the auth state changed handler
 auth.onAuthStateChanged((user) => {

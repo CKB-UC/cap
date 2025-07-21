@@ -143,26 +143,29 @@
     
     <script>
         // Check if user is admin
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                db.collection('users').doc(user.uid).get().then((doc) => {
-                    const userData = doc.data();
-                    if (!userData || userData.role !== 'admin') {
-                        window.location.href = 'index.html';
-                    } else {
-                        // Load admin dashboard data
-                        loadDashboardData();
-                        setupRegistrationChart();
-                        setupAdminButtons();
-                    }
-                }).catch((error) => {
-                    console.error("Error verifying admin status:", error);
-                    window.location.href = 'login.html';
-                });
-            } else {
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            db.collection('users').doc(user.uid).get().then((doc) => {
+                const userData = doc.data();
+                if (!userData || userData.role !== 'admin') {
+                    // Show a more descriptive error message
+                    alert('You need admin privileges to access this page. Please contact your administrator.');
+                    window.location.href = 'index.html';
+                } else {
+                    // Load admin dashboard data
+                    loadDashboardData();
+                    setupRegistrationChart();
+                    setupAdminButtons();
+                }
+            }).catch((error) => {
+                console.error("Error verifying admin status:", error);
+                alert('Error verifying your permissions. Please try again or contact support.');
                 window.location.href = 'login.html';
-            }
-        });
+            });
+        } else {
+            window.location.href = 'login.html';
+        }
+    });
         
         // Setup admin action buttons
         function setupAdminButtons() {
@@ -262,7 +265,7 @@
     <!-- Include the dashboard functions -->
     <script src="admin-dashboard.js"></script>
     <script src="auth.js"></script>
-
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const totalUsersElement = document.getElementById('totalUsers');
