@@ -201,31 +201,54 @@ function updateNavigationAuthState(user) {
     const navLinks = document.querySelector('.nav-links');
     const logoutBtn = document.querySelector('.btn-logout');
     const authButtons = document.querySelector('.auth-buttons');
-    
+    const adminDashboard = document.querySelector('.admin-dashboard');
+
     if (user) {
         // User is logged in - hide auth buttons
         if (authButtons) authButtons.style.display = 'none';
         
-        if (!logoutBtn) {
-            // Create logout button if it doesn't exist
+        // Create/show logout button
+        if (!logoutBtn && navLinks) {
             const logoutButton = document.createElement('button');
             logoutButton.className = 'btn-logout';
             logoutButton.textContent = 'Logout';
             logoutButton.onclick = logout;
             navLinks.appendChild(logoutButton);
         }
-        
-        // Show admin dashboard link if user is admin
-        if (user.email && user.email.endsWith('@admin.com')) {
-            document.querySelector('.admin-dashboard').style.display = 'inline-block';
-        }
+
+        // Check for admin status
+        db.collection('admins').doc(user.uid).get().then((doc) => {
+            if (doc.exists || (user.email && user.email.endsWith('@admin.com'))) {
+                if (adminDashboard) {
+                    adminDashboard.style.display = 'inline-block';
+                }
+            } else {
+                if (adminDashboard) {
+                    adminDashboard.style.display = 'none';
+                }
+            }
+        }).catch((error) => {
+            console.error("Error checking admin status:", error);
+            // Fallback to email check
+            if (user.email && user.email.endsWith('@admin.com')) {
+                if (adminDashboard) {
+                    adminDashboard.style.display = 'inline-block';
+                }
+            } else {
+                if (adminDashboard) {
+                    adminDashboard.style.display = 'none';
+                }
+            }
+        });
     } else {
         // User is logged out - show auth buttons
         if (authButtons) authButtons.style.display = 'flex';
         if (logoutBtn) {
             logoutBtn.remove();
         }
-        document.querySelector('.admin-dashboard').style.display = 'none';
+        if (adminDashboard) {
+            adminDashboard.style.display = 'none';
+        }
     }
 }
 
@@ -243,3 +266,20 @@ function logout() {
         console.error('Sign out error:', error);
     });
 }
+
+// checking admin
+function makeUserAdmin(userId) {
+    return db.collection('admins').doc(userId).set({
+        addedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        addedBy: auth.currentUser.uid
+    });
+}
+
+// In your registration function
+if (email.endsWith('@admin.com')) {
+    userData.role = 'admin';
+}
+
+// Before redirecting non-admins
+alert('You need admin privileges to access this page');
+window.location.href = 'index.html';
