@@ -73,3 +73,87 @@
 .submit-registration:hover {
     background-color: #45a049;
 }
+
+.registration-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.registration-modal {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+
+.close-modal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.social-login-options {
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.social-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    margin: 0.5rem auto;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    border: none;
+    width: 100%;
+    max-width: 300px;
+    font-size: 1rem;
+}
+
+.social-login-btn i {
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+.social-login-btn.google {
+    background: #DB4437;
+}
+
+.divider {
+    margin: 1.5rem 0;
+    position: relative;
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.divider::before, .divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: #ddd;
+}
+
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}

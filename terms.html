@@ -3,110 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms of Service</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/testbot.css">
-    <link href="css/output.css" rel="stylesheet">
-</head>
-<body>
-    <div id="chatbot-container">
-        <div id="chat-window">
-            <div id="chat-header">
-                <span>UpSkill Chatbot</span>
-                <button onclick="toggleChat()">&times;</button>
-            </div>
-            <div id="chat-messages"></div>
-            <div id="chat-input-container">
-                <input type="text" id="chat-input" placeholder="Type your message..." />
-                <button id="send-button" onclick="sendMessage()">➤</button>
-            </div>
-        </div>
-        <div id="chat-bubble" onclick="toggleChat()">
-            💬
-        </div>
-    </div>
-    <script src="testbot.js"></script>
-
-    <header class="main-header">
-        <h1>Welcome to Our Corporate Training Hub</h1>
-        <p>Delivering Excellence in Workshops & Trainings</p>
-    </header>
-
-    <nav class="navbar">
-        <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="workshops.html">Workshops</a></li>
-            <li><a href="aboutus.html">About Us</a></li>
-            <li><a href="contact.html">Contact</a></li>
-        </ul>
-    </nav>
-
-    
-    
+    <title>Terms of Service - UPSKILL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            
-            color: #000;
-            background-color: #fff;
-        }
-        h1, h2, h3 {
-            color: #000;
-        }
-        a {
-            color: #000;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        ul {
-            margin: 0 0 1rem 2rem;
+        .terms-section {
+            border-left: 4px solid #3b82f6;
         }
     </style>
 </head>
-<body>
-    <h1>Terms of Service</h1>
-    <p>Effective Date: <strong>2025</strong></p>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="text-2xl font-bold text-blue-400">UPSKILL</a>
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="px-3 py-2 rounded-md hover:bg-gray-800">Home</a>
+                    <a href="workshops.html" class="px-3 py-2 rounded-md hover:bg-gray-800">Workshops</a>
+                    <a href="aboutus.html" class="px-3 py-2 rounded-md hover:bg-gray-800">About Us</a>
+                    <a href="contact.html" class="px-3 py-2 rounded-md hover:bg-gray-800">Contact</a>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="login.html" class="px-4 py-2 border border-white rounded-md hover:bg-gray-800">Login</a>
+                <a href="register.html" class="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700">Register</a>
+            </div>
+        </div>
+    </nav>
 
-    <p>Welcome to <strong>UPSKILL</strong>. By accessing our website at <a href="[Your Website URL]">URL TO BE LINKED</a>, you agree to comply with and be bound by the following terms and conditions of use. If you do not agree with any part of these terms, please do not use our website.</p>
+    <!-- Hero Section -->
+    <header class="bg-gradient-to-r from-blue-800 to-blue-600 text-white py-20">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Terms of Service</h1>
+            <p class="text-xl md:text-2xl">Effective Date: <strong>January 1, 2025</strong></p>
+        </div>
+    </header>
 
-    <h2>1. Use of the Website</h2>
-    <p>You agree to use this website only for lawful purposes and in a way that does not infringe the rights of, restrict, or inhibit anyone else’s use of the website.</p>
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12 max-w-4xl">
+        <div class="bg-white rounded-xl shadow-md p-8">
+            <div class="prose max-w-none">
+                <div class="terms-section pl-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">1. Acceptance of Terms</h2>
+                    <p class="text-gray-700 mb-4">By accessing or using the UPSKILL website and services, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you must not use our services.</p>
+                </div>
 
-    <h2>2. Intellectual Property</h2>
-    <p>All content on this website, including text, graphics, logos, images, and software, is the property of <strong>UPSKILL</strong> or its content suppliers and is protected by applicable copyright and trademark laws.</p>
+                <div class="terms-section pl-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">2. Description of Service</h2>
+                    <p class="text-gray-700 mb-4">UPSKILL provides professional training workshops and related services through our website and in-person events. We reserve the right to modify or discontinue any aspect of our services at any time.</p>
+                </div>
 
-    <h2>3. User Accounts</h2>
-    <p>When you create an account on our website, you must ensure that the information provided is accurate, complete, and up-to-date. You are responsible for maintaining the confidentiality of your account and password.</p>
+                <div class="terms-section pl-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">3. User Responsibilities</h2>
+                    <p class="text-gray-700 mb-4">As a user of our services, you agree to:</p>
+                    <ul class="list-disc pl-5 text-gray-700 space-y-2 mb-4">
+                        <li>Provide accurate and complete registration information</li>
+                        <li>Maintain the confidentiality of your account credentials</li>
+                        <li>Use the services only for lawful purposes</li>
+                        <li>Not interfere with or disrupt the service or servers</li>
+                    </ul>
+                </div>
 
-    <h2>4. Prohibited Activities</h2>
-    <p>While using our website, you agree not to:</p>
-    <ul>
-        <li>Engage in unauthorized access to systems or networks.</li>
-        <li>Transmit any malicious software or harmful code.</li>
-        <li>Use the website for fraudulent purposes.</li>
-    </ul>
+                <div class="terms-section pl-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">4. Intellectual Property</h2>
+                    <p class="text-gray-700 mb-4">All content provided through our services, including text, graphics, logos, and training materials, is the property of UPSKILL or its content suppliers and protected by intellectual property laws.</p>
+                </div>
 
-    <h2>5. Limitation of Liability</h2>
-    <p><strong>UPSKILL</strong> will not be liable for any direct, indirect, incidental, or consequential damages resulting from your use of the website.</p>
+                <div class="terms-section pl-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">5. Payment and Refunds</h2>
+                    <p class="text-gray-700 mb-4">For paid workshops and services:</p>
+                    <ul class="list-disc pl-5 text-gray-700 space-y-2 mb-4">
+                        <li>Payment is required at the time of registration</li>
+                        <li>Refund policies vary by workshop and will be specified at registration</li>
+                        <li>We reserve the right to refuse or cancel any order</li>
+                    </ul>
+                </div>
 
-    <h2>6. Termination</h2>
-    <p>We reserve the right to terminate or suspend your access to our website at any time, without notice, for conduct that violates these Terms of Service or is otherwise harmful to us or other users.</p>
+                <div class="terms-section pl-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">6. Limitation of Liability</h2>
+                    <p class="text-gray-700 mb-4">UPSKILL shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use our services.</p>
+                </div>
 
-    <h2>7. Changes to These Terms</h2>
-    <p>We may revise these terms of service from time to time. Please review this page periodically for updates. Continued use of the website after changes constitutes acceptance of the revised terms.</p>
+                <div class="terms-section pl-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">7. Changes to Terms</h2>
+                    <p class="text-gray-700 mb-4">We reserve the right to modify these terms at any time. Your continued use of our services after such changes constitutes acceptance of the new terms.</p>
+                </div>
 
-    <h2>8. Governing Law</h2>
-    <p>These terms are governed by and construed in accordance with the laws of [Your Jurisdiction]. Any disputes relating to these terms shall be subject to the exclusive jurisdiction of the courts in [Your Jurisdiction].</p>
+                <div class="terms-section pl-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">8. Governing Law</h2>
+                    <p class="text-gray-700 mb-4">These terms shall be governed by and construed in accordance with the laws of the Philippines, without regard to its conflict of law provisions.</p>
+                </div>
 
-    <h2>Contact Us</h2>
-    <p>If you have any questions or concerns about these Terms of Service, please contact us at:</p>
-    <p><strong>Email:</strong> <a href="mailto:[Your Email Address]">@JenmenManagementInc</a></p>
-    <p><strong>Address:</strong> Room 316 B, Lopez Building,
-        Session Road, Baguio City 2600</p>
+                <div class="terms-section pl-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">9. Contact Information</h2>
+                    <p class="text-gray-700 mb-2">For any questions about these Terms of Service, please contact us:</p>
+                    <p class="text-gray-700 mb-2"><i class="fas fa-envelope mr-2"></i> @JenmenManagementInc</p>
+                    <p class="text-gray-700"><i class="fas fa-map-marker-alt mr-2"></i> Room 316 B Lopez Building, Session Road, Baguio City 2600</p>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    <p>Thank you for using <strong>UPSKILL</strong>.</p>
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">UPSKILL</h3>
+                    <p class="text-gray-400">Enhancing professional skills through interactive workshops and training programs.</p>
+                    <div class="mt-4 flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="workshops.html" class="text-gray-400 hover:text-white">Workshops</a></li>
+                        <li><a href="aboutus.html" class="text-gray-400 hover:text-white">About Us</a></li>
+                        <li><a href="contact.html" class="text-gray-400 hover:text-white">Contact</a></li>
+                        <li><a href="privacy.html" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Contact Us</h3>
+                    <address class="text-gray-400 not-italic">
+                        <p class="flex items-center mb-2">
+                            <i class="fas fa-map-marker-alt mr-2"></i> Room 316 B Lopez Building, Session Road, Baguio City
+                        </p>
+                        <p class="flex items-center mb-2">
+                            <i class="fas fa-phone-alt mr-2"></i> 0908-340-8351
+                        </p>
+                        <p class="flex items-center">
+                            <i class="fas fa-envelope mr-2"></i> @JenmenManagementInc
+                        </p>
+                    </address>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 UPSKILL. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chatbot -->
+    <div id="chatbot-icon" class="fixed bottom-5 right-5 w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-300 z-50">
+        <i class="fas fa-comment-dots text-white text-xl"></i>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        // Initialize auth state for navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            auth.onAuthStateChanged((user) => {
+                updateNavigationAuthState(user);
+            });
+        });
+    </script>
 </body>
 </html>

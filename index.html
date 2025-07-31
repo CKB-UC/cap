@@ -3,120 +3,474 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Workshop</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="css/output.css" rel="stylesheet">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/footer.css">
-    <!-- Tailwind CSS CDN -->
+    <title>Soft Skills Assessment - UPSKILL</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="assessment.js"></script>
-    
+    <style>
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .skill-card {
+            transition: all 0.3s ease;
+        }
+        .skill-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
-<body>
-    <!-- Chatbot Icon -->
-    <div id="chatbot-icon" class="fixed bottom-5 left-5 w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-300 z-50">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
-    </div>
-
-    <!-- Chatbot Container -->
-    <div id="chatbot-container" class="fixed bottom-24 left-5 w-80 h-96 bg-white rounded-lg shadow-xl flex flex-col overflow-hidden hidden z-40">
-        <!-- Header -->
-        <div class="bg-blue-500 text-white p-4 flex justify-between items-center">
-            <span class="font-medium">Navigation Assistant</span>
-            <button id="close-chat" class="text-white hover:text-gray-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-        
-        <!-- Messages Area -->
-        <div id="chatbot-messages" class="flex-grow p-4 overflow-y-auto flex flex-col space-y-3">
-            <!-- Messages will be added here dynamically -->
-        </div>
-        
-        <!-- Input Area -->
-        <div class="border-t border-gray-200 p-3 bg-gray-50">
-            <div class="flex rounded-md overflow-hidden">
-                <input type="text" id="user-input" placeholder="How can I help you navigate?" class="flex-grow px-4 py-2 focus:outline-none" />
-                <button id="send-message" class="bg-blue-500 text-white px-4 flex items-center justify-center hover:bg-blue-600 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                    </svg>
-                </button>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="text-2xl font-bold text-blue-400">UPSKILL</a>
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="px-3 py-2 rounded-md bg-blue-600 text-white">Home</a>
+                    <a href="workshops.html" class="px-3 py-2 rounded-md hover:bg-gray-800">Workshops</a>
+                    <a href="aboutus.html" class="px-3 py-2 rounded-md hover:bg-gray-800">About Us</a>
+                    <a href="contact.html" class="px-3 py-2 rounded-md hover:bg-gray-800">Contact</a>
+                </div>
             </div>
-        </div>
-    </div>
-    <script src="chatbot.js"></script>
-
-    <header class="main-header">
-        <h1>Welcome to Our Corporate Training Hub</h1>
-        <p>Delivering Excellence in Workshops & Trainings</p>
-    </header>
-    
-    <nav class="navbar">
-        <div class="nav-links">
-            <a href="index.html" class="active">Home</a>
-            <a href="workshops.html">Workshops</a>
-            <a href="aboutus.html">About Us</a>
-            <a href="contact.html">Contact</a>
-            <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
-            <button onclick="logout()" class="btn-logout">Logout</button>
+            <div class="flex items-center space-x-4">
+                <a href="login.html" class="px-4 py-2 border border-white rounded-md hover:bg-gray-800">Login</a>
+                <a href="register.html" class="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700">Register</a>
+            </div>
         </div>
     </nav>
 
-    <center>
-        <h1>Welcome to UPSKILL</h1>
-        <p>A platform designed to enhance employability by providing interactive workshops and training focused on soft-skill development. <br>    
-            Our goal is to bridge the gap between academic knowledge and practical skills needed in the modern workplace. <br> Explore personalized learning, 
-            engaging assessments, and resources tailored to help students, job seekers, and professionals excel in their careers.</p>
-    </center>
-    <main>
-        <section class="soft-skills-assessment">
-            <h1>Soft Skills Assessment</h1>
-            
-            <div class="progress-bar">
-                <div id="progress" class="progress"></div>
-            </div>
-
-            <div class="category-display">
-                <h2 id="category">Category: Team Dynamics</h2>
-            </div>
-
-            <div class="question-container">
-                <h3 id="question-number">Question 1 of X</h3>
-                <p id="question-text">Placeholder question</p>
-
-                <div id="options-container" class="options">
-                    <!-- Options will be dynamically populated -->
+    <!-- Hero Section -->
+    <header class="bg-gradient-to-r from-blue-800 to-blue-600 text-white py-20">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Soft Skills Assessment</h1>
+            <p class="text-xl md:text-2xl mb-8">Discover your strengths and areas for growth with our scientifically-backed assessment</p>
+            <div class="max-w-3xl mx-auto bg-white bg-opacity-10 rounded-lg p-6 backdrop-blur-sm">
+                <p class="text-lg mb-4">Based on psychological theories including:</p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <span class="px-4 py-2 bg-white bg-opacity-20 rounded-full">Emotional Intelligence (Goleman)</span>
+                    <span class="px-4 py-2 bg-white bg-opacity-20 rounded-full">Big Five Personality Traits</span>
+                    <span class="px-4 py-2 bg-white bg-opacity-20 rounded-full">Social Learning Theory (Bandura)</span>
+                    <span class="px-4 py-2 bg-white bg-opacity-20 rounded-full">Situational Leadership (Hersey-Blanchard)</span>
                 </div>
             </div>
-        </section>
-    </main><br><br><br><br><br><br><br>
-    <hr class="footer-line">
-
-    <footer class="footer">
-        <div class="footer-content">
-            <ul class="contact-info">
-                <h2>For more Info:</h2>
-                <li>Room 316 B Lopez Building</li>
-                <li>Session Road, Baguio City 2600</li>
-                <li>@JenmenManagementInc</li>
-                <li>0908-340-8351</li>
-            </ul>
-            <ul class="footer-links">
-                <li><a href="privacy.html">Privacy Policy</a></li>
-                <li><a href="terms.html">Terms of Service</a></li>
-            </ul>
         </div>
-    </footer>
-    <script src="auth.js"></script>
+    </header>
+
+    <!-- Assessment Container -->
+    <main class="container mx-auto px-4 py-12 max-w-4xl">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Progress Bar -->
+            <div class="bg-gray-200 h-3">
+                <div id="progress" class="progress-bar h-full bg-blue-600" style="width: 0%"></div>
+            </div>
+            
+            <!-- Assessment Content -->
+            <div class="p-8">
+                <div id="category" class="text-sm font-semibold text-blue-600 mb-2">Category: Team Dynamics</div>
+                <div id="question-number" class="text-gray-500 mb-4">Question 1 of 15</div>
+                <h2 id="question-text" class="text-2xl font-bold text-gray-800 mb-8">When faced with a team conflict, I usually:</h2>
+                
+                <!-- Options Container -->
+                <div id="options-container" class="space-y-4">
+                    <!-- Options will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Theory Information (hidden during assessment) -->
+        <div id="theory-info" class="mt-8 p-6 bg-blue-50 rounded-lg hidden">
+            <h3 class="text-lg font-semibold text-blue-800 mb-3">Psychological Basis for This Question</h3>
+            <p id="theory-text" class="text-gray-700"></p>
+            <div id="theory-source" class="mt-2 text-sm text-gray-500"></div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            console.log("DOM fully loaded!");
+
+            const progressBar = document.getElementById("progress");
+            const questionNumber = document.getElementById("question-number");
+            const questionText = document.getElementById("question-text");
+            const optionsContainer = document.getElementById("options-container");
+            const categoryDisplay = document.getElementById("category");
+            const theoryInfo = document.getElementById("theory-info");
+            const theoryText = document.getElementById("theory-text");
+            const theorySource = document.getElementById("theory-source");
+
+            if (!progressBar || !questionNumber || !questionText || !optionsContainer) {
+                console.error("Some elements are missing. Double-check your HTML IDs!");
+                return;
+            }
+
+            const questions = [
+                {
+                    category: "Team Dynamics",
+                    text: "When faced with a team conflict, I usually:",
+                    options: [
+                        { text: "Take charge and make decisions for the group", value: "leadership" },
+                        { text: "Listen to all perspectives before suggesting solutions", value: "collaboration" },
+                        { text: "Avoid the conflict and hope it resolves itself", value: "avoidance" },
+                        { text: "Seek help from a superior immediately", value: "dependency" },
+                    ],
+                    theory: "This question assesses conflict resolution styles based on Thomas-Kilmann Conflict Mode Instrument (TKI). The TKI identifies five conflict-handling modes: competing, collaborating, compromising, avoiding, and accommodating. Understanding your natural approach helps in developing more effective conflict resolution strategies.",
+                    source: "Thomas, K. W., & Kilmann, R. H. (1974). Thomas-Kilmann Conflict Mode Instrument."
+                },
+                {
+                    category: "Problem Management",
+                    text: "How do you handle unexpected challenges at work?",
+                    options: [
+                        { text: "Stay calm and create a step-by-step plan", value: "problem-solving" },
+                        { text: "Seek advice from colleagues or supervisors", value: "collaboration" },
+                        { text: "Wait and see if the issue resolves on its own", value: "avoidance" },
+                        { text: "Panic and rush through tasks to finish quickly", value: "stress" },
+                    ],
+                    theory: "This question evaluates problem-solving approaches through the lens of Lazarus and Folkman's Transactional Model of Stress and Coping. It identifies whether you use problem-focused coping (directly addressing the challenge) or emotion-focused coping (managing emotional response).",
+                    source: "Lazarus, R. S., & Folkman, S. (1984). Stress, Appraisal, and Coping."
+                },
+                {
+                    category: "Task Management",
+                    text: "How do you prioritize your tasks?",
+                    options: [
+                        { text: "Create a to-do list and stick to it", value: "organization" },
+                        { text: "Handle tasks as they come", value: "reactive" },
+                        { text: "Focus on what seems urgent at the time", value: "stress" },
+                        { text: "Ask others what to prioritize", value: "dependency" },
+                    ],
+                    theory: "This question examines time management styles based on the Eisenhower Matrix (Urgent-Important Matrix) developed by Dwight D. Eisenhower. It helps identify whether you prioritize effectively or tend toward urgency addiction.",
+                    source: "Covey, S. R. (1989). The 7 Habits of Highly Effective People."
+                },
+                {
+                    category: "Communication",
+                    text: "When giving feedback to a colleague, I:",
+                    options: [
+                        { text: "Am direct and to the point", value: "directness" },
+                        { text: "Balance positive and constructive comments", value: "empathy" },
+                        { text: "Avoid giving feedback unless asked", value: "avoidance" },
+                        { text: "Ask someone else to provide the feedback", value: "dependency" },
+                    ],
+                    theory: "This question assesses feedback delivery style based on the Situation-Behavior-Impact (SBI) feedback model developed by the Center for Creative Leadership. Effective feedback should be specific, behavior-focused, and impact-oriented.",
+                    source: "Center for Creative Leadership. (2013). Feedback That Works."
+                },
+                {
+                    category: "Learning",
+                    text: "What is your approach to learning new skills?",
+                    options: [
+                        { text: "Take courses or read books", value: "self-learning" },
+                        { text: "Learn through trial and error", value: "experiential" },
+                        { text: "Ask others to teach me", value: "collaboration" },
+                        { text: "Avoid unless absolutely necessary", value: "avoidance" },
+                    ],
+                    theory: "This question evaluates learning orientation based on David Kolb's Experiential Learning Theory. It identifies whether you prefer abstract conceptualization, concrete experience, reflective observation, or active experimentation.",
+                    source: "Kolb, D. A. (1984). Experiential Learning: Experience as the Source of Learning and Development."
+                },
+                {
+                    category: "Communication",
+                    text: "How would you rate your communication skills in a team?",
+                    options: [
+                        { text: "I am clear and concise in my communication", value: "communication" },
+                        { text: "I prefer listening more than speaking", value: "listening" },
+                        { text: "I struggle to express my thoughts clearly", value: "difficulty" },
+                        { text: "I sometimes misunderstand others' communication", value: "miscommunication" },
+                    ],
+                    theory: "This question assesses communication competence based on the Communication Competence Model by Brian Spitzberg. It examines both message production (encoding) and interpretation (decoding) skills.",
+                    source: "Spitzberg, B. H., & Cupach, W. R. (1984). Interpersonal Communication Competence."
+                },
+                {
+                    category: "Communication",
+                    text: "When presenting ideas in a group, you typically:",
+                    options: [
+                        { text: "Speak confidently and clearly", value: "communication-strong" },
+                        { text: "Feel nervous but try to contribute", value: "communication-developing" },
+                        { text: "Prefer to listen and only speak when necessary", value: "communication-passive" },
+                        { text: "Struggle to express your thoughts", value: "communication-weak" },
+                    ],
+                    theory: "This question evaluates public speaking confidence based on Bandura's Self-Efficacy Theory. Self-efficacy in communication affects willingness to speak up and perceived competence.",
+                    source: "Bandura, A. (1977). Self-efficacy: Toward a unifying theory of behavioral change."
+                },
+                {
+                    category: "Communication",
+                    text: "When receiving feedback, you usually:",
+                    options: [
+                        { text: "Welcome it as an opportunity to improve", value: "feedback-positive" },
+                        { text: "Feel defensive initially", value: "feedback-defensive" },
+                        { text: "Avoid seeking feedback", value: "feedback-avoidance" },
+                        { text: "Ask clarifying questions to understand better", value: "feedback-analytical" },
+                    ],
+                    theory: "This question examines feedback reception based on Carol Dweck's Mindset Theory. It identifies whether you have a fixed mindset (avoiding feedback) or growth mindset (welcoming feedback).",
+                    source: "Dweck, C. S. (2006). Mindset: The New Psychology of Success."
+                },
+                {
+                    category: "Teamwork",
+                    text: "In a group project, you typically:",
+                    options: [
+                        { text: "Volunteer to lead and coordinate tasks", value: "teamwork-leadership" },
+                        { text: "Contribute equally to the work", value: "teamwork-collaborative" },
+                        { text: "Complete only your assigned tasks", value: "teamwork-minimal" },
+                        { text: "Struggle to find your role in the team", value: "teamwork-uncertain" },
+                    ],
+                    theory: "This question assesses team role preferences based on Meredith Belbin's Team Role Theory. It identifies whether you naturally take on roles like coordinator, team worker, specialist, or others.",
+                    source: "Belbin, R. M. (1981). Management Teams: Why They Succeed or Fail."
+                },
+                {
+                    category: "Teamwork",
+                    text: "When a team member is struggling, you:",
+                    options: [
+                        { text: "Offer support and help them improve", value: "teamwork-supportive" },
+                        { text: "Discuss the issue with the team leader", value: "teamwork-escalation" },
+                        { text: "Complete their tasks to ensure project success", value: "teamwork-overcompensating" },
+                        { text: "Ignore the situation", value: "teamwork-disengaged" },
+                    ],
+                    theory: "This question evaluates prosocial behavior in teams based on Social Exchange Theory. It examines whether you engage in helping behaviors and what motivates those behaviors.",
+                    source: "Blau, P. (1964). Exchange and Power in Social Life."
+                },
+                {
+                    category: "Problem-Solving",
+                    text: "When faced with a complex problem, you:",
+                    options: [
+                        { text: "Break it down into smaller, manageable parts", value: "problem-solving-strategic" },
+                        { text: "Seek advice from others", value: "problem-solving-collaborative" },
+                        { text: "Feel overwhelmed and procrastinate", value: "problem-solving-avoidant" },
+                        { text: "Jump into solving without careful analysis", value: "problem-solving-impulsive" },
+                    ],
+                    theory: "This question assesses problem-solving style based on the Reflective-Impulsive Model by Kagan. It identifies whether you approach problems systematically or reactively.",
+                    source: "Kagan, J. (1966). Reflection-impulsivity: The generality and dynamics of conceptual tempo."
+                }
+            ];
+
+            let currentQuestionIndex = 0;
+            const results = {};
+
+            function loadQuestion() {
+                const currentQuestion = questions[currentQuestionIndex];
+                
+                questionNumber.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+                questionText.textContent = currentQuestion.text;
+                categoryDisplay.textContent = `Category: ${currentQuestion.category}`;
+                
+                // Display theory information
+                theoryText.textContent = currentQuestion.theory;
+                theorySource.textContent = currentQuestion.source;
+                theoryInfo.classList.remove("hidden");
+
+                optionsContainer.innerHTML = "";
+
+                currentQuestion.options.forEach((option) => {
+                    const button = document.createElement("button");
+                    button.classList.add("option-btn", "w-full", "p-4", "text-left", "border", "border-gray-200", "rounded-lg", "hover:border-blue-400", "transition-all");
+                    button.textContent = option.text;
+                    button.addEventListener("click", () => handleOptionClick(option.value));
+                    optionsContainer.appendChild(button);
+                });
+
+                const progressPercentage = ((currentQuestionIndex + 1) / questions.length) * 100;
+                progressBar.style.width = `${progressPercentage}%`;
+            }
+
+            function handleOptionClick(value) {
+                results[value] = (results[value] || 0) + 1;
+
+                if (currentQuestionIndex < questions.length - 1) {
+                    currentQuestionIndex++;
+                    loadQuestion();
+                } else {
+                    showResults();
+                }
+            }
+
+            function showResults() {
+                const sortedResults = Object.entries(results).sort((a, b) => b[1] - a[1]);
+                const topResults = sortedResults.slice(0, 3);
+            
+                // Detailed development recommendations with scientific backing
+                const developmentRecommendations = {
+                    "communication-weak": {
+                        summary: "Your assessment indicates significant challenges in expressing thoughts clearly.",
+                        explanation: "Based on Spitzberg's Communication Competence Model, this suggests lower levels of communication skill and self-efficacy. The anxiety-interference model explains how communication apprehension can create a negative feedback loop.",
+                        actions: [
+                            "Practice 'low-stakes' communication daily (e.g., casual conversations)",
+                            "Use the PREP method (Point, Reason, Example, Point) for structuring thoughts",
+                            "Join a Toastmasters club to build confidence gradually",
+                            "Try systematic desensitization techniques for speaking anxiety"
+                        ],
+                        resources: [
+                            "Book: 'Talk Like TED' by Carmine Gallo",
+                            "Online course: 'Communication Skills for Beginners' (Coursera)",
+                            "App: 'Orai' for speech practice and feedback"
+                        ]
+                    },
+                    "communication-passive": {
+                        summary: "You tend to be reserved in group settings, potentially limiting your impact.",
+                        explanation: "Social Learning Theory suggests this may stem from limited opportunities to observe effective communicators or negative past experiences. The Spiral of Silence theory explains how perceived minority opinions can lead to withdrawal.",
+                        actions: [
+                            "Prepare 1-2 talking points before meetings using the PREP method",
+                            "Set small goals (e.g., 'I will speak once in the first 15 minutes')",
+                            "Practice 'power poses' before speaking to boost confidence (Amy Cuddy's research)",
+                            "Use the 2-2-2 method: 2 contributions per meeting, 2 seconds each, for 2 weeks"
+                        ],
+                        resources: [
+                            "Book: 'Quiet' by Susan Cain (for introverts)",
+                            "Video: 'Your Body Language May Shape Who You Are' (Amy Cuddy TED Talk)",
+                            "Worksheet: 'Meeting Participation Planner'"
+                        ]
+                    },
+                    "teamwork-uncertain": {
+                        summary: "You struggle to find your role in team settings, which can reduce effectiveness.",
+                        explanation: "Belbin's Team Role Theory suggests everyone has natural team roles. Your results indicate unclear role identity, which research shows can lead to role ambiguity stress and reduced performance.",
+                        actions: [
+                            "Take the official Belbin Team Roles assessment",
+                            "Identify 2-3 team roles that feel most natural to you",
+                            "Practice 'role claiming' by verbally articulating your contributions",
+                            "Use the STAR method (Situation, Task, Action, Result) to reflect on past team experiences"
+                        ],
+                        resources: [
+                            "Assessment: Belbin Team Roles (belbin.com)",
+                            "Book: 'The Five Dysfunctions of a Team' by Patrick Lencioni",
+                            "Template: 'Team Role Reflection Journal'"
+                        ]
+                    },
+                    "problem-solving-avoidant": {
+                        summary: "You tend to avoid complex problem-solving scenarios, which can limit growth.",
+                        explanation: "Dweck's Mindset Theory suggests this may indicate a fixed mindset about problem-solving abilities. Cognitive Load Theory explains how perceived complexity can trigger avoidance behaviors.",
+                        actions: [
+                            "Practice breaking problems into smaller steps using the IDEAL method (Identify, Define, Explore, Act, Look back)",
+                            "Use the 5 Whys technique to get to root causes",
+                            "Implement the 10-minute rule: commit to working on a problem for just 10 minutes",
+                            "Keep a 'problem-solving victories' journal to build confidence"
+                        ],
+                        resources: [
+                            "Book: 'Think Like a Rocket Scientist' by Ozan Varol",
+                            "Tool: 'Fishbone Diagram' template for root cause analysis",
+                            "App: 'Brilliant' for daily problem-solving practice"
+                        ]
+                    },
+                    "feedback-defensive": {
+                        summary: "You may struggle with receiving constructive criticism, limiting growth opportunities.",
+                        explanation: "Defensive reactions to feedback are well-documented in psychological research. The Feedback Intervention Theory explains how ego threat can trigger defensiveness, while the SCARF model (Rock, 2008) identifies status threats as primary triggers.",
+                        actions: [
+                            "Practice the LARA method (Listen, Acknowledge, Respond, Ask) for receiving feedback",
+                            "Use cognitive reframing: 'This feedback is about my behavior, not my worth'",
+                            "Implement a 24-hour rule before responding to critical feedback",
+                            "Create a 'feedback filter' system to separate actionable from non-actionable input"
+                        ],
+                        resources: [
+                            "Book: 'Thanks for the Feedback' by Douglas Stone & Sheila Heen",
+                            "Worksheet: 'Feedback Response Planner'",
+                            "Video: 'The Power of Feedback' (Harvard Business Review)"
+                        ]
+                    }
+                };
+            
+                // Hide theory info during results
+                theoryInfo.classList.add("hidden");
+                
+                questionNumber.textContent = "Assessment Complete!";
+                questionText.textContent = "Your Personalized Development Report";
+                categoryDisplay.textContent = "Results Analysis";
+            
+                // Generate comprehensive results HTML
+                let resultHTML = `
+                    <div class="space-y-8">
+                        <div class="bg-blue-50 p-6 rounded-lg">
+                            <h3 class="text-xl font-bold text-blue-800 mb-4">Your Top Development Areas</h3>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                ${topResults.map(([key, value], index) => `
+                                    <div class="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                                        <div class="text-sm text-blue-600">#${index + 1} Priority</div>
+                                        <h4 class="font-semibold text-lg mt-1">${key.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</h4>
+                                        <div class="h-2 bg-gray-200 rounded-full mt-2">
+                                            <div class="h-full bg-blue-500 rounded-full" style="width: ${(value / questions.length) * 100}%"></div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                
+                // Add detailed recommendations for each top result
+                topResults.forEach(([key, value]) => {
+                    const recommendation = developmentRecommendations[key];
+                    if (recommendation) {
+                        resultHTML += `
+                            <div class="skill-card bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">${key.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Development</h3>
+                                <div class="text-sm text-blue-600 mb-3">${recommendation.summary}</div>
+                                <p class="text-gray-700 mb-4">${recommendation.explanation}</p>
+                                
+                                <div class="mb-4">
+                                    <h4 class="font-semibold text-gray-800 mb-2">Recommended Actions:</h4>
+                                    <ul class="list-disc pl-5 space-y-1 text-gray-700">
+                                        ${recommendation.actions.map(action => `<li>${action}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Resources:</h4>
+                                    <ul class="list-disc pl-5 space-y-1 text-blue-700">
+                                        ${recommendation.resources.map(resource => `<li>${resource}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>`;
+                    }
+                });
+                
+                // Add next steps
+                resultHTML += `
+                    <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                        <h3 class="text-xl font-bold text-green-800 mb-4">Your 30-Day Development Plan</h3>
+                        <ol class="list-decimal pl-5 space-y-3 text-gray-700">
+                            <li><strong>Week 1:</strong> Select 2-3 specific actions from above to implement</li>
+                            <li><strong>Week 2:</strong> Identify a mentor or accountability partner</li>
+                            <li><strong>Week 3:</strong> Practice new skills in low-risk environments</li>
+                            <li><strong>Week 4:</strong> Seek feedback on your progress</li>
+                            <li><strong>Ongoing:</strong> Keep a development journal to track growth</li>
+                        </ol>
+                        <div class="mt-6 flex flex-wrap gap-4">
+                            <button id="retry-button" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Retake Assessment</button>
+                            <button id="save-report-button" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">Download Full Report</button>
+                            <button id="resources-button" class="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition">View Additional Resources</button>
+                        </div>
+                    </div>
+                </div>`;
+                
+                optionsContainer.innerHTML = resultHTML;
+                progressBar.style.width = "100%";
+                
+                // Add event listeners for new buttons
+                document.getElementById("retry-button").addEventListener("click", retryAssessment);
+                document.getElementById("save-report-button").addEventListener("click", saveReport);
+                document.getElementById("resources-button").addEventListener("click", showResources);
+            }
+            
+            function showResources() {
+                alert("Additional resources would be displayed or linked here based on the user's results.");
+            }
+            
+            function saveReport() {
+                const reportContent = document.querySelector('.soft-skills-assessment').innerText;
+                const blob = new Blob([reportContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `soft-skills-report-${new Date().toISOString().split('T')[0]}.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+            
+            function retryAssessment() {
+                currentQuestionIndex = 0;
+                for (let key in results) {
+                    results[key] = 0;
+                }
+                loadQuestion();
+                progressBar.style.width = "0%";
+            }
+            
+            loadQuestion();
+        });
+    </script>
 </body>
 </html>

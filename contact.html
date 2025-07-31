@@ -3,117 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact - Workshop</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/footer.css">
-    <link href="css/output.css" rel="stylesheet">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <title>Contact Us - UPSKILL</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .contact-card {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .form-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+    </style>
 </head>
-<body>
-    <header class="main-header">
-        <h1>Welcome to Our Corporate Training Hub</h1>
-        <p>Delivering Excellence in Workshops & Trainings</p>
-    </header>
-    
-    <nav class="navbar">
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="workshops.html">Workshops</a>
-            <a href="aboutus.html">About Us</a>
-            <a href="contact.html" class="active">Contact</a>
-            <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
-            <button onclick="logout()" class="btn-logout">Logout</button>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="text-2xl font-bold text-blue-400">UPSKILL</a>
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="px-3 py-2 rounded-md hover:bg-gray-800">Home</a>
+                    <a href="workshops.html" class="px-3 py-2 rounded-md hover:bg-gray-800">Workshops</a>
+                    <a href="aboutus.html" class="px-3 py-2 rounded-md hover:bg-gray-800">About Us</a>
+                    <a href="contact.html" class="px-3 py-2 rounded-md bg-blue-600 text-white">Contact</a>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="login.html" class="px-4 py-2 border border-white rounded-md hover:bg-gray-800">Login</a>
+                <a href="register.html" class="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700">Register</a>
+            </div>
         </div>
     </nav>
 
-    <!-- Chatbot Icon -->
-    <div id="chatbot-icon" class="fixed bottom-5 left-5 w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-300 z-50">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
-    </div>
+    <!-- Hero Section -->
+    <header class="bg-gradient-to-r from-blue-800 to-blue-600 text-white py-20">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
+            <p class="text-xl md:text-2xl">We'd love to hear from you! Get in touch with our team.</p>
+        </div>
+    </header>
 
-    <!-- Chatbot Container -->
-    <div id="chatbot-container" class="fixed bottom-24 left-5 w-80 h-96 bg-white rounded-lg shadow-xl flex flex-col overflow-hidden hidden z-40">
-        <!-- Header -->
-        <div class="bg-blue-500 text-white p-4 flex justify-between items-center">
-            <span class="font-medium">Navigation Assistant</span>
-            <button id="close-chat" class="text-white hover:text-gray-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-        
-        <!-- Messages Area -->
-        <div id="chatbot-messages" class="flex-grow p-4 overflow-y-auto flex flex-col space-y-3">
-            <!-- Messages will be added here dynamically -->
-        </div>
-        
-        <!-- Input Area -->
-        <div class="border-t border-gray-200 p-3 bg-gray-50">
-            <div class="flex rounded-md overflow-hidden">
-                <input type="text" id="user-input" placeholder="How can I help you navigate?" class="flex-grow px-4 py-2 focus:outline-none" />
-                <button id="send-message" class="bg-blue-500 text-white px-4 flex items-center justify-center hover:bg-blue-600 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                    </svg>
-                </button>
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <div class="grid md:grid-cols-2 gap-12">
+            <!-- Contact Form -->
+            <div class="contact-card bg-white rounded-xl p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Send Us a Message</h2>
+                <form action="https://api.web3forms.com/submit" method="POST" class="space-y-6">
+                    <input type="hidden" name="access_key" value="760045dc-8bcd-48fb-917f-17396e87912b">
+                    
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" id="name" name="name" required 
+                               class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <input type="email" id="email" name="email" required 
+                               class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Your Message</label>
+                        <textarea id="message" name="message" rows="5" required 
+                                  class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-300">
+                        Send Message
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Contact Info -->
+            <div>
+                <div class="bg-white rounded-xl shadow-md p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Contact Information</h2>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="bg-blue-100 p-3 rounded-full mr-4">
+                                <i class="fas fa-map-marker-alt text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">Our Office</h3>
+                                <p class="text-gray-700">Room 316 B Lopez Building<br>Session Road, Baguio City 2600</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-blue-100 p-3 rounded-full mr-4">
+                                <i class="fas fa-phone-alt text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">Phone</h3>
+                                <p class="text-gray-700">0908-340-8351</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-blue-100 p-3 rounded-full mr-4">
+                                <i class="fas fa-envelope text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">Email</h3>
+                                <p class="text-gray-700">@JenmenManagementInc</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-md p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Business Hours</h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between">
+                            <span class="text-gray-700">Monday - Friday</span>
+                            <span class="font-medium text-gray-800">9:00 AM - 5:00 PM</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-700">Saturday</span>
+                            <span class="font-medium text-gray-800">10:00 AM - 2:00 PM</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-700">Sunday</span>
+                            <span class="font-medium text-gray-800">Closed</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <script src="chatbot.js"></script>
+    </main>
 
-    
-    
-    <div class="contact-form">
-        <form action="https://api.web3forms.com/submit" method="POST">
-            <input type="hidden" name="access_key" value="760045dc-8bcd-48fb-917f-17396e87912b">
-            
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required placeholder="e.g. Jan Ray Mamaril">
-
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required placeholder="e.g. Mamaril1234@gmail.com">
-
-            <label for="message">Message:</label>
-            <textarea id="message" name="message" required placeholder="Your Message"></textarea>
-
-            <button type="submit">Send Message</button>
-        </form>
-    </div>
-
-    <hr class="footer-line">
-
-    <footer class="footer">
-        <div class="footer-content">
-            <ul class="contact-info">
-                <h2>For more Info:</h2>
-                <li>Room 316 B Lopez Building</li>
-                <li>Session Road, Baguio City 2600</li>
-                <li>@JenmenManagementInc</li>
-                <li>0908-340-8351</li>
-            </ul>
-            <ul class="footer-links">
-                <li><a href="privacy.html">Privacy Policy</a></li>
-                <li><a href="terms.html">Terms of Service</a></li>
-            </ul>
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">UPSKILL</h3>
+                    <p class="text-gray-400">Enhancing professional skills through interactive workshops and training programs.</p>
+                    <div class="mt-4 flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="workshops.html" class="text-gray-400 hover:text-white">Workshops</a></li>
+                        <li><a href="aboutus.html" class="text-gray-400 hover:text-white">About Us</a></li>
+                        <li><a href="contact.html" class="text-gray-400 hover:text-white">Contact</a></li>
+                        <li><a href="privacy.html" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Contact Us</h3>
+                    <address class="text-gray-400 not-italic">
+                        <p class="flex items-center mb-2">
+                            <i class="fas fa-map-marker-alt mr-2"></i> Room 316 B Lopez Building, Session Road, Baguio City
+                        </p>
+                        <p class="flex items-center mb-2">
+                            <i class="fas fa-phone-alt mr-2"></i> 0908-340-8351
+                        </p>
+                        <p class="flex items-center">
+                            <i class="fas fa-envelope mr-2"></i> @JenmenManagementInc
+                        </p>
+                    </address>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 UPSKILL. All rights reserved.</p>
+            </div>
         </div>
     </footer>
 
+    <!-- Chatbot -->
+    <div id="chatbot-icon" class="fixed bottom-5 right-5 w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-300 z-50">
+        <i class="fas fa-comment-dots text-white text-xl"></i>
+    </div>
+
     <script src="auth.js"></script>
-    <script src="testbot.js"></script>
     <script>
-        // Check if user is logged in
-        auth.onAuthStateChanged((user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-            }
+        // Initialize auth state for navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            auth.onAuthStateChanged((user) => {
+                updateNavigationAuthState(user);
+            });
         });
     </script>
 </body>

@@ -3,123 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workshops</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="css/video.css">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/footer.css">
-    <link rel="stylesheet" href="css/register.css">
-    <link rel="stylesheet" href="css/announce.css">
-    <link href="css/output.css" rel="stylesheet">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <title>Workshops - UPSKILL</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .workshop-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
-<body>
-    <header class="main-header">
-        <h1>Welcome to Our Corporate Training Hub</h1>
-        <p>Delivering Excellence in Workshops & Trainings</p>
-    </header>
-    <nav class="navbar">
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="workshops.html" class="active">Workshops</a>
-            <a href="aboutus.html">About Us</a>
-            <a href="contact.html">Contact</a>
-            <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
-            <button onclick="logout()" class="btn-logout">Logout</button>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="text-2xl font-bold text-blue-400">UPSKILL</a>
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="px-3 py-2 rounded-md hover:bg-gray-800">Home</a>
+                    <a href="workshops.html" class="px-3 py-2 rounded-md bg-blue-600 text-white">Workshops</a>
+                    <a href="aboutus.html" class="px-3 py-2 rounded-md hover:bg-gray-800">About Us</a>
+                    <a href="contact.html" class="px-3 py-2 rounded-md hover:bg-gray-800">Contact</a>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="login.html" class="px-4 py-2 border border-white rounded-md hover:bg-gray-800">Login</a>
+                <a href="register.html" class="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700">Register</a>
+            </div>
         </div>
     </nav>
 
-
-    <!-- Chatbot Icon -->
-    <div id="chatbot-icon" class="fixed bottom-5 left-5 w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-300 z-50">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
-    </div>
-
-    <!-- Chatbot Container -->
-    <div id="chatbot-container" class="fixed bottom-24 left-5 w-80 h-96 bg-white rounded-lg shadow-xl flex flex-col overflow-hidden hidden z-40">
-        <!-- Header -->
-        <div class="bg-blue-500 text-white p-4 flex justify-between items-center">
-            <span class="font-medium">Navigation Assistant</span>
-            <button id="close-chat" class="text-white hover:text-gray-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-        
-        <!-- Messages Area -->
-        <div id="chatbot-messages" class="flex-grow p-4 overflow-y-auto flex flex-col space-y-3">
-            <!-- Messages will be added here dynamically -->
-        </div>
-        
-        <!-- Input Area -->
-        <div class="border-t border-gray-200 p-3 bg-gray-50">
-            <div class="flex rounded-md overflow-hidden">
-                <input type="text" id="user-input" placeholder="How can I help you navigate?" class="flex-grow px-4 py-2 focus:outline-none" />
-                <button id="send-message" class="bg-blue-500 text-white px-4 flex items-center justify-center hover:bg-blue-600 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                    </svg>
-                </button>
+    <!-- Hero Section -->
+    <header class="bg-gradient-to-r from-blue-800 to-blue-600 text-white py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Professional Development Workshops</h1>
+            <p class="text-xl md:text-2xl mb-8">Enhance your skills with our expert-led training programs</p>
+            <div class="max-w-3xl mx-auto">
+                <div class="bg-white bg-opacity-10 rounded-lg p-6 backdrop-blur-sm inline-block">
+                    <p class="text-lg">Hands-on learning experiences designed to boost your career</p>
+                </div>
             </div>
         </div>
-    </div>
-    <script src="chatbot.js"></script>
+    </header>
 
-    <!-- Back Button  -->
-    <button id="back-to-categories" class="back-btn" style="display:none;">← Back to Categories</button>
-
-    <div id="workshops-container" class="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12">
-        <div class="w-full max-w-4xl px-4">
-            <!-- Page Title -->
-            <h1 class="text-4xl font-bold text-gray-800 text-center mb-8">Upcoming Workshops</h1>
-    
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <div class="flex flex-col md:flex-row gap-8">
             <!-- Workshops List -->
-            <div id="workshops-list" class="space-y-6">
-                <!-- Workshops will be dynamically inserted here -->
+            <div class="w-full md:w-2/3">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Upcoming Workshops</h2>
+                
+                <div id="workshops-list" class="space-y-6">
+                    <!-- Workshop 1 -->
+                    <div class="workshop-card bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">Effective Communication Skills</h3>
+                                    <div class="flex items-center mt-2 text-sm text-gray-600">
+                                        <i class="fas fa-calendar-alt mr-2"></i>
+                                        <span>June 15, 2025 | 9:00 AM - 4:00 PM</span>
+                                    </div>
+                                    <div class="flex items-center mt-1 text-sm text-gray-600">
+                                        <i class="fas fa-map-marker-alt mr-2"></i>
+                                        <span>Virtual (Zoom)</span>
+                                    </div>
+                                </div>
+                                <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">Open</span>
+                            </div>
+                            <p class="mt-4 text-gray-700">Master the art of clear, confident communication in professional settings. Learn techniques for presentations, difficult conversations, and active listening.</p>
+                            <div class="mt-6 flex flex-wrap gap-3">
+                                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">Communication</span>
+                                <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">Soft Skills</span>
+                            </div>
+                            <button class="mt-6 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Register Now</button>
+                        </div>
+                    </div>
+
+                    <!-- Workshop 2 -->
+                    <div class="workshop-card bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">Leadership Development Program</h3>
+                                    <div class="flex items-center mt-2 text-sm text-gray-600">
+                                        <i class="fas fa-calendar-alt mr-2"></i>
+                                        <span>June 22, 2025 | 9:00 AM - 5:00 PM</span>
+                                    </div>
+                                    <div class="flex items-center mt-1 text-sm text-gray-600">
+                                        <i class="fas fa-map-marker-alt mr-2"></i>
+                                        <span>Baguio City Training Center</span>
+                                    </div>
+                                </div>
+                                <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded">Limited Slots</span>
+                            </div>
+                            <p class="mt-4 text-gray-700">Develop essential leadership skills including decision-making, team motivation, and strategic thinking. Perfect for emerging leaders and managers.</p>
+                            <div class="mt-6 flex flex-wrap gap-3">
+                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Leadership</span>
+                                <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">Management</span>
+                            </div>
+                            <button class="mt-6 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Register Now</button>
+                        </div>
+                    </div>
+
+                    <!-- Workshop 3 -->
+                    <div class="workshop-card bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">Time Management Mastery</h3>
+                                    <div class="flex items-center mt-2 text-sm text-gray-600">
+                                        <i class="fas fa-calendar-alt mr-2"></i>
+                                        <span>July 6, 2025 | 1:00 PM - 5:00 PM</span>
+                                    </div>
+                                    <div class="flex items-center mt-1 text-sm text-gray-600">
+                                        <i class="fas fa-map-marker-alt mr-2"></i>
+                                        <span>Virtual (Zoom)</span>
+                                    </div>
+                                </div>
+                                <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">Open</span>
+                            </div>
+                            <p class="mt-4 text-gray-700">Learn proven techniques to maximize productivity, prioritize effectively, and reduce workplace stress through better time management.</p>
+                            <div class="mt-6 flex flex-wrap gap-3">
+                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Productivity</span>
+                                <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">Soft Skills</span>
+                            </div>
+                            <button class="mt-6 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Register Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="w-full md:w-1/3">
+                <div class="bg-white rounded-xl shadow-md p-6 sticky top-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Workshop Categories</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="flex items-center text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-comments mr-2"></i> Communication Skills
+                        </a></li>
+                        <li><a href="#" class="flex items-center text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-users mr-2"></i> Leadership & Management
+                        </a></li>
+                        <li><a href="#" class="flex items-center text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-clock mr-2"></i> Productivity & Time Management
+                        </a></li>
+                        <li><a href="#" class="flex items-center text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-lightbulb mr-2"></i> Creativity & Innovation
+                        </a></li>
+                        <li><a href="#" class="flex items-center text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-chart-line mr-2"></i> Career Development
+                        </a></li>
+                    </ul>
+
+                    <div class="mt-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Need Help Choosing?</h3>
+                        <p class="text-gray-700 mb-4">Not sure which workshop is right for you? Take our quick assessment to find the best fit for your professional goals.</p>
+                        <a href="index.html#assessment" class="inline-block px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">Take Assessment</a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-   
+    </main>
 
-        </div>
-    </div>
-<br><br><br><br>
-    <hr class="footer-line">
-
-    <footer class="footer">
-        <div class="footer-content">
-            <ul class="contact-info">
-                <h2>For more Info:</h2>
-                <li>Room 316 B Lopez Building</li>
-                <li>Session Road, Baguio City 2600</li>
-                <li>@JenmenManagementInc</li>
-                <li>0908-340-8351</li>
-            </ul>
-            <ul class="footer-links">
-                <li><a href="privacy.html">Privacy Policy</a></li>
-                <li><a href="terms.html">Terms of Service</a></li>
-            </ul>
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">UPSKILL</h3>
+                    <p class="text-gray-400">Enhancing professional skills through interactive workshops and training programs.</p>
+                    <div class="mt-4 flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="workshops.html" class="text-gray-400 hover:text-white">Workshops</a></li>
+                        <li><a href="aboutus.html" class="text-gray-400 hover:text-white">About Us</a></li>
+                        <li><a href="contact.html" class="text-gray-400 hover:text-white">Contact</a></li>
+                        <li><a href="privacy.html" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Contact Us</h3>
+                    <address class="text-gray-400 not-italic">
+                        <p class="flex items-center mb-2">
+                            <i class="fas fa-map-marker-alt mr-2"></i> Room 316 B Lopez Building, Session Road, Baguio City
+                        </p>
+                        <p class="flex items-center mb-2">
+                            <i class="fas fa-phone-alt mr-2"></i> 0908-340-8351
+                        </p>
+                        <p class="flex items-center">
+                            <i class="fas fa-envelope mr-2"></i> @JenmenManagementInc
+                        </p>
+                    </address>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 UPSKILL. All rights reserved.</p>
+            </div>
         </div>
     </footer>
+
+    <!-- Chatbot -->
+    <div id="chatbot-icon" class="fixed bottom-5 right-5 w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-300 z-50">
+        <i class="fas fa-comment-dots text-white text-xl"></i>
+    </div>
+
     <script src="auth.js"></script>
-    <script src="workshop.js"></script>
-    <script src="announce.js"></script>
-    <script src="testbot.js"></script>
-    <script src="register.js"></script>
-    <script src="register2.js"></script>
     <script>
-        // Check if user is logged in
-        auth.onAuthStateChanged((user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-            }
+        // Initialize auth state for navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            auth.onAuthStateChanged((user) => {
+                updateNavigationAuthState(user);
+            });
         });
     </script>
 </body>
