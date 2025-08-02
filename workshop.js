@@ -79,3 +79,18 @@ function getStatusColor(status) {
         default: return 'text-gray-600';
     }
 }
+
+workshopCard.innerHTML = `
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">${workshop.title}</h2>
+    <div class="space-y-2 text-gray-600">
+        <p><strong>Date:</strong> ${formattedDate}</p>
+        <p><strong>Location:</strong> ${workshop.location}</p>
+        <p><strong>Status:</strong> <span class="font-semibold ${getStatusColor(workshop.status)}">${workshop.status}</span></p>
+        ${workshop.tags?.length ? `<p><strong>Tags:</strong> ${workshop.tags.map(tag => `<span class="tag">${tag}</span>`).join(' ')}</p>` : ''}
+        <p><strong>Capacity:</strong> ${workshop.capacity}</p>
+        <p><strong>Registered:</strong> ${workshop.registered || 0}</p>
+    </div>
+    <button class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors w-full sm:w-auto register-btn" data-id="${workshopId}">
+        Register Now
+    </button>
+`;

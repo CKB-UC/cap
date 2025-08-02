@@ -354,6 +354,12 @@
         });
     
         resultHTML += `
+            <div class="workshop-recommendations">
+            <h3>Recommended Workshops</h3>
+            <div id="recommended-workshops" class="workshops-grid">
+                <p>Loading recommended workshops...</p>
+            </div>
+        </div>
             <div class="overall-recommendation">
                 <h3>Next Steps</h3>
                 <ol>
@@ -376,7 +382,74 @@
         // Add event listeners for new buttons
         document.getElementById("retry-button").addEventListener("click", retryAssessment);
         document.getElementById("save-report-button").addEventListener("click", saveReport);
+        loadRecommendedWorkshops(topResults);
     }
+
+    async function loadRecommendedWorkshops(topResults) {
+    const recommendedWorkshopsContainer = document.getElementById('recommended-workshops');
+    if (!recommendedWorkshopsContainer) return;
+
+    try {
+        // Get all active workshops
+        const snapshot = await db.collection('workshops')
+            .where('status', '==', 'active')
+            .get();
+
+        if (snapshot.empty) {
+            recommendedWorkshopsContainer.innerHTML = '<p>No available workshops at this time.</p>';
+            return;
+        }
+
+        // Map assessment results to workshop tags
+        const assessmentTags = topResults.map(result => {
+            const trait = result[0];
+            if (trait.includes('communication')) return 'communication';
+            if (trait.includes('teamwork')) return 'teamwork';
+            if (trait.includes('problem-solving')) return 'problem-solving';
+            return null;
+        }).filter(tag => tag !== null);
+
+        // Filter workshops that match assessment results
+        const matchingWorkshops = [];
+        snapshot.forEach(doc => {
+            const workshop = doc.data();
+            workshop.id = doc.id;
+            
+            // Check if workshop tags match assessment results
+            if (workshop.tags && workshop.tags.some(tag => assessmentTags.includes(tag))) {
+                matchingWorkshops.push(workshop);
+            }
+        });
+
+        // Display workshops
+        if (matchingWorkshops.length > 0) {
+            recommendedWorkshopsContainer.innerHTML = matchingWorkshops.map(workshop => `
+                <div class="workshop-card">
+                    <h4>${workshop.title}</h4>
+                    <p>${workshop.description?.substring(0, 100)}...</p>
+                    <p><strong>Date:</strong> ${workshop.date?.toDate().toLocaleDateString()}</p>
+                    <a href="workshops.html#${workshop.id}" class="view-workshop-btn">View Details</a>
+                </div>
+            `).join('');
+        } else {
+            // Show all active workshops if no specific matches
+            recommendedWorkshopsContainer.innerHTML = snapshot.docs.map(doc => {
+                const workshop = doc.data();
+                return `
+                    <div class="workshop-card">
+                        <h4>${workshop.title}</h4>
+                        <p>${workshop.description?.substring(0, 100)}...</p>
+                        <p><strong>Date:</strong> ${workshop.date?.toDate().toLocaleDateString()}</p>
+                        <a href="workshops.html#${workshop.id}" class="view-workshop-btn">View Details</a>
+                    </div>
+                `;
+            }).join('');
+        }
+    } catch (error) {
+        console.error("Error loading workshops:", error);
+        recommendedWorkshopsContainer.innerHTML = '<p>Error loading workshop recommendations.</p>';
+    }
+}
     
     // New function to save the report (you might want to implement this based on your specific requirements)
     function saveReport() {

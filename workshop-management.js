@@ -239,6 +239,7 @@ function openWorkshopModal(workshopData = null) {
         document.getElementById('status').value = workshopData.status || 'upcoming';
         document.getElementById('capacity').value = workshopData.capacity || '';
         document.getElementById('location').value = workshopData.location || '';
+        document.getElementById('workshopTags').value = workshopData.tags?.join(', ') || '';
         
         // Fill module information
         document.getElementById('moduleDescription').value = workshopData.moduleDescription || '';
@@ -368,6 +369,10 @@ async function handleWorkshopSubmit(e) {
             capacity: parseInt(document.getElementById('capacity').value),
             status: document.getElementById('status').value,
             location: document.getElementById('location').value,
+            tags: document.getElementById('workshopTags').value
+            .split(',')
+            .map(tag => tag.trim().toLowerCase())
+            .filter(tag => tag.length > 0),
             moduleDescription: document.getElementById('moduleDescription').value,
             moduleObjectives: document.getElementById('moduleObjectives').value,
             modulePrerequisites: document.getElementById('modulePrerequisites').value,
