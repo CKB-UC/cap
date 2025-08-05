@@ -16,6 +16,37 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+    /* Workshop details styling */
+    .prose {
+        line-height: 1.6;
+    }
+    .prose p {
+        margin-bottom: 1em;
+    }
+    .prose ul {
+        list-style-type: disc;
+        padding-left: 1.5em;
+        margin-bottom: 1em;
+    }
+    
+    /* Animation for modal */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fixed.inset-0.bg-black.bg-opacity-50 {
+        animation: fadeIn 0.2s ease-out;
+    }
+    
+    /* Make workshop cards more interactive */
+    .workshop-content:hover h2 {
+        color: #4f46e5; /* indigo-600 */
+    }
+    </style>
+
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->

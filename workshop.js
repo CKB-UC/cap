@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadWorkshops();
 });
 
+let workshopClickHandlerAttached = false;
+
+// Modify your loadWorkshops function
 async function loadWorkshops() {
     const workshopsList = document.getElementById('workshops-list');
     workshopsList.innerHTML = '<p class="text-gray-600 text-center">Loading workshops...</p>';
@@ -32,13 +35,15 @@ async function loadWorkshops() {
             const workshopCard = document.createElement('div');
             workshopCard.className = 'bg-white rounded-lg shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow transform hover:scale-105';
             workshopCard.innerHTML = `
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">${workshop.title}</h2>
-                <div class="space-y-2 text-gray-600">
-                    <p><strong>Date:</strong> ${formattedDate}</p>
-                    <p><strong>Location:</strong> ${workshop.location}</p>
-                    <p><strong>Status:</strong> <span class="font-semibold ${getStatusColor(workshop.status)}">${workshop.status}</span></p>
-                    <p><strong>Capacity:</strong> ${workshop.capacity}</p>
-                    <p><strong>Registered:</strong> ${workshop.registered || 0}</p>
+                <div class="workshop-content" data-id="${workshopId}">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">${workshop.title}</h2>
+                    <div class="space-y-2 text-gray-600">
+                        <p><strong>Date:</strong> ${formattedDate}</p>
+                        <p><strong>Location:</strong> ${workshop.location}</p>
+                        <p><strong>Status:</strong> <span class="font-semibold ${getStatusColor(workshop.status)}">${workshop.status}</span></p>
+                        <p><strong>Capacity:</strong> ${workshop.capacity}</p>
+                        <p><strong>Registered:</strong> ${workshop.registered || 0}</p>
+                    </div>
                 </div>
                 <button class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors w-full sm:w-auto register-btn" 
                         data-id="${workshopId}" 
@@ -46,6 +51,249 @@ async function loadWorkshops() {
                     ${isRegistered ? 'Contact Us' : 'Register Now'}
                 </button>
             `;
+
+            workshopsList.appendChild(workshopCard);
+        });
+
+        // Only attach click handlers once
+        if (!workshopClickHandlerAttached) {
+            attachWorkshopClickHandlers();
+            workshopClickHandlerAttached = true;
+        }
+
+        // Add event listeners to register buttons
+        document.querySelectorAll('.register-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const workshopId = button.getAttribute('data-id');
+                const workshopDoc = await db.collection('workshops').doc(workshopId).get();
+                const workshopData = workshopDoc.data();
+                
+                if (button.textContent.trim() === 'Contact Us') {
+                    window.location.href = 'contact.html';
+                    return;
+                }
+                
+                const user = auth.currentUser;
+                
+                if (user) {
+                    await registerForWorkshop(user, workshopId, workshopData);
+                    showSuccessPopup(workshopData);
+                    button.textContent = 'Contact Us';
+                } else {
+                    showRegistrationForm(workshopId, workshopData, () => {
+                        showSuccessPopup(workshopData);
+                        document.querySelector(`#btn-${workshopId}`).textContent = 'Contact Us';
+                    });
+                }
+            });
+        });
+    } catch (error) {
+        console.error("Error loading workshops: ", error);
+        workshopsList.innerHTML = `<p class="text-red-500 text-center">Error loading workshops: ${error.message}</p>`;
+    }
+}
+
+// Add this new function
+function attachWorkshopClickHandlers() {
+    // Use event delegation instead of attaching to each card
+    document.getElementById('workshops-list').addEventListener('click', async (e) => {
+        // Find the closest workshop-content element
+        const workshopContent = e.target.closest('.workshop-content');
+        
+        if (workshopContent && !e.target.closest('.register-btn')) {
+            const workshopId = workshopContent.getAttribute('data-id');
+            const workshopDoc = await db.collection('workshops').doc(workshopId).get();
+            const workshopData = workshopDoc.data();
+            showWorkshopDetails(workshopId, workshopData);
+        }
+    });
+}
+
+// Update your showWorkshopDetails function
+let currentDetailsPopup = null;
+
+function showWorkshopDetails(workshopId, workshopData) {
+    // Close any existing popup
+    if (currentDetailsPopup) {
+        currentDetailsPopup.remove();
+        currentDetailsPopup = null;
+    }
+
+    const date = workshopData.date.toDate();
+    const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    const detailsPopup = document.createElement('div');
+    detailsPopup.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    detailsPopup.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">${workshopData.title}</h2>
+                <button class="text-gray-500 hover:text-gray-700 close-details">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-6">
+                <!-- Basic Info -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-gray-700 mb-2">Date & Time</h3>
+                        <p>${formattedDate}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-gray-700 mb-2">Location</h3>
+                        <p>${workshopData.location}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-gray-700 mb-2">Status</h3>
+                        <p class="${getStatusColor(workshopData.status)}">${workshopData.status}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-gray-700 mb-2">Capacity</h3>
+                        <p>${workshopData.registered || 0} / ${workshopData.capacity}</p>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Description</h3>
+                    <p class="text-gray-600">${workshopData.description || 'No description available.'}</p>
+                </div>
+                
+                <!-- Video (if available) -->
+                ${workshopData.videoUrl ? `
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Workshop Video</h3>
+                    <div class="aspect-w-16 aspect-h-9">
+                        <video src="${workshopData.videoUrl}" controls class="w-full rounded-lg"></video>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <!-- Module Details -->
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Module Description</h3>
+                        <div class="prose max-w-none text-gray-600">
+                            ${workshopData.moduleDescription || 'No module description available.'}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Learning Objectives</h3>
+                        <div class="prose max-w-none text-gray-600">
+                            ${workshopData.moduleObjectives || 'No learning objectives provided.'}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">Prerequisites</h3>
+                            <div class="prose max-w-none text-gray-600">
+                                ${workshopData.modulePrerequisites || 'No prerequisites required.'}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">Required Materials</h3>
+                            <div class="prose max-w-none text-gray-600">
+                                ${workshopData.moduleMaterials || 'No special materials required.'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer with Register Button -->
+            <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+                <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition register-btn" 
+                        data-id="${workshopId}">
+                    ${auth.currentUser ? 'Contact Us' : 'Register Now'}
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(detailsPopup);
+    currentDetailsPopup = detailsPopup;
+    
+    // Add single event listener for closing
+    detailsPopup.querySelector('.close-details').addEventListener('click', () => {
+        detailsPopup.remove();
+        currentDetailsPopup = null;
+    });
+    
+    // Close when clicking outside
+    detailsPopup.addEventListener('click', (e) => {
+        if (e.target === detailsPopup) {
+            detailsPopup.remove();
+            currentDetailsPopup = null;
+        }
+    });
+}
+
+
+async function loadWorkshops() {
+    const workshopsList = document.getElementById('workshops-list');
+    workshopsList.innerHTML = '<p class="text-gray-600 text-center">Loading workshops...</p>';
+
+    try {
+        const snapshot = await db.collection('workshops')
+            .orderBy('date', 'asc')
+            .get();
+
+        workshopsList.innerHTML = '';
+
+        if (snapshot.empty) {
+            workshopsList.innerHTML = '<p class="text-gray-600 text-center">No workshops found.</p>';
+            return;
+        }
+
+        // Get current user's registrations if logged in
+        const user = auth.currentUser;
+        const userRegistrations = user ? await getUserRegistrations(user.uid) : [];
+
+        snapshot.forEach((doc) => {
+            const workshop = doc.data();
+            const workshopId = doc.id;
+            const date = workshop.date.toDate();
+            const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const isRegistered = userRegistrations.includes(workshopId);
+
+            const workshopCard = document.createElement('div');
+            workshopCard.className = 'bg-white rounded-lg shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow transform hover:scale-105';
+            workshopCard.innerHTML = `
+            <div class="workshop-content cursor-pointer" data-id="${workshopId}">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 hover:text-indigo-600 transition">${workshop.title}</h2>
+                <div class="space-y-2 text-gray-600">
+                    <p><strong>Date:</strong> ${formattedDate}</p>
+                    <p><strong>Location:</strong> ${workshop.location}</p>
+                    <p><strong>Status:</strong> <span class="font-semibold ${getStatusColor(workshop.status)}">${workshop.status}</span></p>
+                    <p><strong>Capacity:</strong> ${workshop.capacity}</p>
+                    <p><strong>Registered:</strong> ${workshop.registered || 0}</p>
+                </div>
+            </div>
+            <button class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors w-full sm:w-auto register-btn" 
+                    data-id="${workshopId}" 
+                    id="btn-${workshopId}">
+                ${isRegistered ? 'Contact Us' : 'Register Now'}
+            </button>
+        `;
+
+        document.querySelectorAll('.workshop-content').forEach(element => {
+        element.addEventListener('click', async (e) => {
+            // Don't trigger if clicking on a link or button inside the card
+            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                return;
+            }
+            
+            const workshopId = element.getAttribute('data-id');
+            const workshopDoc = await db.collection('workshops').doc(workshopId).get();
+            const workshopData = workshopDoc.data();
+            showWorkshopDetails(workshopId, workshopData);
+        });
+    });
 
             workshopsList.appendChild(workshopCard);
         });
