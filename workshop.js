@@ -424,6 +424,22 @@ function showRegistrationForm(workshopId, workshopData) {
                             <p class="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
                         </div>
                         <div>
+                            <label for="registerAge" class="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                            <input type="number" id="registerAge" required min="13" max="100"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                        <div>
+                            <label for="registerOccupation" class="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
+                            <select id="registerOccupation" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                <option value="">Select your occupation</option>
+                                <option value="student">Student</option>
+                                <option value="employed">Employed</option>
+                                <option value="unemployed">Unemployed</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div>
                             <label for="registerPhone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                             <input type="tel" id="registerPhone" required 
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
@@ -459,10 +475,12 @@ function showRegistrationForm(workshopId, workshopData) {
         const email = form.querySelector('#registerEmail').value;
         const password = form.querySelector('#registerPassword').value;
         const phone = form.querySelector('#registerPhone').value;
+        const age = form.querySelector('#registerAge').value;
+        const occupation = form.querySelector('#registerOccupation').value;
         const workshopId = form.querySelector('#workshopId').value;
         
         // Basic validation
-        if (!name || !email || !password || !phone) {
+        if (!name || !email || !password || !phone || !age || !occupation) {
             document.getElementById('error-message').textContent = 'Please fill in all fields';
             return;
         }
@@ -471,6 +489,12 @@ function showRegistrationForm(workshopId, workshopData) {
         const phoneRegex = /^(09|\+639)\d{9}$/;
         if (!phoneRegex.test(phone)) {
             document.getElementById('error-message').textContent = 'Please enter a valid Philippine phone number (e.g., 09123456789)';
+            return;
+        }
+        
+        // Age validation
+        if (age < 13 || age > 100) {
+            document.getElementById('error-message').textContent = 'Please enter a valid age between 13 and 100';
             return;
         }
         
@@ -484,6 +508,8 @@ function showRegistrationForm(workshopId, workshopData) {
                 name: name,
                 email: email,
                 phone: phone,
+                age: age,
+                occupation: occupation,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             

@@ -28,6 +28,20 @@
                     <label for="registerPassword">Password</label>
                     <input type="password" id="registerPassword" required minlength="6">
                 </div>
+                <div class="form-group">
+                    <label for="registerAge">Age</label>
+                    <input type="number" id="registerAge" required min="13" max="100">
+                </div>
+                <div class="form-group">
+                    <label for="registerOccupation">Occupation</label>
+                    <select id="registerOccupation" required>
+                        <option value="">Select your occupation</option>
+                        <option value="student">Student</option>
+                        <option value="employed">Employed</option>
+                        <option value="unemployed">Unemployed</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
                 <button type="submit" class="btn-primary">Register</button>
             </form>
             <p>Already have an account? <a href="login.html">Login here</a></p>
@@ -59,6 +73,8 @@
         const name = document.getElementById('registerName').value;
         const email = document.getElementById('registerEmail').value;
         const password = document.getElementById('registerPassword').value;
+        const age = document.getElementById('registerAge').value;
+        const occupation = document.getElementById('registerOccupation').value;
         
         auth.createUserWithEmailAndPassword(email, password)
             .then((userCredential) => {
@@ -69,6 +85,8 @@
                 return db.collection('users').doc(user.uid).set({
                     name: name,
                     email: email,
+                    age: age,
+                    occupation: occupation,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
             })
@@ -82,4 +100,4 @@
     </script>
     <script src="auth.js"></script>
 </body>
-</html> 
+</html>
