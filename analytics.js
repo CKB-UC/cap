@@ -214,23 +214,54 @@ function renderRegistrationTrendsChart(labels, registrationsData, completionsDat
 // Fetch workshop popularity data for the bar chart
 function fetchWorkshopPopularity() {
     db.collection('workshops')
-        .orderBy('registrationCount', 'desc')
-        .limit(10)
         .get()
         .then((snapshot) => {
-            const labels = [];
-            const registrationData = [];
-            const completionData = [];
+            // Initialize an object to store tag data
+            const tagData = {};
             
+            // Process each workshop
             snapshot.forEach(doc => {
                 const workshop = doc.data();
-                labels.push(workshop.title.length > 15 ? 
-                    workshop.title.substring(0, 15) + '...' : workshop.title);
-                registrationData.push(workshop.registrationCount || 0);
-                completionData.push(workshop.completionCount || 0);
+                const tag = workshop.tag || 'other';
+                
+                // Initialize tag entry if it doesn't exist
+                if (!tagData[tag]) {
+                    tagData[tag] = {
+                        count: 0,
+                        totalRating: 0,
+                        workshops: 0
+                    };
+                }
+                
+                // Count workshops with this tag
+                tagData[tag].workshops++;
+                
+                // If workshop has ratings, calculate average
+                if (workshop.ratings) {
+                    const ratings = Object.values(workshop.ratings);
+                    if (ratings.length > 0) {
+                        const avgRating = ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
+                        tagData[tag].totalRating += avgRating;
+                        tagData[tag].count++;
+                    }
+                }
             });
             
-            renderWorkshopPopularityChart(labels, registrationData, completionData);
+            // Prepare data for chart
+            const labels = [];
+            const avgRatings = [];
+            const workshopCounts = [];
+            
+            // Calculate average rating per tag
+            Object.keys(tagData).forEach(tag => {
+                labels.push(tag.charAt(0).toUpperCase() + tag.slice(1).replace('-', ' '));
+                const tagInfo = tagData[tag];
+                const avgRating = tagInfo.count > 0 ? (tagInfo.totalRating / tagInfo.count) : 0;
+                avgRatings.push(avgRating);
+                workshopCounts.push(tagInfo.workshops);
+            });
+            
+            renderWorkshopPopularityChart(labels, avgRatings, workshopCounts);
         })
         .catch((error) => {
             console.error("Error fetching workshop popularity:", error);
@@ -238,7 +269,7 @@ function fetchWorkshopPopularity() {
 }
 
 // Render the workshop popularity chart
-function renderWorkshopPopularityChart(labels, registrationData, completionData) {
+function renderWorkshopPopularityChart(labels, avgRatings, workshopCounts) {
     const ctx = document.getElementById('workshopPopularityChart').getContext('2d');
     
     // Destroy existing chart if it exists
@@ -252,18 +283,21 @@ function renderWorkshopPopularityChart(labels, registrationData, completionData)
             labels: labels,
             datasets: [
                 {
-                    label: 'Registrations',
-                    data: registrationData,
+                    label: 'Average Rating',
+                    data: avgRatings,
                     backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue
                     borderColor: 'rgba(59, 130, 246, 1)',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    yAxisID: 'y'
                 },
                 {
-                    label: 'Completions',
-                    data: completionData,
+                    label: 'Number of Workshops',
+                    data: workshopCounts,
                     backgroundColor: 'rgba(16, 185, 129, 0.7)', // Green
                     borderColor: 'rgba(16, 185, 129, 1)',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    type: 'line',
+                    yAxisID: 'y1'
                 }
             ]
         },
@@ -272,13 +306,50 @@ function renderWorkshopPopularityChart(labels, registrationData, completionData)
             maintainAspectRatio: false,
             scales: {
                 y: {
-                    beginAtZero: true,
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Average Rating (1-5)'
+                    },
+                    min: 0,
+                    max: 5,
                     ticks: {
-                        precision: 0
+                        stepSize: 0.5
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Number of Workshops'
+                    },
+                    min: 0,
+                    grid: {
+                        drawOnChartArea: false
                     }
                 }
             },
             plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.datasetIndex === 0) {
+                                label += context.raw.toFixed(1) + ' stars';
+                            } else {
+                                label += context.raw;
+                            }
+                            return label;
+                        }
+                    }
+                },
                 legend: {
                     position: 'top'
                 }
