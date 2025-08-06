@@ -296,35 +296,49 @@ function renderWorkshopPopularityChart(labels, registrationData, completionData)
 }
 
 // Fetch user demographics data for the pie chart
-// Fetch user demographics data for the pie chart
 function fetchUserDemographics() {
     db.collection('users')
         .get()
         .then((snapshot) => {
-            // Initialize counters for demographics
+            // Initialize counters
             const demographics = {
-                'student': 0,
-                'employed': 0,
-                'unemployed': 0,
-                'other': 0
+                'Student': 0,
+                'Employed': 0,
+                'Unemployed': 0,
+                'Other': 0
             };
             
             // Count users by employment status
             snapshot.forEach(doc => {
                 const user = doc.data();
-                if (user.employmentStatus) {
-                    const status = user.employmentStatus.toLowerCase();
-                    if (status.includes('student')) {
-                        demographics['student']++;
-                    } else if (status.includes('employed') || status.includes('working')) {
-                        demographics['employed']++;
-                    } else if (status.includes('unemployed') || status.includes('jobless') || status.includes('looking')) {
-                        demographics['unemployed']++;
-                    } else {
-                        demographics['other']++;
+                const status = user.employmentStatus || user.occupation || user.role || '';
+                const lowerStatus = status.toString().toLowerCase();
+                
+                if (lowerStatus.includes('student') || 
+                    lowerStatus.includes('learner') || 
+                    lowerStatus.includes('college') || 
+                    lowerStatus.includes('university')) {
+                    demographics['Student']++;
+                } 
+                else if (lowerStatus.includes('employed') || 
+                         lowerStatus.includes('working') || 
+                         lowerStatus.includes('job') || 
+                         lowerStatus.includes('professional') ||
+                         lowerStatus.includes('business')) {
+                    demographics['Employed']++;
+                } 
+                else if (lowerStatus.includes('unemployed') || 
+                         lowerStatus.includes('jobless') || 
+                         lowerStatus.includes('looking') ||
+                         lowerStatus === '') {  // Treat empty as unemployed
+                    demographics['Unemployed']++;
+                } 
+                else {
+                    // Log unexpected statuses for debugging
+                    if (status && !['admin', 'superadmin'].includes(lowerStatus)) {
+                        console.log('Unclassified status:', status);
                     }
-                } else {
-                    demographics['other']++;
+                    demographics['Other']++;
                 }
             });
             
@@ -335,42 +349,25 @@ function fetchUserDemographics() {
         });
 }
 
-// Render the user demographics chart
+// Render the user demographics chart (keep the same as before)
 function renderUserDemographicsChart(demographicsData) {
     const ctx = document.getElementById('userDemographicsChart').getContext('2d');
     
-    // Destroy existing chart if it exists
     if (window.demographicsChart) {
         window.demographicsChart.destroy();
     }
     
-    // Prepare labels with proper capitalization
-    const labels = [
-        'Student',
-        'Employed',
-        'Unemployed',
-        'Other'
-    ];
-    
-    // Prepare data in the correct order
-    const data = [
-        demographicsData['student'] || 0,
-        demographicsData['employed'] || 0,
-        demographicsData['unemployed'] || 0,
-        demographicsData['other'] || 0
-    ];
-    
     window.demographicsChart = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: labels,
+            labels: Object.keys(demographicsData),
             datasets: [{
-                data: data,
+                data: Object.values(demographicsData),
                 backgroundColor: [
-                    'rgba(59, 130, 246, 0.7)', // Blue for Student
-                    'rgba(16, 185, 129, 0.7)', // Green for Employed
-                    'rgba(245, 158, 11, 0.7)', // Yellow for Unemployed
-                    'rgba(156, 163, 175, 0.7)' // Gray for Other
+                    'rgba(59, 130, 246, 0.7)',  // Blue - Student
+                    'rgba(16, 185, 129, 0.7)',  // Green - Employed
+                    'rgba(245, 158, 11, 0.7)',  // Yellow - Unemployed
+                    'rgba(156, 163, 175, 0.7)'  // Gray - Other
                 ],
                 borderColor: [
                     'rgba(59, 130, 246, 1)',
