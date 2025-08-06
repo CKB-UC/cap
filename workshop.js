@@ -141,12 +141,17 @@ async function loadWorkshops() {
                             </div>
                             ${ratingSection}
                         </div>
-                        ${status !== 'completed' ? `
+                        ${status !== 'completed' && status !== 'active' ? `
                             <button class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors w-full sm:w-auto register-btn" 
                                     data-id="${workshopId}" 
                                     id="btn-${workshopId}">
                                 ${isRegistered ? 'Contact Us' : 'Register Now'}
                             </button>
+                        ` : ''}
+                        ${status === 'active' ? `
+                            <div class="mt-6 bg-gray-200 text-gray-700 px-6 py-2 rounded-lg text-center">
+                                Workshop is currently active
+                            </div>
                         ` : ''}
                     `;
 
@@ -327,6 +332,16 @@ async function loadWorkshops() {
                 const workshopId = button.getAttribute('data-id');
                 const workshopDoc = await db.collection('workshops').doc(workshopId).get();
                 const workshopData = workshopDoc.data();
+
+                // Prevent registration if workshop is active
+                if (workshopData.status === 'active') {
+                    return;
+                }
+                
+                if (button.textContent.trim() === 'Contact Us') {
+                    window.location.href = 'contact.html';
+                    return;
+                }
                 
                 if (button.textContent.trim() === 'Contact Us') {
                     window.location.href = 'contact.html';
@@ -618,13 +633,19 @@ function showWorkshopDetails(workshopId, workshopData) {
                 </div>
             </div>
             
-            <!-- Footer with Register Button -->
-            <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4">
-                <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition register-btn" 
-                        data-id="${workshopId}">
-                    ${auth.currentUser ? 'Contact Us' : 'Register Now'}
-                </button>
-            </div>
+            // Footer with Register Button
+                <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+                    ${workshopData.status !== 'active' ? `
+                        <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition register-btn" 
+                                data-id="${workshopId}">
+                            ${auth.currentUser ? 'Contact Us' : 'Register Now'}
+                        </button>
+                    ` : `
+                        <div class="w-full bg-gray-200 text-gray-700 py-3 rounded-lg text-center">
+                            Workshop is currently active
+                        </div>
+                    `}
+                </div>
         </div>
     `;
     
