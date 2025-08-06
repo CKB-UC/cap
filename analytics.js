@@ -296,29 +296,39 @@ function renderWorkshopPopularityChart(labels, registrationData, completionData)
 }
 
 // Fetch user demographics data for the pie chart
+// Fetch user demographics data for the pie chart
 function fetchUserDemographics() {
     db.collection('users')
         .get()
         .then((snapshot) => {
             // Initialize counters for demographics
-            const roles = {
+            const demographics = {
                 'student': 0,
-                'professional': 0,
-                'educator': 0,
+                'employed': 0,
+                'unemployed': 0,
                 'other': 0
             };
             
-            // Count users by role
+            // Count users by employment status
             snapshot.forEach(doc => {
                 const user = doc.data();
-                if (user.role && roles.hasOwnProperty(user.role)) {
-                    roles[user.role]++;
+                if (user.employmentStatus) {
+                    const status = user.employmentStatus.toLowerCase();
+                    if (status.includes('student')) {
+                        demographics['student']++;
+                    } else if (status.includes('employed') || status.includes('working')) {
+                        demographics['employed']++;
+                    } else if (status.includes('unemployed') || status.includes('jobless') || status.includes('looking')) {
+                        demographics['unemployed']++;
+                    } else {
+                        demographics['other']++;
+                    }
                 } else {
-                    roles['other']++;
+                    demographics['other']++;
                 }
             });
             
-            renderUserDemographicsChart(roles);
+            renderUserDemographicsChart(demographics);
         })
         .catch((error) => {
             console.error("Error fetching user demographics:", error);
@@ -326,7 +336,7 @@ function fetchUserDemographics() {
 }
 
 // Render the user demographics chart
-function renderUserDemographicsChart(roleData) {
+function renderUserDemographicsChart(demographicsData) {
     const ctx = document.getElementById('userDemographicsChart').getContext('2d');
     
     // Destroy existing chart if it exists
@@ -334,25 +344,39 @@ function renderUserDemographicsChart(roleData) {
         window.demographicsChart.destroy();
     }
     
+    // Prepare labels with proper capitalization
+    const labels = [
+        'Student',
+        'Employed',
+        'Unemployed',
+        'Other'
+    ];
+    
+    // Prepare data in the correct order
+    const data = [
+        demographicsData['student'] || 0,
+        demographicsData['employed'] || 0,
+        demographicsData['unemployed'] || 0,
+        demographicsData['other'] || 0
+    ];
+    
     window.demographicsChart = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: Object.keys(roleData).map(role => 
-                role.charAt(0).toUpperCase() + role.slice(1)
-            ),
+            labels: labels,
             datasets: [{
-                data: Object.values(roleData),
+                data: data,
                 backgroundColor: [
-                    'rgba(59, 130, 246, 0.7)', // Blue
-                    'rgba(16, 185, 129, 0.7)', // Green
-                    'rgba(139, 92, 246, 0.7)', // Purple
-                    'rgba(249, 115, 22, 0.7)' // Orange
+                    'rgba(59, 130, 246, 0.7)', // Blue for Student
+                    'rgba(16, 185, 129, 0.7)', // Green for Employed
+                    'rgba(245, 158, 11, 0.7)', // Yellow for Unemployed
+                    'rgba(156, 163, 175, 0.7)' // Gray for Other
                 ],
                 borderColor: [
                     'rgba(59, 130, 246, 1)',
                     'rgba(16, 185, 129, 1)',
-                    'rgba(139, 92, 246, 1)',
-                    'rgba(249, 115, 22, 1)'
+                    'rgba(245, 158, 11, 1)',
+                    'rgba(156, 163, 175, 1)'
                 ],
                 borderWidth: 1
             }]
