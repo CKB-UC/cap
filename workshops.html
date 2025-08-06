@@ -45,6 +45,35 @@
     .workshop-content:hover h2 {
         color: #4f46e5; /* indigo-600 */
     }
+
+    /*Ratings Style*/
+    .rating-stars .star {
+        fill: none;
+        stroke: currentColor;
+        transition: all 0.2s;
+    }
+    
+    .rating-stars .star:hover,
+    .rating-stars .star.active {
+        fill: currentColor;
+        color: #f59e0b; /* yellow-500 */
+    }
+    
+    .comment-section {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .comment-item {
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .comment-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
     </style>
 
 </head>
@@ -77,8 +106,6 @@
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-12">
         <div class="mb-12 text-center">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Upcoming Workshops</h2>
-            <div class="w-20 h-1 bg-blue-600 mx-auto mb-6"></div>
             <p class="text-lg text-gray-600 max-w-3xl mx-auto">
                 Browse our selection of interactive workshops designed to enhance your professional skills.
             </p>

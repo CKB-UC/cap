@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let workshopClickHandlerAttached = false;
 
-// Modify your loadWorkshops function
 async function loadWorkshops() {
     const workshopsList = document.getElementById('workshops-list');
     workshopsList.innerHTML = '<p class="text-gray-600 text-center">Loading workshops...</p>';
@@ -24,38 +23,297 @@ async function loadWorkshops() {
         // Get current user's registrations if logged in
         const user = auth.currentUser;
         const userRegistrations = user ? await getUserRegistrations(user.uid) : [];
+        
+        // Categorize workshops by status
+        const workshopsByStatus = {
+            active: [],
+            upcoming: [],
+            postponed: [],
+            completed: []
+        };
 
         snapshot.forEach((doc) => {
             const workshop = doc.data();
-            const workshopId = doc.id;
-            const date = workshop.date.toDate();
-            const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const isRegistered = userRegistrations.includes(workshopId);
-
-            const workshopCard = document.createElement('div');
-            workshopCard.className = 'bg-white rounded-lg shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow transform hover:scale-105';
-            workshopCard.innerHTML = `
-                <div class="workshop-content" data-id="${workshopId}">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">${workshop.title}</h2>
-                    <div class="space-y-2 text-gray-600">
-                        <p><strong>Date:</strong> ${formattedDate}</p>
-                        <p><strong>Location:</strong> ${workshop.location}</p>
-                        <p><strong>Status:</strong> <span class="font-semibold ${getStatusColor(workshop.status)}">${workshop.status}</span></p>
-                        <p><strong>Capacity:</strong> ${workshop.capacity}</p>
-                        <p><strong>Registered:</strong> ${workshop.registered || 0}</p>
-                    </div>
-                </div>
-                <button class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors w-full sm:w-auto register-btn" 
-                        data-id="${workshopId}" 
-                        id="btn-${workshopId}">
-                    ${isRegistered ? 'Contact Us' : 'Register Now'}
-                </button>
-            `;
-
-            workshopsList.appendChild(workshopCard);
+            workshop.id = doc.id;
+            const status = workshop.status.toLowerCase();
+            if (workshopsByStatus[status]) {
+                workshopsByStatus[status].push(workshop);
+            }
         });
 
-        // Only attach click handlers once
+        // Render workshops by status in order
+        const statusOrder = ['active', 'upcoming', 'postponed', 'completed'];
+        
+        statusOrder.forEach(status => {
+            if (workshopsByStatus[status].length > 0) {
+                // Add status header
+                const statusHeader = document.createElement('div');
+                statusHeader.className = 'md:col-span-2';
+                statusHeader.innerHTML = `
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4 capitalize">${status} Workshops</h3>
+                    <div class="w-20 h-1 bg-blue-600 mb-6"></div>
+                `;
+                workshopsList.appendChild(statusHeader);
+
+                // Add workshops for this status
+                workshopsByStatus[status].forEach(workshop => {
+                    const workshopId = workshop.id;
+                    const date = workshop.date.toDate();
+                    const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const isRegistered = userRegistrations.includes(workshopId);
+                    const hasRated = user ? workshop.ratings && workshop.ratings[user.uid] : false;
+
+                    const workshopCard = document.createElement('div');
+                    workshopCard.className = 'bg-white rounded-lg shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow transform hover:scale-105';
+                    
+                    let ratingSection = '';
+                    if (status === 'completed') {
+                        const canRate = user && isRegistered && !hasRated;
+                        ratingSection = `
+                            <div class="mt-4 border-t pt-4">
+                                ${hasRated ? `
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center">
+                                            <div class="flex stars-container">
+                                                ${renderStars(workshop.ratings[user.uid].rating)}
+                                            </div>
+                                            <span class="ml-2 text-sm text-gray-600">Your rating</span>
+                                        </div>
+                                        ${workshop.ratings[user.uid].comment ? `
+                                            <button class="text-blue-600 text-sm view-comment" data-comment="${workshop.ratings[user.uid].comment}">
+                                                View your comment
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                ` : ''}
+                                
+                                ${workshop.ratings ? `
+                                    <div class="text-sm text-gray-600 mb-3">
+                                        Average rating: ${calculateAverageRating(workshop.ratings).toFixed(1)}/5 (${Object.keys(workshop.ratings).length} ratings)
+                                    </div>
+                                ` : ''}
+                                
+                                ${canRate ? `
+                                    <button class="rate-workshop-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm" 
+                                            data-id="${workshopId}">
+                                        Rate this workshop
+                                    </button>
+                                ` : ''}
+                                
+                                ${workshop.comments && workshop.comments.length > 0 ? `
+                                    <div class="mt-4">
+                                        <h4 class="font-medium text-gray-700 mb-2">Recent Comments:</h4>
+                                        <div class="space-y-2">
+                                            ${workshop.comments.slice(0, 2).map(comment => `
+                                                <div class="bg-gray-50 p-3 rounded-lg">
+                                                    <div class="flex items-center justify-between">
+                                                        <div class="font-medium">${comment.userName}</div>
+                                                        <div class="flex stars-container">
+                                                            ${comment.rating ? renderStars(comment.rating) : ''}
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-gray-600 mt-1">${comment.text}</div>
+                                                </div>
+                                            `).join('')}
+                                            ${workshop.comments.length > 2 ? `
+                                                <div class="text-blue-600 text-sm cursor-pointer view-all-comments" data-id="${workshopId}">
+                                                    View all ${workshop.comments.length} comments
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+
+
+                    workshopCard.innerHTML = `
+                        <div class="workshop-content cursor-pointer" data-id="${workshopId}">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-4 hover:text-indigo-600 transition">${workshop.title}</h2>
+                            <div class="space-y-2 text-gray-600">
+                                <p><strong>Date:</strong> ${formattedDate}</p>
+                                <p><strong>Location:</strong> ${workshop.location}</p>
+                                <p><strong>Status:</strong> <span class="font-semibold ${getStatusColor(workshop.status)}">${workshop.status}</span></p>
+                                <p><strong>Capacity:</strong> ${workshop.capacity}</p>
+                                <p><strong>Registered:</strong> ${workshop.registered || 0}</p>
+                            </div>
+                            ${ratingSection}
+                        </div>
+                        ${status !== 'completed' ? `
+                            <button class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors w-full sm:w-auto register-btn" 
+                                    data-id="${workshopId}" 
+                                    id="btn-${workshopId}">
+                                ${isRegistered ? 'Contact Us' : 'Register Now'}
+                            </button>
+                        ` : ''}
+                    `;
+
+                    workshopsList.appendChild(workshopCard);
+                });
+            }
+        });
+
+                function showRatingPopup(workshopId, workshopData) {
+                    const popupContainer = document.createElement('div');
+                    popupContainer.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+                    popupContainer.innerHTML = `
+                        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                            <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+                                <h2 class="text-xl font-bold text-gray-800">Rate ${workshopData.title}</h2>
+                                <button class="text-gray-500 hover:text-gray-700 close-rating">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <div class="p-6">
+                                <div class="mb-6">
+                                    <h3 class="text-lg font-medium mb-3 text-center">How would you rate this workshop?</h3>
+                                    <div class="flex justify-center space-x-1 mb-2" id="rating-stars">
+                                        ${[1, 2, 3, 4, 5].map(i => `
+                                            <svg class="w-10 h-10 cursor-pointer star" data-rating="${i}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                            </svg>
+                                        `).join('')}
+                                    </div>
+                                    <div class="text-center text-sm font-medium text-gray-700" id="rating-text">Select your rating</div>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <h3 class="text-lg font-medium mb-2">Share your experience (optional)</h3>
+                                    <textarea id="rating-comment" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" rows="4" placeholder="What did you like about this workshop?"></textarea>
+                                </div>
+                                
+                                <button id="submit-rating" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors">
+                                    Submit Review
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(popupContainer);
+                    
+                    let selectedRating = 0;
+                    
+                    // Star hover and click functionality
+                    popupContainer.querySelectorAll('.star').forEach(star => {
+                        star.addEventListener('mouseover', (e) => {
+                            const rating = parseInt(star.getAttribute('data-rating'));
+                            highlightStars(rating);
+                            updateRatingText(rating);
+                        });
+                        
+                        star.addEventListener('click', (e) => {
+                            selectedRating = parseInt(star.getAttribute('data-rating'));
+                            highlightStars(selectedRating);
+                            updateRatingText(selectedRating);
+                        });
+                    });
+                    
+                    // Reset stars when mouse leaves the container
+                    popupContainer.querySelector('#rating-stars').addEventListener('mouseleave', () => {
+                        highlightStars(selectedRating);
+                        updateRatingText(selectedRating);
+                    });
+                    
+                    // Close button
+                    popupContainer.querySelector('.close-rating').addEventListener('click', () => {
+                        document.body.removeChild(popupContainer);
+                    });
+                    
+                    // Submit rating
+                    popupContainer.querySelector('#submit-rating').addEventListener('click', async () => {
+                        if (selectedRating === 0) {
+                            alert('Please select a rating');
+                            return;
+                        }
+
+                        const comment = popupContainer.querySelector('#rating-comment').value.trim();
+                        const user = auth.currentUser;
+                        
+                        if (!user) {
+                            alert('Please log in to submit a review');
+                            return;
+                        }
+
+                        try {
+                            // Create the rating data object
+                            const ratingData = {
+                                rating: selectedRating,
+                                userName: user.displayName || 'Anonymous',
+                                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                            };
+
+                            // Add comment if provided
+                            if (comment) {
+                                ratingData.comment = comment;
+                            }
+
+                            // Update the workshop document
+                            await db.collection('workshops').doc(workshopId).update({
+                                [`ratings.${user.uid}`]: ratingData
+                            });
+
+                            // Also add to comments array if comment exists
+                            if (comment) {
+                                await db.collection('workshops').doc(workshopId).update({
+                                    comments: firebase.firestore.FieldValue.arrayUnion({
+                                        text: comment,
+                                        rating: selectedRating,
+                                        userName: user.displayName || 'Anonymous',
+                                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                                    })
+                                });
+                            }
+
+                            // Close popup and refresh
+                            document.body.removeChild(popupContainer);
+                            loadWorkshops();
+                        } catch (error) {
+                            console.error("Error submitting rating:", error);
+                            
+                            // More detailed error message
+                            let errorMessage = 'There was an error submitting your review.';
+                            if (error.code === 'permission-denied') {
+                                errorMessage = 'You need proper permissions to submit a review.';
+                            } else if (error.code === 'unavailable') {
+                                errorMessage = 'Network error. Please check your connection.';
+                            }
+                            
+                            alert(errorMessage);
+                        }
+                    });
+                    
+                    function highlightStars(rating) {
+                        popupContainer.querySelectorAll('.star').forEach((star, index) => {
+                            const starRating = index + 1;
+                            if (starRating <= rating) {
+                                star.classList.add('text-yellow-400', 'fill-current');
+                                star.classList.remove('text-gray-300');
+                            } else {
+                                star.classList.remove('text-yellow-400', 'fill-current');
+                                star.classList.add('text-gray-300');
+                            }
+                        });
+                    }
+                    
+                    function updateRatingText(rating) {
+                        const texts = [
+                            'Select your rating',
+                            'Poor - Not satisfied',
+                            'Fair - Could be better',
+                            'Good - Satisfied',
+                            'Very Good - Great experience',
+                            'Excellent - Above expectations'
+                        ];
+                        popupContainer.querySelector('#rating-text').textContent = texts[rating];
+                    }
+                }
+
+
+        // Attach event handlers
         if (!workshopClickHandlerAttached) {
             attachWorkshopClickHandlers();
             workshopClickHandlerAttached = true;
@@ -63,7 +321,8 @@ async function loadWorkshops() {
 
         // Add event listeners to register buttons
         document.querySelectorAll('.register-btn').forEach(button => {
-            button.addEventListener('click', async () => {
+            button.addEventListener('click', async (e) => {
+                e.stopPropagation();
                 const workshopId = button.getAttribute('data-id');
                 const workshopDoc = await db.collection('workshops').doc(workshopId).get();
                 const workshopData = workshopDoc.data();
@@ -87,13 +346,159 @@ async function loadWorkshops() {
                 }
             });
         });
+
+        // Add event listeners to star ratings
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const rating = parseInt(star.getAttribute('data-rating'));
+                const workshopId = star.closest('.rating-stars').getAttribute('data-id');
+                await rateWorkshop(workshopId, rating);
+            });
+        });
+
+        // Add event listeners to view all comments
+        document.querySelectorAll('.view-all-comments').forEach(link => {
+            link.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const workshopId = link.getAttribute('data-id');
+                const workshopDoc = await db.collection('workshops').doc(workshopId).get();
+                showCommentsPopup(workshopId, workshopDoc.data());
+            });
+        });
+
+        document.querySelectorAll('.rate-workshop-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const workshopId = button.getAttribute('data-id');
+                const workshopDoc = await db.collection('workshops').doc(workshopId).get();
+                showRatingPopup(workshopId, workshopDoc.data());
+            });
+        });
+
     } catch (error) {
         console.error("Error loading workshops: ", error);
         workshopsList.innerHTML = `<p class="text-red-500 text-center">Error loading workshops: ${error.message}</p>`;
     }
 }
 
-// Add this new function
+// Helper function to render stars
+function renderStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        stars += `<svg class="w-5 h-5 ${i <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>`;
+    }
+    return stars;
+}
+
+// Calculate average rating
+function calculateAverageRating(ratings) {
+    const values = Object.values(ratings).map(r => r.rating);
+    return values.reduce((sum, rating) => sum + rating, 0) / values.length;
+}
+
+// Rate a workshop
+async function rateWorkshop(workshopId, rating) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        await db.collection('workshops').doc(workshopId).update({
+            [`ratings.${user.uid}`]: {
+                rating: rating,
+                userName: user.displayName || 'Anonymous',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }
+        });
+        
+        // Refresh the workshop display
+        loadWorkshops();
+    } catch (error) {
+        console.error("Error rating workshop: ", error);
+        alert('There was an error submitting your rating. Please try again.');
+    }
+}
+
+// Show all comments popup
+function showCommentsPopup(workshopId, workshopData) {
+    const popupContainer = document.createElement('div');
+    popupContainer.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    popupContainer.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">Comments for ${workshopData.title}</h2>
+                <button class="text-gray-500 hover:text-gray-700 close-comments">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                ${workshopData.comments && workshopData.comments.length > 0 ? `
+                    <div class="space-y-4">
+                        ${workshopData.comments.map(comment => `
+                            <div class="border-b border-gray-100 pb-4 last:border-0">
+                                <div class="flex justify-between items-start">
+                                    <div class="font-medium">${comment.userName}</div>
+                                    <div class="text-sm text-gray-500">${new Date(comment.timestamp?.seconds * 1000).toLocaleString()}</div>
+                                </div>
+                                <div class="mt-1 text-gray-600">${comment.text}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '<p class="text-gray-500 text-center py-8">No comments yet.</p>'}
+                
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold mb-4">Add your comment</h3>
+                    <textarea id="comment-text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" rows="3" placeholder="Share your thoughts about this workshop..."></textarea>
+                    <button id="submit-comment" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                        Submit Comment
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(popupContainer);
+    
+    // Close button
+    popupContainer.querySelector('.close-comments').addEventListener('click', () => {
+        document.body.removeChild(popupContainer);
+    });
+    
+    // Submit comment
+    popupContainer.querySelector('#submit-comment').addEventListener('click', async () => {
+        const commentText = popupContainer.querySelector('#comment-text').value.trim();
+        if (!commentText) return;
+        
+        const user = auth.currentUser;
+        if (!user) {
+            alert('Please log in to comment');
+            return;
+        }
+        
+        try {
+            await db.collection('workshops').doc(workshopId).update({
+                comments: firebase.firestore.FieldValue.arrayUnion({
+                    text: commentText,
+                    userName: user.displayName || 'Anonymous',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                })
+            });
+            
+            // Refresh the workshop display
+            loadWorkshops();
+            document.body.removeChild(popupContainer);
+        } catch (error) {
+            console.error("Error submitting comment: ", error);
+            alert('There was an error submitting your comment. Please try again.');
+        }
+    });
+}
+
 function attachWorkshopClickHandlers() {
     // Use event delegation instead of attaching to each card
     document.getElementById('workshops-list').addEventListener('click', async (e) => {
@@ -109,7 +514,6 @@ function attachWorkshopClickHandlers() {
     });
 }
 
-// Update your showWorkshopDetails function
 let currentDetailsPopup = null;
 
 function showWorkshopDetails(workshopId, workshopData) {
@@ -233,111 +637,6 @@ function showWorkshopDetails(workshopId, workshopData) {
     });
 }
 
-
-async function loadWorkshops() {
-    const workshopsList = document.getElementById('workshops-list');
-    workshopsList.innerHTML = '<p class="text-gray-600 text-center">Loading workshops...</p>';
-
-    try {
-        const snapshot = await db.collection('workshops')
-            .orderBy('date', 'asc')
-            .get();
-
-        workshopsList.innerHTML = '';
-
-        if (snapshot.empty) {
-            workshopsList.innerHTML = '<p class="text-gray-600 text-center">No workshops found.</p>';
-            return;
-        }
-
-        // Get current user's registrations if logged in
-        const user = auth.currentUser;
-        const userRegistrations = user ? await getUserRegistrations(user.uid) : [];
-
-        snapshot.forEach((doc) => {
-            const workshop = doc.data();
-            const workshopId = doc.id;
-            const date = workshop.date.toDate();
-            const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const isRegistered = userRegistrations.includes(workshopId);
-
-            const workshopCard = document.createElement('div');
-            workshopCard.className = 'bg-white rounded-lg shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow transform hover:scale-105';
-            workshopCard.innerHTML = `
-            <div class="workshop-content cursor-pointer" data-id="${workshopId}">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 hover:text-indigo-600 transition">${workshop.title}</h2>
-                <div class="space-y-2 text-gray-600">
-                    <p><strong>Date:</strong> ${formattedDate}</p>
-                    <p><strong>Location:</strong> ${workshop.location}</p>
-                    <p><strong>Status:</strong> <span class="font-semibold ${getStatusColor(workshop.status)}">${workshop.status}</span></p>
-                    <p><strong>Capacity:</strong> ${workshop.capacity}</p>
-                    <p><strong>Registered:</strong> ${workshop.registered || 0}</p>
-                </div>
-            </div>
-            <button class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors w-full sm:w-auto register-btn" 
-                    data-id="${workshopId}" 
-                    id="btn-${workshopId}">
-                ${isRegistered ? 'Contact Us' : 'Register Now'}
-            </button>
-        `;
-
-        document.querySelectorAll('.workshop-content').forEach(element => {
-        element.addEventListener('click', async (e) => {
-            // Don't trigger if clicking on a link or button inside the card
-            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-                return;
-            }
-            
-            const workshopId = element.getAttribute('data-id');
-            const workshopDoc = await db.collection('workshops').doc(workshopId).get();
-            const workshopData = workshopDoc.data();
-            showWorkshopDetails(workshopId, workshopData);
-        });
-    });
-
-            workshopsList.appendChild(workshopCard);
-        });
-
-        // Add event listeners to register buttons
-        document.querySelectorAll('.register-btn').forEach(button => {
-            button.addEventListener('click', async () => {
-                const workshopId = button.getAttribute('data-id');
-                const workshopDoc = await db.collection('workshops').doc(workshopId).get();
-                const workshopData = workshopDoc.data();
-                
-                // If already registered, redirect to contact page
-                if (button.textContent.trim() === 'Contact Us') {
-                    window.location.href = 'contact.html';
-                    return;
-                }
-                
-                // Check if user is logged in
-                const user = auth.currentUser;
-                
-                if (user) {
-                    // User is logged in, register them for the workshop
-                    await registerForWorkshop(user, workshopId, workshopData);
-                    // Show success popup
-                    showSuccessPopup(workshopData);
-                    // Update only this button to "Contact Us"
-                    button.textContent = 'Contact Us';
-                } else {
-                    // User is not logged in, show registration form
-                    showRegistrationForm(workshopId, workshopData, () => {
-                        // Success callback
-                        showSuccessPopup(workshopData);
-                        // Update only this button to "Contact Us"
-                        document.querySelector(`#btn-${workshopId}`).textContent = 'Contact Us';
-                    });
-                }
-            });
-        });
-    } catch (error) {
-        console.error("Error loading workshops: ", error);
-        workshopsList.innerHTML = `<p class="text-red-500 text-center">Error loading workshops: ${error.message}</p>`;
-    }
-}
-
 async function getUserRegistrations(userId) {
     try {
         const snapshot = await db.collection('users')
@@ -360,7 +659,7 @@ function getStatusColor(status) {
     }
 }
 
-function showRegistrationForm(workshopId, workshopData) {
+function showRegistrationForm(workshopId, workshopData, successCallback) {
     // Create registration popup
     const popupContainer = document.createElement('div');
     popupContainer.id = 'registration-popup';
@@ -521,6 +820,11 @@ function showRegistrationForm(workshopId, workshopData) {
             
             // Show success popup
             showSuccessPopup(workshopData);
+            
+            // Execute success callback if provided
+            if (successCallback) {
+                successCallback();
+            }
             
             // Refresh workshops list
             loadWorkshops();

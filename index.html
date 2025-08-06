@@ -161,6 +161,18 @@
 
     </main>
 
+    <!-- Featured Ratings Section -->
+<section class="mb-16">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">What Participants Say</h2>
+        <div class="w-20 h-1 bg-blue-600 mx-auto mb-6"></div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8" id="featured-ratings">
+        <!-- Ratings will be loaded dynamically -->
+    </div>
+</section>
+
     <!-- Footer -->
     <footer class="bg-gray-100 py-12">
         <div class="container mx-auto px-4">
@@ -196,13 +208,96 @@
     </footer>
 
     <script src="auth.js"></script>
-    <script>
-    // Initialize auth state for navigation
-    document.addEventListener('DOMContentLoaded', () => {
-        auth.onAuthStateChanged((user) => {
-            updateNavigationAuthState(user);
-        });
+<script>
+// Initialize auth state for navigation
+document.addEventListener('DOMContentLoaded', () => {
+    auth.onAuthStateChanged((user) => {
+        updateNavigationAuthState(user);
     });
-    </script>
+    loadFeaturedRatings();
+});
+
+function renderStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        stars += `<svg class="w-5 h-5 ${i <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>`;
+    }
+    return stars;
+}
+
+async function loadFeaturedRatings() {
+    const container = document.getElementById('featured-ratings');
+    container.innerHTML = '<p class="text-gray-600 text-center col-span-3">Loading testimonials...</p>';
+
+    try {
+        // Get all completed workshops with ratings
+        const snapshot = await db.collection('workshops')
+            .where('status', '==', 'completed')
+            .orderBy('date', 'desc')
+            .get();
+
+        container.innerHTML = '';
+
+        if (snapshot.empty) {
+            container.innerHTML = '<p class="text-gray-600 text-center col-span-3">No testimonials yet.</p>';
+            return;
+        }
+
+        // Collect all ratings from all workshops
+        let allRatings = [];
+        
+        snapshot.forEach(doc => {
+            const workshop = doc.data();
+            if (workshop.ratings && Object.keys(workshop.ratings).length > 0) {
+                Object.entries(workshop.ratings).forEach(([userId, ratingData]) => {
+                    allRatings.push({
+                        ...ratingData,
+                        workshopTitle: workshop.title,
+                        timestamp: ratingData.timestamp?.toDate() || new Date()
+                    });
+                });
+            }
+        });
+
+        if (allRatings.length === 0) {
+            container.innerHTML = '<p class="text-gray-600 text-center col-span-3">No testimonials yet.</p>';
+            return;
+        }
+
+        // Sort by most recent and get top 3
+        const recentRatings = allRatings
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 3);
+
+        // Display the testimonials
+        recentRatings.forEach(rating => {
+            const ratingCard = document.createElement('div');
+            ratingCard.className = 'bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition flex flex-col h-full';
+            
+            ratingCard.innerHTML = `
+                <div class="flex-grow">
+                    <div class="flex justify-center mb-4">
+                        ${renderStars(rating.rating)}
+                    </div>
+                    <p class="text-gray-600 italic mb-4 text-center">"${rating.comment || 'Great workshop experience!'}"</p>
+                </div>
+                <div class="mt-auto text-center">
+                    <p class="font-semibold">${rating.userName || 'Participant'}</p>
+                    <p class="text-sm text-gray-500">${rating.workshopTitle}</p>
+                    <p class="text-xs text-gray-400 mt-1">${rating.timestamp.toLocaleDateString()}</p>
+                </div>
+            `;
+            
+            container.appendChild(ratingCard);
+        });
+
+    } catch (error) {
+        console.error("Error loading featured ratings: ", error);
+        container.innerHTML = `<p class="text-red-500 text-center col-span-3">Error loading testimonials: ${error.message}</p>`;
+    }
+}
+</script>
 </body>
 </html>

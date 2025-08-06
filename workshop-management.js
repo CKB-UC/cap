@@ -174,7 +174,6 @@ function createWorkshopRow(workshop, formattedDate, formattedTime) {
             creativity: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
             'problem-solving': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
             technical: { bg: 'bg-indigo-100', text: 'text-indigo-800', border: 'border-indigo-200' },
-            'soft-skills': { bg: 'bg-pink-100', text: 'text-pink-800', border: 'border-pink-200' },
             management: { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-200' }
         };
         
