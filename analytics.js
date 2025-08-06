@@ -92,8 +92,8 @@ function fetchOverviewMetrics(startDate, endDate) {
 function fetchRegistrationTrends(startDate, endDate) {
     // Prepare date labels based on time range
     const labels = [];
-    const registrationsData = [];
-    const completionsData = [];
+    const userRegistrationsData = [];
+    const userLoginsData = [];
     
     // Create date labels (simplified version for demo)
     const format = { month: 'short', day: 'numeric' };
@@ -103,48 +103,48 @@ function fetchRegistrationTrends(startDate, endDate) {
         date.setDate(date.getDate() - i);
         labels.push(date.toLocaleDateString('en-US', format));
         // Initialize with zeros
-        registrationsData.push(0);
-        completionsData.push(0);
+        userRegistrationsData.push(0);
+        userLoginsData.push(0);
     }
     
-    // Get registrations grouped by day
-    db.collection('registrations')
-        .where('timestamp', '>=', startDate)
-        .where('timestamp', '<=', endDate)
+    // Get user registrations grouped by day
+    db.collection('users')
+        .where('createdAt', '>=', startDate)
+        .where('createdAt', '<=', endDate)
         .get()
         .then((snapshot) => {
-            // Process registrations
+            // Process user registrations
             snapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.timestamp) {
-                    const registrationDate = data.timestamp.toDate();
+                const userData = doc.data();
+                if (userData.createdAt) {
+                    const registrationDate = userData.createdAt.toDate();
                     const dayDiff = Math.floor((endDate - registrationDate) / (1000 * 60 * 60 * 24));
                     if (dayDiff >= 0 && dayDiff < days) {
-                        registrationsData[days - 1 - dayDiff]++;
+                        userRegistrationsData[days - 1 - dayDiff]++;
                     }
                 }
             });
             
-            // Get completions grouped by day
-            db.collection('completions')
+            // Get user logins grouped by day (if you have login tracking)
+            db.collection('userLogins')  // Assuming you have a collection tracking logins
                 .where('timestamp', '>=', startDate)
                 .where('timestamp', '<=', endDate)
                 .get()
-                .then((compSnapshot) => {
-                    // Process completions
-                    compSnapshot.forEach(doc => {
-                        const data = doc.data();
-                        if (data.timestamp) {
-                            const completionDate = data.timestamp.toDate();
-                            const dayDiff = Math.floor((endDate - completionDate) / (1000 * 60 * 60 * 24));
+                .then((loginSnapshot) => {
+                    // Process logins
+                    loginSnapshot.forEach(doc => {
+                        const loginData = doc.data();
+                        if (loginData.timestamp) {
+                            const loginDate = loginData.timestamp.toDate();
+                            const dayDiff = Math.floor((endDate - loginDate) / (1000 * 60 * 60 * 24));
                             if (dayDiff >= 0 && dayDiff < days) {
-                                completionsData[days - 1 - dayDiff]++;
+                                userLoginsData[days - 1 - dayDiff]++;
                             }
                         }
                     });
                     
-                    // Render the chart
-                    renderRegistrationTrendsChart(labels, registrationsData, completionsData);
+                    // Render the chart with user data
+                    renderRegistrationTrendsChart(labels, userRegistrationsData, userLoginsData);
                 });
         })
         .catch((error) => {
@@ -152,8 +152,8 @@ function fetchRegistrationTrends(startDate, endDate) {
         });
 }
 
-// Render the registration trends chart
-function renderRegistrationTrendsChart(labels, registrationsData, completionsData) {
+// Update the chart rendering function to show user data
+function renderRegistrationTrendsChart(labels, userRegistrationsData, userLoginsData) {
     const ctx = document.getElementById('registrationTrendsChart').getContext('2d');
     
     // Destroy existing chart if it exists
@@ -167,16 +167,16 @@ function renderRegistrationTrendsChart(labels, registrationsData, completionsDat
             labels: labels,
             datasets: [
                 {
-                    label: 'Registrations',
-                    data: registrationsData,
+                    label: 'New User Registrations',
+                    data: userRegistrationsData,
                     borderColor: 'rgba(59, 130, 246, 1)', // Blue
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     tension: 0.4,
                     fill: true
                 },
                 {
-                    label: 'Completions',
-                    data: completionsData,
+                    label: 'User Logins',
+                    data: userLoginsData,
                     borderColor: 'rgba(16, 185, 129, 1)', // Green
                     backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     tension: 0.4,
@@ -192,6 +192,10 @@ function renderRegistrationTrendsChart(labels, registrationsData, completionsDat
                     beginAtZero: true,
                     ticks: {
                         precision: 0
+                    },
+                    title: {
+                        display: true,
+                        text: 'Number of Users'
                     }
                 }
             },
@@ -202,6 +206,10 @@ function renderRegistrationTrendsChart(labels, registrationsData, completionsDat
                 },
                 legend: {
                     position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'User Registration and Login Trends'
                 }
             }
         }
