@@ -24,7 +24,6 @@ function loadAnalyticsData() {
     fetchWorkshopPopularity();
     fetchUserDemographics();
     fetchCompletionStats();
-    fetchTopWorkshops();
 }
 
 // Show loading state for dashboard elements
@@ -33,12 +32,6 @@ function showLoadingState() {
     document.getElementById('completionRate').textContent = "Loading...";
     document.getElementById('userGrowth').textContent = "Loading...";
     document.getElementById('popularTime').textContent = "Loading...";
-    
-    document.getElementById('topWorkshops').innerHTML = `
-        <tr>
-            <td colspan="5" class="py-4 px-4 text-center text-gray-500">Loading workshop data...</td>
-        </tr>
-    `;
 }
 
 // Fetch overview metrics for the dashboard cards
@@ -495,78 +488,6 @@ function renderCompletionStatsChart(completed, inProgress, abandoned) {
             }
         }
     });
-}
-
-// Fetch top workshops for the table
-function fetchTopWorkshops() {
-    db.collection('workshops')
-        .orderBy('registrationCount', 'desc')
-        .limit(5)
-        .get()
-        .then((snapshot) => {
-            let tableHTML = '';
-            
-            if (snapshot.empty) {
-                tableHTML = `
-                    <tr>
-                        <td colspan="5" class="py-4 px-4 text-center text-gray-500">No workshop data available</td>
-                    </tr>
-                `;
-            } else {
-                snapshot.forEach(doc => {
-                    const workshop = doc.data();
-                    const registrations = workshop.registrationCount || 0;
-                    const completions = workshop.completionCount || 0;
-                    const completionRate = registrations > 0 ? 
-                        ((completions / registrations) * 100).toFixed(1) + '%' : '0%';
-                    const rating = workshop.averageRating ? 
-                        workshop.averageRating.toFixed(1) + '/5.0' : 'No ratings';
-                    
-                    let statusClass = '';
-                    let statusText = '';
-                    
-                    if (workshop.status === 'active') {
-                        statusClass = 'bg-green-100 text-green-800';
-                        statusText = 'Active';
-                    } else if (workshop.status === 'scheduled') {
-                        statusClass = 'bg-blue-100 text-blue-800';
-                        statusText = 'Scheduled';
-                    } else if (workshop.status === 'completed') {
-                        statusClass = 'bg-gray-100 text-gray-800';
-                        statusText = 'Completed';
-                    } else {
-                        statusClass = 'bg-yellow-100 text-yellow-800';
-                        statusText = 'Draft';
-                    }
-                    
-                    tableHTML += `
-                        <tr>
-                            <td class="py-3 px-4 border-b">${workshop.title || 'Untitled Workshop'}</td>
-                            <td class="py-3 px-4 border-b">${registrations}</td>
-                            <td class="py-3 px-4 border-b">${completionRate}</td>
-                            <td class="py-3 px-4 border-b">${rating}</td>
-                            <td class="py-3 px-4 border-b">
-                                <span class="px-2 py-1 rounded-full text-xs ${statusClass}">
-                                    ${statusText}
-                                </span>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-            
-            document.getElementById('topWorkshops').innerHTML = tableHTML;
-        })
-        .catch((error) => {
-            console.error("Error fetching top workshops:", error);
-            document.getElementById('topWorkshops').innerHTML = `
-                <tr>
-                    <td colspan="5" class="py-4 px-4 text-center text-red-500">
-                        Error loading workshop data. Please try again.
-                    </td>
-                </tr>
-            `;
-        });
 }
 
 // Set up event listeners
