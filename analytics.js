@@ -30,7 +30,6 @@ function showLoadingState() {
     document.getElementById('registrationRate').textContent = "Loading...";
     document.getElementById('completionRate').textContent = "Loading...";
     document.getElementById('userGrowth').textContent = "Loading...";
-    document.getElementById('popularTime').textContent = "Loading...";
 }
 
 // Fetch overview metrics for the dashboard cards
@@ -79,9 +78,7 @@ function fetchOverviewMetrics(startDate, endDate) {
                 .then((userSnapshot) => {
                     document.getElementById('userGrowth').textContent = userSnapshot.size;
                 });
-            
-            // Get popular time (simplified for demo)
-            document.getElementById('popularTime').textContent = "2PM - 6PM";
+
         })
         .catch((error) => {
             console.error("Error fetching overview metrics:", error);
