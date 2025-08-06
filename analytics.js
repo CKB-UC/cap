@@ -23,7 +23,6 @@ function loadAnalyticsData() {
     fetchRegistrationTrends(startDate, endDate);
     fetchWorkshopPopularity();
     fetchUserDemographics();
-    fetchCompletionStats();
 }
 
 // Show loading state for dashboard elements
