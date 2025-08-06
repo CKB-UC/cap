@@ -134,6 +134,7 @@ async function loadWorkshops() {
                             <div class="space-y-2 text-gray-600">
                                 <p><strong>Date:</strong> ${formattedDate}</p>
                                 <p><strong>Location:</strong> ${workshop.location}</p>
+                                ${workshop.tag ? `<p><strong>Tag:</strong> <span class="px-2 py-1 rounded-full text-xs font-medium ${getTagColorClass(workshop.tag)}">${workshop.tag.charAt(0).toUpperCase() + workshop.tag.slice(1).replace('-', ' ')}</span></p>` : ''}
                                 <p><strong>Status:</strong> <span class="font-semibold ${getStatusColor(workshop.status)}">${workshop.status}</span></p>
                                 <p><strong>Capacity:</strong> ${workshop.capacity}</p>
                                 <p><strong>Registered:</strong> ${workshop.registered || 0}</p>
@@ -558,6 +559,14 @@ function showWorkshopDetails(workshopId, workshopData) {
                         <h3 class="font-semibold text-gray-700 mb-2">Capacity</h3>
                         <p>${workshopData.registered || 0} / ${workshopData.capacity}</p>
                     </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-gray-700 mb-2">Tag</h3>
+                        ${workshopData.tag ? `
+                            <span class="px-2 py-1 rounded-full text-xs font-medium ${getTagColorClass(workshopData.tag)}">
+                                ${workshopData.tag.charAt(0).toUpperCase() + workshopData.tag.slice(1).replace('-', ' ')}
+                            </span>
+                        ` : '<p>No tag assigned</p>'}
+                    </div>
                 </div>
                 
                 <!-- Description -->
@@ -832,6 +841,20 @@ function showRegistrationForm(workshopId, workshopData, successCallback) {
             document.getElementById('error-message').textContent = error.message;
         }
     });
+}
+
+function getTagColorClass(tag) {
+    const tagColors = {
+        communication: 'bg-blue-100 text-blue-800 border border-blue-200',
+        teamwork: 'bg-green-100 text-green-800 border border-green-200',
+        leadership: 'bg-purple-100 text-purple-800 border border-purple-200',
+        creativity: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+        'problem-solving': 'bg-red-100 text-red-800 border border-red-200',
+        technical: 'bg-indigo-100 text-indigo-800 border border-indigo-200',
+        management: 'bg-gray-100 text-gray-800 border border-gray-200'
+    };
+    
+    return tagColors[tag] || 'bg-gray-100 text-gray-800 border border-gray-200';
 }
 
 function showSuccessPopup(workshopData) {
