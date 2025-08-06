@@ -59,15 +59,16 @@
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white border border-gray-200">
                         <thead>
-                            <tr class="bg-gray-50">
-                                <th class="py-2 px-4 border-b text-left">Title</th>
-                                <th class="py-2 px-4 border-b text-left">Status</th>
-                                <th class="py-2 px-4 border-b text-left">Date</th>
-                                <th class="py-2 px-4 border-b text-left">Capacity</th>
-                                <th class="py-2 px-4 border-b text-left">Registered</th>
-                                <th class="py-2 px-4 border-b text-left">Actions</th>
-                            </tr>
-                        </thead>
+                        <tr class="bg-gray-50">
+                            <th class="py-2 px-4 border-b text-left">Title</th>
+                            <th class="py-2 px-4 border-b text-left">Status</th>
+                            <th class="py-2 px-4 border-b text-left">Tag</th>
+                            <th class="py-2 px-4 border-b text-left">Date</th>
+                            <th class="py-2 px-4 border-b text-left">Capacity</th>
+                            <th class="py-2 px-4 border-b text-left">Registered</th>
+                            <th class="py-2 px-4 border-b text-left">Actions</th>
+                        </tr>
+                    </thead>
                         <tbody id="workshopsList">
                 <tr>
                     <td colspan="6" class="py-4 px-4 text-center text-gray-500">Loading workshops...</td>
@@ -131,8 +132,18 @@
                                 </div>
 
                             <div>
-                                <label for="workshopTags" class="block text-gray-700 font-medium mb-2">Tags (comma separated)</label>
-                                <input type="text" id="workshopTags" name="workshopTags" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="communication, teamwork, leadership">
+                                <label for="workshopTag" class="block text-gray-700 font-medium mb-2">Tag</label>
+                                <select id="workshopTag" name="workshopTag" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="">Select a tag...</option>
+                                    <option value="communication">Communication</option>
+                                    <option value="teamwork">Teamwork</option>
+                                    <option value="leadership">Leadership</option>
+                                    <option value="creativity">Creativity</option>
+                                    <option value="problem-solving">Problem Solving</option>
+                                    <option value="technical">Technical</option>
+                                    <option value="soft-skills">Soft Skills</option>
+                                    <option value="management">Management</option>
+                                </select>
                             </div>
 
                                 
