@@ -202,10 +202,13 @@ function sendWorkshopConfirmation(email, workshopData) {
         const logoutBtn = document.querySelector('.btn-logout');
         const authButtons = document.querySelector('.auth-buttons');
         const adminDashboard = document.querySelector('.admin-dashboard');
+        const loginBtn = document.querySelector('.login-btn');
+        const signupBtn = document.querySelector('.signup-btn');
 
         if (user) {
-            // User is logged in - hide auth buttons
-            if (authButtons) authButtons.style.display = 'none';
+            // User is logged in - hide only login/signup buttons, not the entire auth-buttons container
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (signupBtn) signupBtn.style.display = 'none';
             
             // Create/show logout button
             if (!logoutBtn && navLinks) {
@@ -229,8 +232,9 @@ function sendWorkshopConfirmation(email, workshopData) {
                 }
             });
         } else {
-            // User is logged out - show auth buttons
-            if (authButtons) authButtons.style.display = 'flex';
+            // User is logged out - show login/signup buttons
+            if (loginBtn) loginBtn.style.display = 'inline-block';
+            if (signupBtn) signupBtn.style.display = 'inline-block';
             if (logoutBtn) {
                 logoutBtn.remove();
             }

@@ -20,11 +20,13 @@
     <nav class="bg-indigo-600 text-white shadow-md">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="font-bold text-xl">Workshop Admin</div>
-            <div class="nav-links space-x-6">
+            <div class="nav-links space-x-6 flex items-center">
                 <a href="index.html" class="hover:text-indigo-200 transition">Home</a>
                 <a href="workshops.html" class="hover:text-indigo-200 transition">Workshops</a>
                 <a href="aboutus.html" class="hover:text-indigo-200 transition">About Us</a>
                 <a href="contact.html" class="hover:text-indigo-200 transition">Contact</a>
+                <!-- Notification Container - Only shown when logged in -->
+                <div id="notification-container" class="mr-4 hidden"></div>
                 <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-1 rounded text-white ml-4 transition">Logout</button>
             </div>
         </div>
@@ -60,11 +62,11 @@
             </div>
             
             <!-- Admin Actions -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="adminContent">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="adminContent">
                 <div class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Manage Users</h3>
                     <p class="text-gray-600 mb-4">View, edit, and manage user accounts and permissions.</p>
-                    <button id="userManagementBtn" onclick="window.location.href = 'workshop-management.html';" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
+                    <button id="userManagementBtn" onclick="window.location.href = 'user-management.html';" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
                         User Management
                     </button>
                 </div>
@@ -72,15 +74,23 @@
                 <div class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Manage Workshops</h3>
                     <p class="text-gray-600 mb-4">Create, edit, and schedule workshops and events.</p>
-                    <button id="workshopManagementBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
+                    <button id="workshopManagementBtn" onclick="window.location.href = 'workshop-management.html';" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
                         Workshop Management
+                    </button>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Notifications</h3>
+                    <p class="text-gray-600 mb-4">Create and manage announcements and notifications for users.</p>
+                    <button id="notificationManagementBtn" onclick="window.location.href = 'notification-management.html';" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
+                        Notification Management
                     </button>
                 </div>
                 
                 <div class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Analytics</h3>
                     <p class="text-gray-600 mb-4">View detailed statistics and reports on platform usage.</p>
-                    <button id="analyticsBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
+                    <button id="analyticsBtn" onclick="window.location.href = 'analytics.html';" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition">
                         View Analytics
                     </button>
                 </div>
@@ -276,6 +286,9 @@
     <!-- Include the dashboard functions -->
     <script src="admin-dashboard.js"></script>
     <script src="auth.js"></script>
+    <script src="notifications.js"></script>
+    <script src="notification-component.js"></script>
+    <link rel="stylesheet" href="css/notifications.css">
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -313,6 +326,37 @@
                     console.error("Error in workshops listener:", error);
                     activeWorkshopsElement.textContent = 'Error';
                 });
+            
+            // Initialize notification component for admin
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    console.log('User logged in, initializing notification component for user:', user.uid);
+                    // Show notification container
+                    const notificationContainer = document.getElementById('notification-container');
+                    if (notificationContainer) {
+                        notificationContainer.classList.remove('hidden');
+                        // Wait a bit for the DOM to be ready
+                        setTimeout(() => {
+                            console.log('Creating notification component for user:', user.uid);
+                            window.notificationComponent = new NotificationComponent('notification-container');
+                        }, 100);
+                    } else {
+                        console.error('Notification container not found');
+                    }
+                } else {
+                    console.log('No user logged in, hiding notification container');
+                    // Hide notification container when not logged in
+                    const notificationContainer = document.getElementById('notification-container');
+                    if (notificationContainer) {
+                        notificationContainer.classList.add('hidden');
+                        // Clean up existing notification component
+                        if (window.notificationComponent) {
+                            window.notificationComponent.destroy();
+                            window.notificationComponent = null;
+                        }
+                    }
+                }
+            });
         });
     </script>
 </body>

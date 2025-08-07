@@ -432,15 +432,43 @@ async function handleWorkshopSubmit(e) {
             
             // Log the workshop edit activity
             await logAdminActivity('Workshop Edited', `Edited workshop: ${workshopData.title}`);
+            
+            // Send notification to registered users about workshop update
+            if (existingData.registeredUsers && existingData.registeredUsers.length > 0) {
+                try {
+                    await NotificationSystem.sendWorkshopNotification(
+                        workshopId,
+                        `Workshop Updated: ${workshopData.title}`,
+                        `The workshop "${workshopData.title}" has been updated. Please check the new details and schedule.`,
+                        'workshop_update'
+                    );
+                } catch (notificationError) {
+                    console.error('Error sending workshop update notification:', notificationError);
+                }
+            }
         } else {
             // Create new workshop
             workshopData.createdAt = new Date();
             workshopData.registered = 0;
             workshopData.registeredUsers = [];
-            await db.collection('workshops').add(workshopData);
+            const docRef = await db.collection('workshops').add(workshopData);
             
             // Log the workshop creation activity
             await logAdminActivity('Workshop Created', `Created new workshop: ${workshopData.title}`);
+            
+            // Send notification to all users about new workshop
+            try {
+                await NotificationSystem.createNotification({
+                    title: `New Workshop Available: ${workshopData.title}`,
+                    message: `A new workshop "${workshopData.title}" is now available for registration. Check it out!`,
+                    type: 'workshop_update',
+                    priority: 'medium',
+                    targetUsers: 'all',
+                    workshopId: docRef.id
+                });
+            } catch (notificationError) {
+                console.error('Error sending new workshop notification:', notificationError);
+            }
         }
         
         closeWorkshopModal();
