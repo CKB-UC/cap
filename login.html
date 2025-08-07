@@ -6,6 +6,8 @@
     <title>Login - Workshop</title>
     <link rel="stylesheet" href="style.css">
     <link href="css/output.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -46,6 +48,60 @@
     
     const auth = firebase.auth();
     
+    // Function to show logout popup
+    function showLogoutPopup() {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'logout-popup-overlay';
+        
+        // Create popup content
+        const popup = document.createElement('div');
+        popup.className = 'logout-popup';
+        popup.innerHTML = `
+            <div class="logout-popup-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="logout-popup-title">Successfully Logged Out</div>
+            <div class="logout-popup-message">You have been logged out successfully.</div>
+            <button class="logout-popup-button" onclick="closeLogoutPopup()">OK</button>
+        `;
+        
+        overlay.appendChild(popup);
+        document.body.appendChild(overlay);
+        
+        // Auto-close after 3 seconds
+        setTimeout(() => {
+            closeLogoutPopup();
+        }, 3000);
+    }
+    
+    // Function to close logout popup
+    function closeLogoutPopup() {
+        const overlay = document.querySelector('.logout-popup-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+    }
+    
+    // Check if user was redirected from logout
+    function checkForLogoutRedirect() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const logoutParam = urlParams.get('logout');
+        
+        if (logoutParam === 'true') {
+            // Show logout popup
+            showLogoutPopup();
+            // Clean up the URL parameter
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }
+    
+    // Check for logout redirect when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        checkForLogoutRedirect();
+    });
+    
     document.getElementById('loginForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value;
@@ -62,5 +118,105 @@
     });
     </script>
     <script src="auth.js"></script>
+    
+    <style>
+        /* Logout Popup Styles */
+        .logout-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 24px;
+            text-align: center;
+            z-index: 10000;
+            min-width: 300px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .logout-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logout-popup-icon {
+            width: 60px;
+            height: 60px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+        
+        .logout-popup-icon i {
+            color: white;
+            font-size: 24px;
+        }
+        
+        .logout-popup-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .logout-popup-message {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .logout-popup-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .logout-popup-button:hover {
+            background: #2563eb;
+        }
+        
+        /* Animation for popup */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -40%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        .logout-popup {
+            animation: fadeInUp 0.3s ease-out;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .logout-popup {
+                min-width: 280px;
+                margin: 0 20px;
+            }
+        }
+    </style>
 </body>
 </html> 

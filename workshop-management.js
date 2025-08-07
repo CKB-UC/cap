@@ -520,6 +520,41 @@ function deleteWorkshop(workshopId, workshopTitle) {
     });
 }
 
+// Function to show logout popup
+function showLogoutPopup() {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'logout-popup-overlay';
+    
+    // Create popup content
+    const popup = document.createElement('div');
+    popup.className = 'logout-popup';
+    popup.innerHTML = `
+        <div class="logout-popup-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        <div class="logout-popup-title">Successfully Logged Out</div>
+        <div class="logout-popup-message">You have been logged out successfully.</div>
+        <button class="logout-popup-button" onclick="closeLogoutPopup()">OK</button>
+    `;
+    
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+    
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+        closeLogoutPopup();
+    }, 3000);
+}
+
+// Function to close logout popup
+function closeLogoutPopup() {
+    const overlay = document.querySelector('.logout-popup-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
 // Logout function
 function logout() {
     // Log the logout activity
@@ -527,7 +562,12 @@ function logout() {
         .then(() => {
             // Then sign out
             firebase.auth().signOut().then(() => {
-                window.location.href = 'login.html';
+                // Show logout popup
+                showLogoutPopup();
+                // Redirect after a short delay to allow popup to show
+                setTimeout(() => {
+                    window.location.href = 'login.html?logout=true';
+                }, 2000);
             }).catch((error) => {
                 console.error("Error signing out: ", error);
                 alert("Error signing out: " + error.message);
@@ -537,7 +577,12 @@ function logout() {
             console.error("Error logging activity: ", error);
             // Still try to sign out even if logging failed
             firebase.auth().signOut().then(() => {
-                window.location.href = 'login.html';
+                // Show logout popup
+                showLogoutPopup();
+                // Redirect after a short delay to allow popup to show
+                setTimeout(() => {
+                    window.location.href = 'login.html?logout=true';
+                }, 2000);
             });
         });
 }

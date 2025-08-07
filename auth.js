@@ -245,10 +245,47 @@ auth.onAuthStateChanged((user) => {
     updateNavigationAuthState(user);
 });
 
+// Function to show logout popup
+function showLogoutPopup() {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'logout-popup-overlay';
+    
+    // Create popup content
+    const popup = document.createElement('div');
+    popup.className = 'logout-popup';
+    popup.innerHTML = `
+        <div class="logout-popup-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        <div class="logout-popup-title">Successfully Logged Out</div>
+        <div class="logout-popup-message">You have been logged out successfully.</div>
+        <button class="logout-popup-button" onclick="closeLogoutPopup()">OK</button>
+    `;
+    
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+    
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+        closeLogoutPopup();
+    }, 3000);
+}
+
+// Function to close logout popup
+function closeLogoutPopup() {
+    const overlay = document.querySelector('.logout-popup-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
 // Make sure logout function is available
 function logout() {
     auth.signOut().then(() => {
         console.log('User signed out');
+        // Show logout popup
+        showLogoutPopup();
         // The auth state change handler will update the UI automatically
     }).catch((error) => {
         console.error('Sign out error:', error);

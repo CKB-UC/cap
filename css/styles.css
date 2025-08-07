@@ -366,3 +366,101 @@ body {
 .view-workshop-btn:hover {
     background-color: #2563eb;
 }
+
+/* Logout Popup Styles */
+.logout-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 24px;
+    text-align: center;
+    z-index: 10000;
+    min-width: 300px;
+    border: 1px solid #e5e7eb;
+}
+
+.logout-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logout-popup-icon {
+    width: 60px;
+    height: 60px;
+    background: #10b981;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.logout-popup-icon i {
+    color: white;
+    font-size: 24px;
+}
+
+.logout-popup-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.logout-popup-message {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.logout-popup-button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.logout-popup-button:hover {
+    background: #2563eb;
+}
+
+/* Animation for popup */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.logout-popup {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .logout-popup {
+        min-width: 280px;
+        margin: 0 20px;
+    }
+}
