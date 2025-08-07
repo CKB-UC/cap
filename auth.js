@@ -16,6 +16,9 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// Flag to prevent multiple logout button creation
+let navigationUpdated = false;
+
 // Social login providers
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
@@ -198,57 +201,158 @@ function sendWorkshopConfirmation(email, workshopData) {
 }
 
     function updateNavigationAuthState(user) {
+        // Prevent multiple executions
+        if (navigationUpdated) return;
+        
         const navLinks = document.querySelector('.nav-links');
-        const logoutBtn = document.querySelector('.btn-logout');
+        const logoutBtns = document.querySelectorAll('.btn-logout');
         const authButtons = document.querySelector('.auth-buttons');
         const adminDashboard = document.querySelector('.admin-dashboard');
+        const loginBtn = document.querySelector('.login-btn');
+        const signupBtn = document.querySelector('.signup-btn');
+
+        // Remove all existing logout buttons first
+        logoutBtns.forEach(btn => btn.remove());
+        
+        // Also remove any buttons with "Logout" text that might be duplicates
+        const allButtons = document.querySelectorAll('button');
+        allButtons.forEach(btn => {
+            if (btn.textContent.trim() === 'Logout' && btn !== logoutBtns[0]) {
+                btn.remove();
+            }
+        });
 
         if (user) {
-            // User is logged in - hide auth buttons
-            if (authButtons) authButtons.style.display = 'none';
-            
-            // Create/show logout button
-            if (!logoutBtn && navLinks) {
-                const logoutButton = document.createElement('button');
-                logoutButton.className = 'btn-logout';
-                logoutButton.textContent = 'Logout';
-                logoutButton.onclick = logout;
-                navLinks.appendChild(logoutButton);
-            }
-
-            // Check for admin status - updated to be consistent
+            // Check verification status first
             db.collection('users').doc(user.uid).get().then((doc) => {
-                const userData = doc.data();
-                if (adminDashboard) {
-                    adminDashboard.style.display = (userData && userData.role === 'admin') ? 'inline-block' : 'none';
+                if (doc.exists) {
+                    const userData = doc.data();
+                    
+                    // Check if user is verified
+                    if (userData.verificationStatus === 'verified') {
+                        // User is verified - show normal navigation
+                        if (loginBtn) loginBtn.style.display = 'none';
+                        if (signupBtn) signupBtn.style.display = 'none';
+                        
+                        // Create single logout button
+                        if (navLinks) {
+                            const logoutButton = document.createElement('button');
+                            logoutButton.className = 'btn-logout';
+                            logoutButton.textContent = 'Logout';
+                            logoutButton.onclick = logout;
+                            navLinks.appendChild(logoutButton);
+                        }
+
+                        // Check for admin status
+                        if (adminDashboard) {
+                            adminDashboard.style.display = (userData && userData.role === 'admin') ? 'inline-block' : 'none';
+                        }
+                    } else if (userData.verificationStatus === 'rejected') {
+                        // User verification rejected - redirect to verification page
+                        window.location.href = 'verification-pending.html';
+                    } else {
+                        // User verification pending - redirect to verification page
+                        window.location.href = 'verification-pending.html';
+                    }
+                } else {
+                    // User document doesn't exist - show normal navigation (for existing users)
+                    if (loginBtn) loginBtn.style.display = 'none';
+                    if (signupBtn) signupBtn.style.display = 'none';
+                    
+                    // Create single logout button
+                    if (navLinks) {
+                        const logoutButton = document.createElement('button');
+                        logoutButton.className = 'btn-logout';
+                        logoutButton.textContent = 'Logout';
+                        logoutButton.onclick = logout;
+                        navLinks.appendChild(logoutButton);
+                    }
+
+                    // Check for admin status
+                    if (adminDashboard) {
+                        adminDashboard.style.display = 'none';
+                    }
                 }
             }).catch((error) => {
-                console.error("Error checking user status:", error);
+                console.error("Error checking verification status:", error);
+                // Fallback to normal navigation
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (signupBtn) signupBtn.style.display = 'none';
+                
+                // Create single logout button
+                if (navLinks) {
+                    const logoutButton = document.createElement('button');
+                    logoutButton.className = 'btn-logout';
+                    logoutButton.textContent = 'Logout';
+                    logoutButton.onclick = logout;
+                    navLinks.appendChild(logoutButton);
+                }
+
                 if (adminDashboard) {
                     adminDashboard.style.display = 'none';
                 }
             });
         } else {
-            // User is logged out - show auth buttons
-            if (authButtons) authButtons.style.display = 'flex';
-            if (logoutBtn) {
-                logoutBtn.remove();
-            }
+            // User is logged out - show login/signup buttons
+            if (loginBtn) loginBtn.style.display = 'inline-block';
+            if (signupBtn) signupBtn.style.display = 'inline-block';
             if (adminDashboard) {
                 adminDashboard.style.display = 'none';
             }
         }
+        
+        // Mark as updated
+        navigationUpdated = true;
     }
 
 // Update the auth state changed handler
 auth.onAuthStateChanged((user) => {
+    // Reset flag when auth state changes
+    navigationUpdated = false;
     updateNavigationAuthState(user);
 });
+
+// Function to show logout popup
+function showLogoutPopup() {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'logout-popup-overlay';
+    
+    // Create popup content
+    const popup = document.createElement('div');
+    popup.className = 'logout-popup';
+    popup.innerHTML = `
+        <div class="logout-popup-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        <div class="logout-popup-title">Successfully Logged Out</div>
+        <div class="logout-popup-message">You have been logged out successfully.</div>
+        <button class="logout-popup-button" onclick="closeLogoutPopup()">OK</button>
+    `;
+    
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+    
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+        closeLogoutPopup();
+    }, 3000);
+}
+
+// Function to close logout popup
+function closeLogoutPopup() {
+    const overlay = document.querySelector('.logout-popup-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
 
 // Make sure logout function is available
 function logout() {
     auth.signOut().then(() => {
         console.log('User signed out');
+        // Show logout popup
+        showLogoutPopup();
         // The auth state change handler will update the UI automatically
     }).catch((error) => {
         console.error('Sign out error:', error);
@@ -261,6 +365,34 @@ function makeUserAdmin(userId) {
         addedAt: firebase.firestore.FieldValue.serverTimestamp(),
         addedBy: auth.currentUser.uid
     });
+}
+
+// Handle email verification status update
+function updateEmailVerificationStatus(userId) {
+    return db.collection('users').doc(userId).update({
+        emailVerified: true,
+        verificationStatus: 'verified' // Auto-verify if email is verified
+    });
+}
+
+// Check if user needs to be redirected to verification page
+function checkVerificationRedirect(user) {
+    if (user) {
+        db.collection('users').doc(user.uid).get().then((doc) => {
+            if (doc.exists) {
+                const userData = doc.data();
+                if (userData.verificationStatus !== 'verified') {
+                    // Redirect to verification page if not verified
+                    if (window.location.pathname !== '/verification-pending.html' && 
+                        !window.location.pathname.includes('verification-pending.html')) {
+                        window.location.href = 'verification-pending.html';
+                    }
+                }
+            }
+        }).catch((error) => {
+            console.error("Error checking verification status:", error);
+        });
+    }
 }
 
 // In your registration function

@@ -694,9 +694,9 @@ function showRegistrationForm(workshopId, workshopData, successCallback) {
     const popupContainer = document.createElement('div');
     popupContainer.id = 'registration-popup';
     popupContainer.innerHTML = `
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-600 to-blue-500 p-6 text-white">
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000] p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-500 p-6 text-white flex-shrink-0">
                     <div class="flex justify-between items-center">
                         <h2 class="text-2xl font-bold">Register for Workshop</h2>
                         <button class="close-registration text-white hover:text-blue-200 transition">
@@ -708,7 +708,7 @@ function showRegistrationForm(workshopId, workshopData, successCallback) {
                     <div class="mt-2 text-blue-100">${workshopData.title}</div>
                 </div>
                 
-                <div class="p-6">
+                <div class="p-6 overflow-y-auto flex-1">
                     <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
                         <div class="flex items-start space-x-3">
                             <div class="bg-blue-100 p-2 rounded-full text-blue-600">
@@ -753,8 +753,8 @@ function showRegistrationForm(workshopId, workshopData, successCallback) {
                             <p class="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
                         </div>
                         <div>
-                            <label for="registerAge" class="block text-sm font-medium text-gray-700 mb-1">Age</label>
-                            <input type="number" id="registerAge" required min="13" max="100"
+                            <label for="registerBirthDate" class="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
+                            <input type="date" id="registerBirthDate" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
                         </div>
                         <div>
@@ -795,6 +795,35 @@ function showRegistrationForm(workshopId, workshopData, successCallback) {
         document.body.removeChild(popupContainer);
     });
     
+    // Real-time age validation for birth date input
+    const birthDateInput = popupContainer.querySelector('#registerBirthDate');
+    birthDateInput.addEventListener('change', function() {
+        const birthDate = this.value;
+        const errorMessage = popupContainer.querySelector('#error-message');
+        
+        if (birthDate) {
+            const today = new Date();
+            const birthDateObj = new Date(birthDate);
+            const age = today.getFullYear() - birthDateObj.getFullYear();
+            const monthDiff = today.getMonth() - birthDateObj.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+                age--;
+            }
+            
+            if (age < 15) {
+                errorMessage.textContent = 'You must be at least 15 years old to register.';
+                this.style.borderColor = 'red';
+            } else {
+                errorMessage.textContent = '';
+                this.style.borderColor = '';
+            }
+        } else {
+            errorMessage.textContent = '';
+            this.style.borderColor = '';
+        }
+    });
+    
     // Form submission
     const form = popupContainer.querySelector('#workshop-registration-form');
     form.addEventListener('submit', async (e) => {
@@ -804,12 +833,12 @@ function showRegistrationForm(workshopId, workshopData, successCallback) {
         const email = form.querySelector('#registerEmail').value;
         const password = form.querySelector('#registerPassword').value;
         const phone = form.querySelector('#registerPhone').value;
-        const age = form.querySelector('#registerAge').value;
+        const birthDate = form.querySelector('#registerBirthDate').value;
         const occupation = form.querySelector('#registerOccupation').value;
         const workshopId = form.querySelector('#workshopId').value;
         
         // Basic validation
-        if (!name || !email || !password || !phone || !age || !occupation) {
+        if (!name || !email || !password || !phone || !birthDate || !occupation) {
             document.getElementById('error-message').textContent = 'Please fill in all fields';
             return;
         }
@@ -821,9 +850,18 @@ function showRegistrationForm(workshopId, workshopData, successCallback) {
             return;
         }
         
-        // Age validation
-        if (age < 13 || age > 100) {
-            document.getElementById('error-message').textContent = 'Please enter a valid age between 13 and 100';
+        // Age validation - must be 15 years and above
+        const today = new Date();
+        const birthDateObj = new Date(birthDate);
+        const age = today.getFullYear() - birthDateObj.getFullYear();
+        const monthDiff = today.getMonth() - birthDateObj.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+            age--;
+        }
+        
+        if (age < 15) {
+            document.getElementById('error-message').textContent = 'You must be at least 15 years old to register.';
             return;
         }
         
@@ -837,7 +875,7 @@ function showRegistrationForm(workshopId, workshopData, successCallback) {
                 name: name,
                 email: email,
                 phone: phone,
-                age: age,
+                birthDate: birthDate,
                 occupation: occupation,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });

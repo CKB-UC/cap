@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Verification Management - Admin</title>
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        .verification-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .verification-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .verification-content {
+            padding: 20px;
+        }
+        
+        .user-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        
+        .info-value {
+            color: #111827;
+            font-size: 14px;
+        }
+        
+        .verification-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-approve {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-approve:hover {
+            background-color: #059669;
+        }
+        
+        .btn-reject {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-reject:hover {
+            background-color: #dc2626;
+        }
+        
+        .btn-view {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-view:hover {
+            background-color: #2563eb;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-verified {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .filter-item label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .filter-item select,
+        .filter-item input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .stat-pending .stat-number {
+            color: #f59e0b;
+        }
+        
+        .stat-verified .stat-number {
+            color: #10b981;
+        }
+        
+        .stat-rejected .stat-number {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl">Admin Panel</div>
+            <div class="nav-links space-x-6">
+                <a href="admin-dashboard.html" class="hover:text-indigo-200 transition">Dashboard</a>
+                <a href="workshop-management.html" class="hover:text-indigo-200 transition">Workshops</a>
+                <a href="user-verification.html" class="hover:text-indigo-200 transition">Verifications</a>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-1 rounded text-white ml-4 transition">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">User Verification Management</h1>
+            <p class="text-gray-600">Review and approve user account verifications</p>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="stats">
+            <div class="stat-card stat-pending">
+                <div class="stat-number" id="pendingCount">0</div>
+                <div class="stat-label">Pending Verifications</div>
+            </div>
+            <div class="stat-card stat-verified">
+                <div class="stat-number" id="verifiedCount">0</div>
+                <div class="stat-label">Verified Users</div>
+            </div>
+            <div class="stat-card stat-rejected">
+                <div class="stat-number" id="rejectedCount">0</div>
+                <div class="stat-label">Rejected Verifications</div>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-row">
+                <div class="filter-item">
+                    <label>Status</label>
+                    <select id="statusFilter">
+                        <option value="all">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="verified">Verified</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>Search</label>
+                    <input type="text" id="searchInput" placeholder="Search by name or email">
+                </div>
+                <div class="filter-item">
+                    <label>Sort By</label>
+                    <select id="sortBy">
+                        <option value="date">Submission Date</option>
+                        <option value="name">Name</option>
+                        <option value="email">Email</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Verification List -->
+        <div id="verificationList">
+            <div class="text-center text-gray-500 py-8">
+                <i class="fas fa-spinner fa-spin text-2xl mb-4"></i>
+                <p>Loading verifications...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Config -->
+    <script>
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            const firebaseConfig = {
+                apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
+                authDomain: "ratbow-454f1.firebaseapp.com",
+                projectId: "ratbow-454f1",
+                storageBucket: "ratbow-454f1.firebasestorage.app",
+                messagingSenderId: "494138400120",
+                appId: "1:494138400120:web:d8eac6dc7437431b783c8d",
+                measurementId: "G-71PNRPMEKP"
+            };
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Check if user is admin
+        document.addEventListener('DOMContentLoaded', function() {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    db.collection('users').doc(user.uid).get().then((doc) => {
+                        const userData = doc.data();
+                        if (!userData || userData.role !== 'admin') {
+                            window.location.href = 'index.html';
+                        } else {
+                            loadVerifications();
+                            setupEventListeners();
+                        }
+                    }).catch((error) => {
+                        console.error("Error verifying admin status:", error);
+                        window.location.href = 'login.html';
+                    });
+                } else {
+                    window.location.href = 'login.html';
+                }
+            });
+        });
+        
+        function setupEventListeners() {
+            document.getElementById('statusFilter').addEventListener('change', loadVerifications);
+            document.getElementById('searchInput').addEventListener('input', loadVerifications);
+            document.getElementById('sortBy').addEventListener('change', loadVerifications);
+        }
+        
+        function loadVerifications() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const sortBy = document.getElementById('sortBy').value;
+            
+            let query = db.collection('users');
+            
+            if (statusFilter !== 'all') {
+                query = query.where('verificationStatus', '==', statusFilter);
+            }
+            
+            query.get().then((snapshot) => {
+                const verifications = [];
+                let pendingCount = 0;
+                let verifiedCount = 0;
+                let rejectedCount = 0;
+                
+                snapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    userData.id = doc.id;
+                    
+                    // Apply search filter
+                    if (searchTerm && !userData.name.toLowerCase().includes(searchTerm) && 
+                        !userData.email.toLowerCase().includes(searchTerm)) {
+                        return;
+                    }
+                    
+                    verifications.push(userData);
+                    
+                    // Count statistics
+                    switch(userData.verificationStatus) {
+                        case 'pending':
+                            pendingCount++;
+                            break;
+                        case 'verified':
+                            verifiedCount++;
+                            break;
+                        case 'rejected':
+                            rejectedCount++;
+                            break;
+                    }
+                });
+                
+                // Sort verifications
+                verifications.sort((a, b) => {
+                    switch(sortBy) {
+                        case 'name':
+                            return a.name.localeCompare(b.name);
+                        case 'email':
+                            return a.email.localeCompare(b.email);
+                        case 'date':
+                        default:
+                            return b.verificationSubmittedAt?.toDate() - a.verificationSubmittedAt?.toDate();
+                    }
+                });
+                
+                // Update statistics
+                document.getElementById('pendingCount').textContent = pendingCount;
+                document.getElementById('verifiedCount').textContent = verifiedCount;
+                document.getElementById('rejectedCount').textContent = rejectedCount;
+                
+                // Render verifications
+                renderVerifications(verifications);
+            }).catch((error) => {
+                console.error("Error loading verifications:", error);
+                document.getElementById('verificationList').innerHTML = 
+                    '<div class="text-center text-red-500 py-8">Error loading verifications</div>';
+            });
+        }
+        
+        function renderVerifications(verifications) {
+            const container = document.getElementById('verificationList');
+            
+            if (verifications.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 py-8">No verifications found</div>';
+                return;
+            }
+            
+            container.innerHTML = verifications.map(verification => `
+                <div class="verification-card">
+                    <div class="verification-header">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">${verification.name}</h3>
+                            <p class="text-gray-600">${verification.email}</p>
+                        </div>
+                        <span class="status-badge status-${verification.verificationStatus}">
+                            ${verification.verificationStatus.charAt(0).toUpperCase() + verification.verificationStatus.slice(1)}
+                        </span>
+                    </div>
+                    <div class="verification-content">
+                        <div class="user-info">
+                            <div class="info-item">
+                                <div class="info-label">Phone</div>
+                                <div class="info-value">${verification.phone || 'N/A'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Occupation</div>
+                                <div class="info-value">${verification.occupation || 'N/A'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Government ID</div>
+                                <div class="info-value">${verification.governmentID || 'N/A'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Emergency Contact</div>
+                                <div class="info-value">${verification.emergencyContact || 'N/A'}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Address</div>
+                            <div class="info-value">${verification.address || 'N/A'}</div>
+                        </div>
+                        <div class="verification-actions">
+                            ${verification.verificationStatus === 'pending' ? `
+                                <button class="btn btn-approve" onclick="approveVerification('${verification.id}')">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button class="btn btn-reject" onclick="rejectVerification('${verification.id}')">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-view" onclick="viewUserDetails('${verification.id}')">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function approveVerification(userId) {
+            if (confirm('Are you sure you want to approve this user verification?')) {
+                db.collection('users').doc(userId).update({
+                    verificationStatus: 'verified',
+                    adminApproved: true,
+                    verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    alert('User verification approved successfully!');
+                    loadVerifications();
+                }).catch((error) => {
+                    console.error("Error approving verification:", error);
+                    alert('Error approving verification: ' + error.message);
+                });
+            }
+        }
+        
+        function rejectVerification(userId) {
+            const reason = prompt('Please provide a reason for rejection:');
+            if (reason !== null) {
+                db.collection('users').doc(userId).update({
+                    verificationStatus: 'rejected',
+                    adminApproved: false,
+                    rejectionReason: reason,
+                    rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    alert('User verification rejected successfully!');
+                    loadVerifications();
+                }).catch((error) => {
+                    console.error("Error rejecting verification:", error);
+                    alert('Error rejecting verification: ' + error.message);
+                });
+            }
+        }
+        
+        function viewUserDetails(userId) {
+            // This could open a modal with detailed user information
+            alert('Detailed user view feature will be implemented.');
+        }
+        
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = 'login.html';
+            });
+        }
+    </script>
+</body>
+</html>

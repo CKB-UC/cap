@@ -78,7 +78,9 @@
                 <a href="contact.html" class="hover:text-blue-300 transition">Contact</a>
                 <a href="admin-dashboard.html" class="admin-dashboard admin-only hover:text-blue-300 transition">Dashboard</a>
             </div>
-            <div class="auth-buttons flex space-x-4">
+            <div class="auth-buttons flex space-x-4 items-center">
+                <!-- Notification Container - Only shown when logged in -->
+                <div id="notification-container" class="mr-4 hidden"></div>
                 <a href="login.html" class="auth-btn login-btn border border-white px-4 py-2 rounded-full hover:bg-white hover:text-gray-900 transition">Log In</a>
                 <a href="register.html" class="auth-btn signup-btn bg-blue-600 px-4 py-2 rounded-full hover:bg-blue-700 transition">Sign Up</a>
             </div>
@@ -208,11 +210,43 @@
     </footer>
 
     <script src="auth.js"></script>
+    <script src="notifications.js"></script>
+    <script src="notification-component.js"></script>
+    <link rel="stylesheet" href="css/notifications.css">
 <script>
 // Initialize auth state for navigation
 document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged((user) => {
         updateNavigationAuthState(user);
+        
+        // Initialize notification component if user is logged in
+        if (user) {
+            console.log('User logged in, initializing notification component for user:', user.uid);
+            // Show notification container
+            const notificationContainer = document.getElementById('notification-container');
+            if (notificationContainer) {
+                notificationContainer.classList.remove('hidden');
+                // Wait a bit for the DOM to be ready
+                setTimeout(() => {
+                    console.log('Creating notification component for user:', user.uid);
+                    window.notificationComponent = new NotificationComponent('notification-container');
+                }, 100);
+            } else {
+                console.error('Notification container not found');
+            }
+        } else {
+            console.log('No user logged in, hiding notification container');
+            // Hide notification container when not logged in
+            const notificationContainer = document.getElementById('notification-container');
+            if (notificationContainer) {
+                notificationContainer.classList.add('hidden');
+                // Clean up existing notification component
+                if (window.notificationComponent) {
+                    window.notificationComponent.destroy();
+                    window.notificationComponent = null;
+                }
+            }
+        }
     });
     loadFeaturedRatings();
 });
