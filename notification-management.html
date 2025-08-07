@@ -14,6 +14,208 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/notifications.css">
+    <style>
+        .notification-management {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .notification-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* Searchable Dropdown Styles */
+        .searchable-dropdown {
+            position: relative;
+        }
+        
+        .user-dropdown-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s;
+        }
+        
+        .user-dropdown-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .user-dropdown-item.selected {
+            background-color: #eff6ff;
+            color: #1e40af;
+        }
+        
+        .selected-user-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .selected-user-tag .remove-user {
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            line-height: 1;
+        }
+        
+        .selected-user-tag .remove-user:hover {
+            opacity: 0.8;
+        }
+        
+        /* Notification List Styles */
+        .notification-list-admin {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .notification-item-admin {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            transition: box-shadow 0.2s;
+        }
+        
+        .notification-item-admin:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .notification-info {
+            flex: 1;
+        }
+        
+        .notification-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-edit {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-delete {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background-color: #dc2626;
+        }
+        
+        .notification-type {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .notification-type.announcement {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .notification-type.workshop_update {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .notification-type.workshop_cancelled {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .notification-type.workshop_reminder {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .notification-type.system {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        
+        .notification-priority {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .notification-priority.low {
+            background-color: #10b981;
+        }
+        
+        .notification-priority.medium {
+            background-color: #f59e0b;
+        }
+        
+        .notification-priority.high {
+            background-color: #ef4444;
+        }
+        
+        .notification-priority.urgent {
+            background-color: #dc2626;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <!-- Navigation -->
@@ -84,9 +286,17 @@
 
                         <div class="form-group" id="specificUsersGroup" style="display: none;">
                             <label for="specificUsers">Select Specific Users</label>
-                            <select id="specificUsers" multiple>
-                                <!-- Will be populated dynamically -->
-                            </select>
+                            <div class="relative">
+                                <div class="searchable-dropdown">
+                                    <input type="text" id="userSearchInput" placeholder="Search users..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <div id="userDropdown" class="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
+                                        <!-- User options will be populated here -->
+                                    </div>
+                                </div>
+                                <div id="selectedUsers" class="mt-2 flex flex-wrap gap-2">
+                                    <!-- Selected users will be displayed here -->
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group" id="workshopGroup" style="display: none;">
@@ -218,33 +428,74 @@
     <script>
         let currentNotifications = [];
         let currentDeleteId = null;
+        let allUsers = [];
+        let selectedUsers = new Set();
 
-        // Check if user is admin
+        // Initialize the page
         document.addEventListener('DOMContentLoaded', () => {
+            // Check admin authentication
             auth.onAuthStateChanged((user) => {
                 if (user) {
-                    db.collection('users').doc(user.uid).get().then((doc) => {
-                        const userData = doc.data();
-                        if (!userData || userData.role !== 'admin') {
-                            window.location.href = 'index.html';
-                        } else {
-                            // Load notifications and setup event listeners
-                            loadNotifications();
-                            loadUsers();
-                            loadWorkshops();
-                            setupEventListeners();
-                        }
-                    }).catch((error) => {
-                        console.error("Error verifying admin status:", error);
-                        window.location.href = 'login.html';
-                    });
+                    // Check if user is admin
+                    db.collection('users').doc(user.uid).get()
+                        .then((doc) => {
+                            if (doc.exists && doc.data().role === 'admin') {
+                                initializePage();
+                            } else {
+                                alert('Access denied. Admin privileges required.');
+                                window.location.href = 'login.html';
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Error checking user role:', error);
+                            alert('Error checking permissions.');
+                            window.location.href = 'login.html';
+                        });
                 } else {
                     window.location.href = 'login.html';
                 }
             });
         });
 
+        function initializePage() {
+            loadNotifications();
+            loadUsers();
+            loadWorkshops();
+            setupEventListeners();
+        }
+
         function setupEventListeners() {
+            // Target users change handler
+            document.getElementById('targetUsers').addEventListener('change', function() {
+                const specificUsersGroup = document.getElementById('specificUsersGroup');
+                if (this.value === 'specific') {
+                    specificUsersGroup.style.display = 'block';
+                } else {
+                    specificUsersGroup.style.display = 'none';
+                    selectedUsers.clear();
+                    updateSelectedUsersDisplay();
+                }
+            });
+
+            // User search input handler
+            const userSearchInput = document.getElementById('userSearchInput');
+            userSearchInput.addEventListener('input', function() {
+                filterUsers(this.value);
+            });
+
+            userSearchInput.addEventListener('focus', function() {
+                showUserDropdown();
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                const dropdown = document.getElementById('userDropdown');
+                const searchInput = document.getElementById('userSearchInput');
+                if (!dropdown.contains(e.target) && !searchInput.contains(e.target)) {
+                    hideUserDropdown();
+                }
+            });
+            
             // Form submission
             document.getElementById('notificationForm').addEventListener('submit', handleNotificationSubmit);
             
@@ -253,9 +504,6 @@
             
             // Type filter
             document.getElementById('filterType').addEventListener('change', loadNotifications);
-            
-            // Target users change
-            document.getElementById('targetUsers').addEventListener('change', handleTargetUsersChange);
             
             // Notification type change
             document.getElementById('notificationType').addEventListener('change', handleNotificationTypeChange);
@@ -370,8 +618,7 @@
         function getTargetUsersValue() {
             const targetUsers = document.getElementById('targetUsers').value;
             if (targetUsers === 'specific') {
-                const specificUsers = Array.from(document.getElementById('specificUsers').selectedOptions).map(option => option.value);
-                return specificUsers;
+                return Array.from(selectedUsers);
             }
             return targetUsers;
         }
@@ -380,20 +627,24 @@
             document.getElementById('notificationForm').reset();
             document.getElementById('specificUsersGroup').style.display = 'none';
             document.getElementById('workshopGroup').style.display = 'none';
+            selectedUsers.clear();
+            updateSelectedUsersDisplay();
+            document.getElementById('userSearchInput').value = '';
+            hideUserDropdown();
         }
 
         async function loadUsers() {
             try {
                 const snapshot = await db.collection('users').get();
-                const specificUsersSelect = document.getElementById('specificUsers');
-                specificUsersSelect.innerHTML = '';
+                allUsers = [];
                 
                 snapshot.forEach(doc => {
                     const user = doc.data();
-                    const option = document.createElement('option');
-                    option.value = doc.id;
-                    option.textContent = user.name || user.email || 'Unknown User';
-                    specificUsersSelect.appendChild(option);
+                    allUsers.push({
+                        id: doc.id,
+                        name: user.name || user.displayName || 'Unknown User',
+                        email: user.email || 'No email'
+                    });
                 });
             } catch (error) {
                 console.error('Error loading users:', error);
@@ -511,6 +762,80 @@
             }).catch((error) => {
                 console.error('Error signing out:', error);
             });
+        }
+
+        function filterUsers(searchTerm) {
+            const dropdown = document.getElementById('userDropdown');
+            const filteredUsers = allUsers.filter(user => 
+                user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            displayUserOptions(filteredUsers);
+        }
+
+        function displayUserOptions(users) {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.innerHTML = '';
+            
+            if (users.length === 0) {
+                dropdown.innerHTML = '<div class="user-dropdown-item">No users found</div>';
+                return;
+            }
+            
+            users.forEach(user => {
+                const item = document.createElement('div');
+                item.className = `user-dropdown-item ${selectedUsers.has(user.id) ? 'selected' : ''}`;
+                item.textContent = `${user.name} (${user.email})`;
+                item.onclick = () => toggleUserSelection(user);
+                dropdown.appendChild(item);
+            });
+        }
+
+        function toggleUserSelection(user) {
+            if (selectedUsers.has(user.id)) {
+                selectedUsers.delete(user.id);
+            } else {
+                selectedUsers.add(user.id);
+            }
+            
+            updateSelectedUsersDisplay();
+            filterUsers(document.getElementById('userSearchInput').value);
+        }
+
+        function updateSelectedUsersDisplay() {
+            const selectedUsersContainer = document.getElementById('selectedUsers');
+            selectedUsersContainer.innerHTML = '';
+            
+            selectedUsers.forEach(userId => {
+                const user = allUsers.find(u => u.id === userId);
+                if (user) {
+                    const tag = document.createElement('div');
+                    tag.className = 'selected-user-tag';
+                    tag.innerHTML = `
+                        ${user.name}
+                        <span class="remove-user" onclick="removeUser('${userId}')">&times;</span>
+                    `;
+                    selectedUsersContainer.appendChild(tag);
+                }
+            });
+        }
+
+        function removeUser(userId) {
+            selectedUsers.delete(userId);
+            updateSelectedUsersDisplay();
+            filterUsers(document.getElementById('userSearchInput').value);
+        }
+
+        function showUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.remove('hidden');
+            displayUserOptions(allUsers);
+        }
+
+        function hideUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.add('hidden');
         }
     </script>
 </body>
