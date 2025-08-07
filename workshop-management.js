@@ -97,6 +97,11 @@ function loadWorkshops() {
                 return; // Skip this workshop if it doesn't match search
             }
             
+            // Filter out archived workshops by default unless specifically requested
+            if (statusFilter === 'all' && workshop.status === 'archived') {
+                return; // Skip archived workshops in default view
+            }
+            
             // Format the date
             const date = workshop.date?.toDate() || new Date();
             const formattedDate = date.toLocaleDateString();
@@ -120,6 +125,11 @@ function loadWorkshops() {
 function createWorkshopRow(workshop, formattedDate, formattedTime) {
     const row = document.createElement('tr');
     row.className = 'hover:bg-gray-50';
+    
+    // Add special styling for archived workshops
+    if (workshop.status === 'archived') {
+        row.className += ' bg-gray-100 opacity-75';
+    }
     
     // Determine status badge style with alternative colors
     let statusStyles = {};
@@ -157,6 +167,14 @@ function createWorkshopRow(workshop, formattedDate, formattedTime) {
                 borderColor: '#faf089'      // Light yellow border
             };
             break;
+        case 'archived':
+            // Gray for Archived
+            statusStyles = {
+                backgroundColor: '#9ca3af', // Gray
+                color: '#ffffff',           // White text
+                borderColor: '#6b7280'      // Darker gray border
+            };
+            break;
         default:
             statusStyles = {
                 backgroundColor: '#e5e7eb', // Light gray
@@ -185,7 +203,10 @@ function createWorkshopRow(workshop, formattedDate, formattedTime) {
 
     // Update the row HTML to include tags
     row.innerHTML = `
-        <td class="py-3 px-4 border-b">${workshop.title}</td>
+        <td class="py-3 px-4 border-b">
+            ${workshop.status === 'archived' ? `<span class="text-gray-500 mr-2">📁</span>` : ''}
+            ${workshop.title}
+        </td>
         <td class="py-3 px-4 border-b">
             <span class="px-2 py-1 inline-block rounded-full text-xs font-medium" style="${styleString};border-width:1px;border-style:solid;font-weight:500;">
                 ${workshop.status.charAt(0).toUpperCase() + workshop.status.slice(1)}
@@ -208,12 +229,21 @@ function createWorkshopRow(workshop, formattedDate, formattedTime) {
         <td class="py-3 px-4 border-b">${workshop.registered || 0}</td>
         <td class="py-3 px-4 border-b">
             <div class="flex space-x-2">
-                <button class="edit-workshop" data-id="${workshop.id}" title="Edit Workshop" style="background-color:#e0e7ff;color:#4338ca;border-color:#c7d2fe;padding:0.25rem 0.75rem;border-width:1px;border-radius:0.25rem;border-style:solid;transition:all 0.2s;">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="delete-workshop" data-id="${workshop.id}" title="Delete Workshop" style="background-color:#fee2e2;color:#b91c1c;border-color:#fecaca;padding:0.25rem 0.75rem;border-width:1px;border-radius:0.25rem;border-style:solid;transition:all 0.2s;">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
+                ${workshop.status === 'archived' ? `
+                    <button class="unarchive-workshop" data-id="${workshop.id}" title="Unarchive Workshop" style="background-color:#dcfce7;color:#166534;border-color:#bbf7d0;padding:0.25rem 0.75rem;border-width:1px;border-radius:0.25rem;border-style:solid;transition:all 0.2s;">
+                        <i class="fas fa-undo"></i> Unarchive
+                    </button>
+                    <button class="permanent-delete-workshop" data-id="${workshop.id}" title="Permanently Delete Workshop" style="background-color:#fee2e2;color:#b91c1c;border-color:#fecaca;padding:0.25rem 0.75rem;border-width:1px;border-radius:0.25rem;border-style:solid;transition:all 0.2s;">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                ` : `
+                    <button class="edit-workshop" data-id="${workshop.id}" title="Edit Workshop" style="background-color:#e0e7ff;color:#4338ca;border-color:#c7d2fe;padding:0.25rem 0.75rem;border-width:1px;border-radius:0.25rem;border-style:solid;transition:all 0.2s;">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="archive-workshop" data-id="${workshop.id}" title="Archive Workshop" style="background-color:#fef3c7;color:#92400e;border-color:#fde68a;padding:0.25rem 0.75rem;border-width:1px;border-radius:0.25rem;border-style:solid;transition:all 0.2s;">
+                        <i class="fas fa-archive"></i> Archive
+                    </button>
+                `}
             </div>
         </td>
     `;
@@ -221,7 +251,7 @@ function createWorkshopRow(workshop, formattedDate, formattedTime) {
     return row;
 }
 
-// Add event listeners to edit/delete buttons
+// Add event listeners to action buttons
 function addActionButtonListeners() {
     // Edit workshop buttons
     document.querySelectorAll('.edit-workshop').forEach(button => {
@@ -231,11 +261,27 @@ function addActionButtonListeners() {
         });
     });
     
-    // Delete workshop buttons
-    document.querySelectorAll('.delete-workshop').forEach(button => {
+    // Archive workshop buttons
+    document.querySelectorAll('.archive-workshop').forEach(button => {
         button.addEventListener('click', () => {
             const workshopId = button.getAttribute('data-id');
-            confirmDeleteWorkshop(workshopId);
+            confirmArchiveWorkshop(workshopId);
+        });
+    });
+    
+    // Unarchive workshop buttons
+    document.querySelectorAll('.unarchive-workshop').forEach(button => {
+        button.addEventListener('click', () => {
+            const workshopId = button.getAttribute('data-id');
+            unarchiveWorkshop(workshopId);
+        });
+    });
+    
+    // Permanent delete workshop buttons
+    document.querySelectorAll('.permanent-delete-workshop').forEach(button => {
+        button.addEventListener('click', () => {
+            const workshopId = button.getAttribute('data-id');
+            confirmPermanentDeleteWorkshop(workshopId);
         });
     });
 }
@@ -498,8 +544,8 @@ async function editWorkshop(workshopId) {
     }
 }
 
-// Confirm delete workshop
-function confirmDeleteWorkshop(workshopId) {
+// Confirm archive workshop
+function confirmArchiveWorkshop(workshopId) {
     // Get workshop title first
     db.collection('workshops').doc(workshopId).get().then((doc) => {
         if (doc.exists) {
@@ -510,11 +556,46 @@ function confirmDeleteWorkshop(workshopId) {
             const message = document.getElementById('confirmationMessage');
             const confirmBtn = document.getElementById('confirmAction');
             
-            message.textContent = `Are you sure you want to delete the workshop "${workshop.title}"? This action cannot be undone.`;
+            message.textContent = `Are you sure you want to archive the workshop "${workshop.title}"? This will hide it from active workshops but you can restore it later.`;
+            confirmBtn.textContent = 'Archive Workshop';
+            confirmBtn.className = 'modal-button modal-button-confirm';
             
             // Set up confirm button
             confirmBtn.onclick = () => {
-                deleteWorkshop(workshopId, workshop.title);
+                archiveWorkshop(workshopId, workshop.title);
+                closeConfirmationModal();
+            };
+            
+            // Show the modal
+            modal.classList.remove('hidden');
+        } else {
+            alert("Workshop not found!");
+        }
+    }).catch((error) => {
+        console.error("Error getting workshop:", error);
+        alert(`Error getting workshop: ${error.message}`);
+    });
+}
+
+// Confirm permanent delete workshop
+function confirmPermanentDeleteWorkshop(workshopId) {
+    // Get workshop title first
+    db.collection('workshops').doc(workshopId).get().then((doc) => {
+        if (doc.exists) {
+            const workshop = doc.data();
+            
+            // Set up confirmation modal
+            const modal = document.getElementById('confirmationModal');
+            const message = document.getElementById('confirmationMessage');
+            const confirmBtn = document.getElementById('confirmAction');
+            
+            message.textContent = `Are you sure you want to permanently delete the workshop "${workshop.title}"? This action cannot be undone and the workshop will be lost forever.`;
+            confirmBtn.textContent = 'Permanently Delete';
+            confirmBtn.className = 'modal-button modal-button-danger';
+            
+            // Set up confirm button
+            confirmBtn.onclick = () => {
+                permanentDeleteWorkshop(workshopId, workshop.title);
                 closeConfirmationModal();
             };
             
@@ -535,16 +616,85 @@ function closeConfirmationModal() {
     modal.classList.add('hidden');
 }
 
-// Delete the workshop
-function deleteWorkshop(workshopId, workshopTitle) {
-    db.collection('workshops').doc(workshopId).delete().then(() => {
+// Show success message
+function showSuccessMessage(message) {
+    const successMessage = document.getElementById('successMessage');
+    const successMessageText = document.getElementById('successMessageText');
+    
+    successMessageText.textContent = message;
+    successMessage.classList.remove('hidden');
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        successMessage.classList.add('hidden');
+    }, 3000);
+}
+
+// Archive the workshop
+function archiveWorkshop(workshopId, workshopTitle) {
+    db.collection('workshops').doc(workshopId).get().then((doc) => {
+        if (doc.exists) {
+            const workshop = doc.data();
+            // Store the current status before archiving
+            const currentStatus = workshop.status;
+            
+            return db.collection('workshops').doc(workshopId).update({
+                status: 'archived',
+                previousStatus: currentStatus,
+                archivedAt: new Date()
+            });
+        }
+    }).then(() => {
         // Log the activity
-        logAdminActivity('Workshop Deleted', `Deleted workshop: ${workshopTitle}`).then(() => {
+        logAdminActivity('Workshop Archived', `Archived workshop: ${workshopTitle}`).then(() => {
+            showSuccessMessage(`Workshop "${workshopTitle}" has been archived successfully.`);
             loadWorkshops();
         });
     }).catch((error) => {
-        console.error("Error deleting workshop:", error);
-        alert(`Error deleting workshop: ${error.message}`);
+        console.error("Error archiving workshop:", error);
+        alert(`Error archiving workshop: ${error.message}`);
+    });
+}
+
+// Unarchive the workshop
+function unarchiveWorkshop(workshopId) {
+    let previousStatus = 'upcoming'; // Default status
+    
+    db.collection('workshops').doc(workshopId).get().then((doc) => {
+        if (doc.exists) {
+            const workshop = doc.data();
+            // Restore to the previous status or default to 'upcoming'
+            previousStatus = workshop.previousStatus || 'upcoming';
+            
+            return db.collection('workshops').doc(workshopId).update({
+                status: previousStatus,
+                archivedAt: null,
+                previousStatus: null
+            });
+        }
+    }).then(() => {
+        // Log the activity
+        logAdminActivity('Workshop Unarchived', `Unarchived workshop: ${workshopId}`).then(() => {
+            showSuccessMessage(`Workshop has been unarchived and restored to ${previousStatus} status.`);
+            loadWorkshops();
+        });
+    }).catch((error) => {
+        console.error("Error unarchiving workshop:", error);
+        alert(`Error unarchiving workshop: ${error.message}`);
+    });
+}
+
+// Permanently delete the workshop
+function permanentDeleteWorkshop(workshopId, workshopTitle) {
+    db.collection('workshops').doc(workshopId).delete().then(() => {
+        // Log the activity
+        logAdminActivity('Workshop Permanently Deleted', `Permanently deleted workshop: ${workshopTitle}`).then(() => {
+            showSuccessMessage(`Workshop "${workshopTitle}" has been permanently deleted.`);
+            loadWorkshops();
+        });
+    }).catch((error) => {
+        console.error("Error permanently deleting workshop:", error);
+        alert(`Error permanently deleting workshop: ${error.message}`);
     });
 }
 
