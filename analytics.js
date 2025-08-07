@@ -23,8 +23,6 @@ function loadAnalyticsData() {
     fetchRegistrationTrends(startDate, endDate);
     fetchWorkshopPopularity();
     fetchUserDemographics();
-    fetchCompletionStats();
-    fetchTopWorkshops();
 }
 
 // Show loading state for dashboard elements
@@ -32,13 +30,6 @@ function showLoadingState() {
     document.getElementById('registrationRate').textContent = "Loading...";
     document.getElementById('completionRate').textContent = "Loading...";
     document.getElementById('userGrowth').textContent = "Loading...";
-    document.getElementById('popularTime').textContent = "Loading...";
-    
-    document.getElementById('topWorkshops').innerHTML = `
-        <tr>
-            <td colspan="5" class="py-4 px-4 text-center text-gray-500">Loading workshop data...</td>
-        </tr>
-    `;
 }
 
 // Fetch overview metrics for the dashboard cards
@@ -87,9 +78,7 @@ function fetchOverviewMetrics(startDate, endDate) {
                 .then((userSnapshot) => {
                     document.getElementById('userGrowth').textContent = userSnapshot.size;
                 });
-            
-            // Get popular time (simplified for demo)
-            document.getElementById('popularTime').textContent = "2PM - 6PM";
+
         })
         .catch((error) => {
             console.error("Error fetching overview metrics:", error);
@@ -103,8 +92,8 @@ function fetchOverviewMetrics(startDate, endDate) {
 function fetchRegistrationTrends(startDate, endDate) {
     // Prepare date labels based on time range
     const labels = [];
-    const registrationsData = [];
-    const completionsData = [];
+    const userRegistrationsData = [];
+    const userLoginsData = [];
     
     // Create date labels (simplified version for demo)
     const format = { month: 'short', day: 'numeric' };
@@ -114,48 +103,48 @@ function fetchRegistrationTrends(startDate, endDate) {
         date.setDate(date.getDate() - i);
         labels.push(date.toLocaleDateString('en-US', format));
         // Initialize with zeros
-        registrationsData.push(0);
-        completionsData.push(0);
+        userRegistrationsData.push(0);
+        userLoginsData.push(0);
     }
     
-    // Get registrations grouped by day
-    db.collection('registrations')
-        .where('timestamp', '>=', startDate)
-        .where('timestamp', '<=', endDate)
+    // Get user registrations grouped by day
+    db.collection('users')
+        .where('createdAt', '>=', startDate)
+        .where('createdAt', '<=', endDate)
         .get()
         .then((snapshot) => {
-            // Process registrations
+            // Process user registrations
             snapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.timestamp) {
-                    const registrationDate = data.timestamp.toDate();
+                const userData = doc.data();
+                if (userData.createdAt) {
+                    const registrationDate = userData.createdAt.toDate();
                     const dayDiff = Math.floor((endDate - registrationDate) / (1000 * 60 * 60 * 24));
                     if (dayDiff >= 0 && dayDiff < days) {
-                        registrationsData[days - 1 - dayDiff]++;
+                        userRegistrationsData[days - 1 - dayDiff]++;
                     }
                 }
             });
             
-            // Get completions grouped by day
-            db.collection('completions')
+            // Get user logins grouped by day (if you have login tracking)
+            db.collection('userLogins')  // Assuming you have a collection tracking logins
                 .where('timestamp', '>=', startDate)
                 .where('timestamp', '<=', endDate)
                 .get()
-                .then((compSnapshot) => {
-                    // Process completions
-                    compSnapshot.forEach(doc => {
-                        const data = doc.data();
-                        if (data.timestamp) {
-                            const completionDate = data.timestamp.toDate();
-                            const dayDiff = Math.floor((endDate - completionDate) / (1000 * 60 * 60 * 24));
+                .then((loginSnapshot) => {
+                    // Process logins
+                    loginSnapshot.forEach(doc => {
+                        const loginData = doc.data();
+                        if (loginData.timestamp) {
+                            const loginDate = loginData.timestamp.toDate();
+                            const dayDiff = Math.floor((endDate - loginDate) / (1000 * 60 * 60 * 24));
                             if (dayDiff >= 0 && dayDiff < days) {
-                                completionsData[days - 1 - dayDiff]++;
+                                userLoginsData[days - 1 - dayDiff]++;
                             }
                         }
                     });
                     
-                    // Render the chart
-                    renderRegistrationTrendsChart(labels, registrationsData, completionsData);
+                    // Render the chart with user data
+                    renderRegistrationTrendsChart(labels, userRegistrationsData, userLoginsData);
                 });
         })
         .catch((error) => {
@@ -163,8 +152,8 @@ function fetchRegistrationTrends(startDate, endDate) {
         });
 }
 
-// Render the registration trends chart
-function renderRegistrationTrendsChart(labels, registrationsData, completionsData) {
+// Update the chart rendering function to show user data
+function renderRegistrationTrendsChart(labels, userRegistrationsData, userLoginsData) {
     const ctx = document.getElementById('registrationTrendsChart').getContext('2d');
     
     // Destroy existing chart if it exists
@@ -178,16 +167,16 @@ function renderRegistrationTrendsChart(labels, registrationsData, completionsDat
             labels: labels,
             datasets: [
                 {
-                    label: 'Registrations',
-                    data: registrationsData,
+                    label: 'New User Registrations',
+                    data: userRegistrationsData,
                     borderColor: 'rgba(59, 130, 246, 1)', // Blue
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     tension: 0.4,
                     fill: true
                 },
                 {
-                    label: 'Completions',
-                    data: completionsData,
+                    label: 'User Logins',
+                    data: userLoginsData,
                     borderColor: 'rgba(16, 185, 129, 1)', // Green
                     backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     tension: 0.4,
@@ -203,6 +192,10 @@ function renderRegistrationTrendsChart(labels, registrationsData, completionsDat
                     beginAtZero: true,
                     ticks: {
                         precision: 0
+                    },
+                    title: {
+                        display: true,
+                        text: 'Number of Users'
                     }
                 }
             },
@@ -213,6 +206,10 @@ function renderRegistrationTrendsChart(labels, registrationsData, completionsDat
                 },
                 legend: {
                     position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'User Registration and Login Trends'
                 }
             }
         }
@@ -222,23 +219,54 @@ function renderRegistrationTrendsChart(labels, registrationsData, completionsDat
 // Fetch workshop popularity data for the bar chart
 function fetchWorkshopPopularity() {
     db.collection('workshops')
-        .orderBy('registrationCount', 'desc')
-        .limit(10)
         .get()
         .then((snapshot) => {
-            const labels = [];
-            const registrationData = [];
-            const completionData = [];
+            // Initialize an object to store tag data
+            const tagData = {};
             
+            // Process each workshop
             snapshot.forEach(doc => {
                 const workshop = doc.data();
-                labels.push(workshop.title.length > 15 ? 
-                    workshop.title.substring(0, 15) + '...' : workshop.title);
-                registrationData.push(workshop.registrationCount || 0);
-                completionData.push(workshop.completionCount || 0);
+                const tag = workshop.tag || 'other';
+                
+                // Initialize tag entry if it doesn't exist
+                if (!tagData[tag]) {
+                    tagData[tag] = {
+                        count: 0,
+                        totalRating: 0,
+                        workshops: 0
+                    };
+                }
+                
+                // Count workshops with this tag
+                tagData[tag].workshops++;
+                
+                // If workshop has ratings, calculate average
+                if (workshop.ratings) {
+                    const ratings = Object.values(workshop.ratings);
+                    if (ratings.length > 0) {
+                        const avgRating = ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
+                        tagData[tag].totalRating += avgRating;
+                        tagData[tag].count++;
+                    }
+                }
             });
             
-            renderWorkshopPopularityChart(labels, registrationData, completionData);
+            // Prepare data for chart
+            const labels = [];
+            const avgRatings = [];
+            const workshopCounts = [];
+            
+            // Calculate average rating per tag
+            Object.keys(tagData).forEach(tag => {
+                labels.push(tag.charAt(0).toUpperCase() + tag.slice(1).replace('-', ' '));
+                const tagInfo = tagData[tag];
+                const avgRating = tagInfo.count > 0 ? (tagInfo.totalRating / tagInfo.count) : 0;
+                avgRatings.push(avgRating);
+                workshopCounts.push(tagInfo.workshops);
+            });
+            
+            renderWorkshopPopularityChart(labels, avgRatings, workshopCounts);
         })
         .catch((error) => {
             console.error("Error fetching workshop popularity:", error);
@@ -246,7 +274,7 @@ function fetchWorkshopPopularity() {
 }
 
 // Render the workshop popularity chart
-function renderWorkshopPopularityChart(labels, registrationData, completionData) {
+function renderWorkshopPopularityChart(labels, avgRatings, workshopCounts) {
     const ctx = document.getElementById('workshopPopularityChart').getContext('2d');
     
     // Destroy existing chart if it exists
@@ -260,18 +288,21 @@ function renderWorkshopPopularityChart(labels, registrationData, completionData)
             labels: labels,
             datasets: [
                 {
-                    label: 'Registrations',
-                    data: registrationData,
+                    label: 'Average Rating',
+                    data: avgRatings,
                     backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue
                     borderColor: 'rgba(59, 130, 246, 1)',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    yAxisID: 'y'
                 },
                 {
-                    label: 'Completions',
-                    data: completionData,
+                    label: 'Number of Workshops',
+                    data: workshopCounts,
                     backgroundColor: 'rgba(16, 185, 129, 0.7)', // Green
                     borderColor: 'rgba(16, 185, 129, 1)',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    type: 'line',
+                    yAxisID: 'y1'
                 }
             ]
         },
@@ -280,13 +311,50 @@ function renderWorkshopPopularityChart(labels, registrationData, completionData)
             maintainAspectRatio: false,
             scales: {
                 y: {
-                    beginAtZero: true,
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Average Rating (1-5)'
+                    },
+                    min: 0,
+                    max: 5,
                     ticks: {
-                        precision: 0
+                        stepSize: 0.5
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Number of Workshops'
+                    },
+                    min: 0,
+                    grid: {
+                        drawOnChartArea: false
                     }
                 }
             },
             plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.datasetIndex === 0) {
+                                label += context.raw.toFixed(1) + ' stars';
+                            } else {
+                                label += context.raw;
+                            }
+                            return label;
+                        }
+                    }
+                },
                 legend: {
                     position: 'top'
                 }
@@ -300,36 +368,59 @@ function fetchUserDemographics() {
     db.collection('users')
         .get()
         .then((snapshot) => {
-            // Initialize counters for demographics
-            const roles = {
-                'student': 0,
-                'professional': 0,
-                'educator': 0,
-                'other': 0
+            // Initialize counters
+            const demographics = {
+                'Student': 0,
+                'Employed': 0,
+                'Unemployed': 0,
+                'Other': 0
             };
             
-            // Count users by role
+            // Count users by employment status
             snapshot.forEach(doc => {
                 const user = doc.data();
-                if (user.role && roles.hasOwnProperty(user.role)) {
-                    roles[user.role]++;
-                } else {
-                    roles['other']++;
+                const status = user.employmentStatus || user.occupation || user.role || '';
+                const lowerStatus = status.toString().toLowerCase();
+                
+                if (lowerStatus.includes('student') || 
+                    lowerStatus.includes('learner') || 
+                    lowerStatus.includes('college') || 
+                    lowerStatus.includes('university')) {
+                    demographics['Student']++;
+                } 
+                else if (lowerStatus.includes('employed') || 
+                         lowerStatus.includes('working') || 
+                         lowerStatus.includes('job') || 
+                         lowerStatus.includes('professional') ||
+                         lowerStatus.includes('business')) {
+                    demographics['Employed']++;
+                } 
+                else if (lowerStatus.includes('unemployed') || 
+                         lowerStatus.includes('jobless') || 
+                         lowerStatus.includes('looking') ||
+                         lowerStatus === '') {  // Treat empty as unemployed
+                    demographics['Unemployed']++;
+                } 
+                else {
+                    // Log unexpected statuses for debugging
+                    if (status && !['admin', 'superadmin'].includes(lowerStatus)) {
+                        console.log('Unclassified status:', status);
+                    }
+                    demographics['Other']++;
                 }
             });
             
-            renderUserDemographicsChart(roles);
+            renderUserDemographicsChart(demographics);
         })
         .catch((error) => {
             console.error("Error fetching user demographics:", error);
         });
 }
 
-// Render the user demographics chart
-function renderUserDemographicsChart(roleData) {
+// Render the user demographics chart (keep the same as before)
+function renderUserDemographicsChart(demographicsData) {
     const ctx = document.getElementById('userDemographicsChart').getContext('2d');
     
-    // Destroy existing chart if it exists
     if (window.demographicsChart) {
         window.demographicsChart.destroy();
     }
@@ -337,22 +428,20 @@ function renderUserDemographicsChart(roleData) {
     window.demographicsChart = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: Object.keys(roleData).map(role => 
-                role.charAt(0).toUpperCase() + role.slice(1)
-            ),
+            labels: Object.keys(demographicsData),
             datasets: [{
-                data: Object.values(roleData),
+                data: Object.values(demographicsData),
                 backgroundColor: [
-                    'rgba(59, 130, 246, 0.7)', // Blue
-                    'rgba(16, 185, 129, 0.7)', // Green
-                    'rgba(139, 92, 246, 0.7)', // Purple
-                    'rgba(249, 115, 22, 0.7)' // Orange
+                    'rgba(59, 130, 246, 0.7)',  // Blue - Student
+                    'rgba(16, 185, 129, 0.7)',  // Green - Employed
+                    'rgba(245, 158, 11, 0.7)',  // Yellow - Unemployed
+                    'rgba(156, 163, 175, 0.7)'  // Gray - Other
                 ],
                 borderColor: [
                     'rgba(59, 130, 246, 1)',
                     'rgba(16, 185, 129, 1)',
-                    'rgba(139, 92, 246, 1)',
-                    'rgba(249, 115, 22, 1)'
+                    'rgba(245, 158, 11, 1)',
+                    'rgba(156, 163, 175, 1)'
                 ],
                 borderWidth: 1
             }]
@@ -474,78 +563,6 @@ function renderCompletionStatsChart(completed, inProgress, abandoned) {
             }
         }
     });
-}
-
-// Fetch top workshops for the table
-function fetchTopWorkshops() {
-    db.collection('workshops')
-        .orderBy('registrationCount', 'desc')
-        .limit(5)
-        .get()
-        .then((snapshot) => {
-            let tableHTML = '';
-            
-            if (snapshot.empty) {
-                tableHTML = `
-                    <tr>
-                        <td colspan="5" class="py-4 px-4 text-center text-gray-500">No workshop data available</td>
-                    </tr>
-                `;
-            } else {
-                snapshot.forEach(doc => {
-                    const workshop = doc.data();
-                    const registrations = workshop.registrationCount || 0;
-                    const completions = workshop.completionCount || 0;
-                    const completionRate = registrations > 0 ? 
-                        ((completions / registrations) * 100).toFixed(1) + '%' : '0%';
-                    const rating = workshop.averageRating ? 
-                        workshop.averageRating.toFixed(1) + '/5.0' : 'No ratings';
-                    
-                    let statusClass = '';
-                    let statusText = '';
-                    
-                    if (workshop.status === 'active') {
-                        statusClass = 'bg-green-100 text-green-800';
-                        statusText = 'Active';
-                    } else if (workshop.status === 'scheduled') {
-                        statusClass = 'bg-blue-100 text-blue-800';
-                        statusText = 'Scheduled';
-                    } else if (workshop.status === 'completed') {
-                        statusClass = 'bg-gray-100 text-gray-800';
-                        statusText = 'Completed';
-                    } else {
-                        statusClass = 'bg-yellow-100 text-yellow-800';
-                        statusText = 'Draft';
-                    }
-                    
-                    tableHTML += `
-                        <tr>
-                            <td class="py-3 px-4 border-b">${workshop.title || 'Untitled Workshop'}</td>
-                            <td class="py-3 px-4 border-b">${registrations}</td>
-                            <td class="py-3 px-4 border-b">${completionRate}</td>
-                            <td class="py-3 px-4 border-b">${rating}</td>
-                            <td class="py-3 px-4 border-b">
-                                <span class="px-2 py-1 rounded-full text-xs ${statusClass}">
-                                    ${statusText}
-                                </span>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-            
-            document.getElementById('topWorkshops').innerHTML = tableHTML;
-        })
-        .catch((error) => {
-            console.error("Error fetching top workshops:", error);
-            document.getElementById('topWorkshops').innerHTML = `
-                <tr>
-                    <td colspan="5" class="py-4 px-4 text-center text-red-500">
-                        Error loading workshop data. Please try again.
-                    </td>
-                </tr>
-            `;
-        });
 }
 
 // Set up event listeners

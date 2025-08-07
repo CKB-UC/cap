@@ -3,36 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workshops</title>
+    <title>Workshops - UPSKILL</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="css/video.css">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/footer.css">
-    <link rel="stylesheet" href="css/register.css">
-    <link rel="stylesheet" href="css/announce.css">
     <link href="css/output.css" rel="stylesheet">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/footer.css">
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+    /* Workshop details styling */
+    .prose {
+        line-height: 1.6;
+    }
+    .prose p {
+        margin-bottom: 1em;
+    }
+    .prose ul {
+        list-style-type: disc;
+        padding-left: 1.5em;
+        margin-bottom: 1em;
+    }
+    
+    /* Animation for modal */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fixed.inset-0.bg-black.bg-opacity-50 {
+        animation: fadeIn 0.2s ease-out;
+    }
+    
+    /* Make workshop cards more interactive */
+    .workshop-content:hover h2 {
+        color: #4f46e5; /* indigo-600 */
+    }
+
+    /*Ratings Style*/
+    .rating-stars .star {
+        fill: none;
+        stroke: currentColor;
+        transition: all 0.2s;
+    }
+    
+    .rating-stars .star:hover,
+    .rating-stars .star.active {
+        fill: currentColor;
+        color: #f59e0b; /* yellow-500 */
+    }
+    
+    .comment-section {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .comment-item {
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .comment-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    </style>
+
 </head>
-<body>
-    <header class="main-header">
-        <h1>Welcome to Our Corporate Training Hub</h1>
-        <p>Delivering Excellence in Workshops & Trainings</p>
-    </header>
-    <nav class="navbar">
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="workshops.html" class="active">Workshops</a>
-            <a href="aboutus.html">About Us</a>
-            <a href="contact.html">Contact</a>
-            <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
-            <button onclick="logout()" class="btn-logout">Logout</button>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="navbar bg-gray-900 text-white py-4 sticky top-0 z-30 shadow-md">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="nav-links flex space-x-6">
+                <a href="index.html" class="hover:text-blue-300 transition">Home</a>
+                <a href="workshops.html" class="active bg-blue-600 px-4 py-2 rounded-full">Workshops</a>
+                <a href="aboutus.html" class="hover:text-blue-300 transition">About Us</a>
+                <a href="contact.html" class="hover:text-blue-300 transition">Contact</a>
+                <a href="admin-dashboard.html" class="admin-dashboard admin-only hover:text-blue-300 transition">Dashboard</a>
+            </div>
+            <div class="auth-buttons flex space-x-4">
+                <a href="login.html" class="auth-btn login-btn border border-white px-4 py-2 rounded-full hover:bg-white hover:text-gray-900 transition">Log In</a>
+                <a href="register.html" class="auth-btn signup-btn bg-blue-600 px-4 py-2 rounded-full hover:bg-blue-700 transition">Sign Up</a>
+            </div>
         </div>
     </nav>
 
+    <!-- Header Section -->
+    <header class="bg-gradient-to-r from-blue-800 to-blue-600 text-white py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">UPSKILL Workshops</h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">Interactive sessions to develop essential workplace skills</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <div class="mb-12 text-center">
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                Browse our selection of interactive workshops designed to enhance your professional skills.
+            </p>
+        </div>
+
+        <!-- Workshops List -->
+        <div id="workshops-list" class="grid md:grid-cols-2 gap-8">
+            <!-- Workshops will be dynamically inserted here -->
+        </div>
+    </main>
 
     <!-- Chatbot Icon -->
     <div id="chatbot-icon" class="fixed bottom-5 left-5 w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-300 z-50">
@@ -70,57 +153,51 @@
             </div>
         </div>
     </div>
-    <script src="chatbot.js"></script>
 
-    <!-- Back Button  -->
-    <button id="back-to-categories" class="back-btn" style="display:none;">← Back to Categories</button>
-
-    <div id="workshops-container" class="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12">
-        <div class="w-full max-w-4xl px-4">
-            <!-- Page Title -->
-            <h1 class="text-4xl font-bold text-gray-800 text-center mb-8">Upcoming Workshops</h1>
-    
-            <!-- Workshops List -->
-            <div id="workshops-list" class="space-y-6">
-                <!-- Workshops will be dynamically inserted here -->
+    <!-- Footer -->
+    <footer class="bg-gray-100 py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">About UPSKILL</h3>
+                    <p class="text-gray-600">
+                        Our mission is to provide accessible, research-based soft skills training to help individuals thrive in their careers.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="workshops.html" class="text-blue-600 hover:underline">Workshops</a></li>
+                        <li><a href="aboutus.html" class="text-blue-600 hover:underline">About Us</a></li>
+                        <li><a href="contact.html" class="text-blue-600 hover:underline">Contact</a></li>
+                        <li><a href="privacy.html" class="text-blue-600 hover:underline">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Contact Info</h3>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><i class="fas fa-map-marker-alt mr-2 text-blue-600"></i> Room 316 B Lopez Building</li>
+                        <li><i class="fas fa-phone mr-2 text-blue-600"></i> 0908-340-8351</li>
+                        <li><i class="fas fa-envelope mr-2 text-blue-600"></i> info@upskill.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center text-gray-500">
+                <p>&copy; 2023 UPSKILL. All rights reserved.</p>
             </div>
         </div>
-    </div>
-   
-
-        </div>
-    </div>
-<br><br><br><br>
-    <hr class="footer-line">
-
-    <footer class="footer">
-        <div class="footer-content">
-            <ul class="contact-info">
-                <h2>For more Info:</h2>
-                <li>Room 316 B Lopez Building</li>
-                <li>Session Road, Baguio City 2600</li>
-                <li>@JenmenManagementInc</li>
-                <li>0908-340-8351</li>
-            </ul>
-            <ul class="footer-links">
-                <li><a href="privacy.html">Privacy Policy</a></li>
-                <li><a href="terms.html">Terms of Service</a></li>
-            </ul>
-        </div>
     </footer>
+
     <script src="auth.js"></script>
     <script src="workshop.js"></script>
-    <script src="announce.js"></script>
-    <script src="testbot.js"></script>
-    <script src="register.js"></script>
-    <script src="register2.js"></script>
+    <script src="chatbot.js"></script>
     <script>
-        // Check if user is logged in
+    // Initialize auth state for navigation
+    document.addEventListener('DOMContentLoaded', () => {
         auth.onAuthStateChanged((user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-            }
+            updateNavigationAuthState(user);
         });
+    });
     </script>
 </body>
 </html>

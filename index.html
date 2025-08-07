@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Workshop</title>
+    <title>UPSKILL - Soft Skills Development Platform</title>
     <link rel="stylesheet" href="style.css">
     <link href="css/output.css" rel="stylesheet">
     <!-- Firebase SDK -->
@@ -15,9 +15,10 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="assessment.js"></script>
-    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="bg-gray-50">
     <!-- Chatbot Icon -->
     <div id="chatbot-icon" class="fixed bottom-5 left-5 w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-300 z-50">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -56,67 +57,247 @@
     </div>
     <script src="chatbot.js"></script>
 
-    <header class="main-header">
-        <h1>Welcome to Our Corporate Training Hub</h1>
-        <p>Delivering Excellence in Workshops & Trainings</p>
+    <!-- Header Section -->
+    <header class="bg-gradient-to-r from-blue-800 to-blue-600 text-white py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Welcome to UPSKILL</h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">Bridging the gap between academic knowledge and workplace success</p>
+            <a href="#assessment" class="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-blue-50 transition duration-300 inline-block">
+                Start Your Assessment
+            </a>
+        </div>
     </header>
     
-    <nav class="navbar">
-        <div class="nav-links">
-            <a href="index.html" class="active">Home</a>
-            <a href="workshops.html">Workshops</a>
-            <a href="aboutus.html">About Us</a>
-            <a href="contact.html">Contact</a>
-            <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
-            <button onclick="logout()" class="btn-logout">Logout</button>
+    <!-- Navigation -->
+    <nav class="navbar bg-gray-900 text-white py-4 sticky top-0 z-30 shadow-md">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="nav-links flex space-x-6">
+                <a href="index.html" class="active bg-blue-600 px-4 py-2 rounded-full">Home</a>
+                <a href="workshops.html" class="hover:text-blue-300 transition">Workshops</a>
+                <a href="aboutus.html" class="hover:text-blue-300 transition">About Us</a>
+                <a href="contact.html" class="hover:text-blue-300 transition">Contact</a>
+                <a href="admin-dashboard.html" class="admin-dashboard admin-only hover:text-blue-300 transition">Dashboard</a>
+            </div>
+            <div class="auth-buttons flex space-x-4">
+                <a href="login.html" class="auth-btn login-btn border border-white px-4 py-2 rounded-full hover:bg-white hover:text-gray-900 transition">Log In</a>
+                <a href="register.html" class="auth-btn signup-btn bg-blue-600 px-4 py-2 rounded-full hover:bg-blue-700 transition">Sign Up</a>
+            </div>
         </div>
     </nav>
 
-    <center>
-        <h1>Welcome to UPSKILL</h1>
-        <p>A platform designed to enhance employability by providing interactive workshops and training focused on soft-skill development. <br>    
-            Our goal is to bridge the gap between academic knowledge and practical skills needed in the modern workplace. <br> Explore personalized learning, 
-            engaging assessments, and resources tailored to help students, job seekers, and professionals excel in their careers.</p>
-    </center>
-    <main>
-        <section class="soft-skills-assessment">
-            <h1>Soft Skills Assessment</h1>
-            
-            <div class="progress-bar">
-                <div id="progress" class="progress"></div>
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <!-- About Section -->
+        <section class="mb-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Enhance Your Employability</h2>
+                <div class="w-20 h-1 bg-blue-600 mx-auto mb-6"></div>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                    UPSKILL is a platform designed to enhance employability by providing interactive workshops and training focused on soft-skill development. 
+                    Our goal is to bridge the gap between academic knowledge and practical skills needed in the modern workplace.
+                </p>
             </div>
 
-            <div class="category-display">
-                <h2 id="category">Category: Team Dynamics</h2>
-            </div>
-
-            <div class="question-container">
-                <h3 id="question-number">Question 1 of X</h3>
-                <p id="question-text">Placeholder question</p>
-
-                <div id="options-container" class="options">
-                    <!-- Options will be dynamically populated -->
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-blue-600 text-4xl mb-4">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Personalized Learning</h3>
+                    <p class="text-gray-600">
+                        Our assessment identifies your unique strengths and areas for improvement, creating a customized learning path.
+                    </p>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-blue-600 text-4xl mb-4">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Engaging Workshops</h3>
+                    <p class="text-gray-600">
+                        Interactive sessions led by industry professionals covering essential soft skills for career success.
+                    </p>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-blue-600 text-4xl mb-4">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Career Advancement</h3>
+                    <p class="text-gray-600">
+                        Develop the skills employers value most, from communication to problem-solving and teamwork.
+                    </p>
                 </div>
             </div>
         </section>
-    </main><br><br><br><br><br><br><br>
-    <hr class="footer-line">
 
-    <footer class="footer">
-        <div class="footer-content">
-            <ul class="contact-info">
-                <h2>For more Info:</h2>
-                <li>Room 316 B Lopez Building</li>
-                <li>Session Road, Baguio City 2600</li>
-                <li>@JenmenManagementInc</li>
-                <li>0908-340-8351</li>
-            </ul>
-            <ul class="footer-links">
-                <li><a href="privacy.html">Privacy Policy</a></li>
-                <li><a href="terms.html">Terms of Service</a></li>
-            </ul>
+        <!-- Assessment Section -->
+        <section id="assessment" class="mb-16">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="bg-blue-600 text-white p-6">
+                    <h2 class="text-2xl font-bold">Soft Skills Assessment</h2>
+                    <p>Discover your strengths and areas for development</p>
+                </div>
+                <div class="p-6">
+                    <div class="progress-bar bg-gray-200 rounded-full h-3 mb-6">
+                        <div id="progress" class="progress bg-blue-600 h-3 rounded-full" style="width: 0%"></div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 id="category" class="text-lg font-semibold text-gray-700">Category: Team Dynamics</h3>
+                    </div>
+
+                    <div class="question-container">
+                        <div class="mb-4">
+                            <span id="question-number" class="text-sm font-medium text-gray-500">Question 1 of X</span>
+                            <p id="question-text" class="text-xl font-medium text-gray-800 mt-1">Placeholder question</p>
+                        </div>
+
+                        <div id="options-container" class="options space-y-3">
+                            <!-- Options will be dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Featured Ratings Section -->
+<section class="mb-16">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">What Participants Say</h2>
+        <div class="w-20 h-1 bg-blue-600 mx-auto mb-6"></div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8" id="featured-ratings">
+        <!-- Ratings will be loaded dynamically -->
+    </div>
+</section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">About UPSKILL</h3>
+                    <p class="text-gray-600">
+                        Our mission is to provide accessible, research-based soft skills training to help individuals thrive in their careers.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="workshops.html" class="text-blue-600 hover:underline">Workshops</a></li>
+                        <li><a href="aboutus.html" class="text-blue-600 hover:underline">About Us</a></li>
+                        <li><a href="contact.html" class="text-blue-600 hover:underline">Contact</a></li>
+                        <li><a href="privacy.html" class="text-blue-600 hover:underline">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Contact Info</h3>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><i class="fas fa-map-marker-alt mr-2 text-blue-600"></i> Room 316 B Lopez Building</li>
+                        <li><i class="fas fa-phone mr-2 text-blue-600"></i> 0908-340-8351</li>
+                        <li><i class="fas fa-envelope mr-2 text-blue-600"></i> info@upskill.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center text-gray-500">
+                <p>&copy; 2023 UPSKILL. All rights reserved.</p>
+            </div>
         </div>
     </footer>
+
     <script src="auth.js"></script>
+<script>
+// Initialize auth state for navigation
+document.addEventListener('DOMContentLoaded', () => {
+    auth.onAuthStateChanged((user) => {
+        updateNavigationAuthState(user);
+    });
+    loadFeaturedRatings();
+});
+
+function renderStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        stars += `<svg class="w-5 h-5 ${i <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>`;
+    }
+    return stars;
+}
+
+async function loadFeaturedRatings() {
+    const container = document.getElementById('featured-ratings');
+    container.innerHTML = '<p class="text-gray-600 text-center col-span-3">Loading testimonials...</p>';
+
+    try {
+        // Get all completed workshops with ratings
+        const snapshot = await db.collection('workshops')
+            .where('status', '==', 'completed')
+            .orderBy('date', 'desc')
+            .get();
+
+        container.innerHTML = '';
+
+        if (snapshot.empty) {
+            container.innerHTML = '<p class="text-gray-600 text-center col-span-3">No testimonials yet.</p>';
+            return;
+        }
+
+        // Collect all ratings from all workshops
+        let allRatings = [];
+        
+        snapshot.forEach(doc => {
+            const workshop = doc.data();
+            if (workshop.ratings && Object.keys(workshop.ratings).length > 0) {
+                Object.entries(workshop.ratings).forEach(([userId, ratingData]) => {
+                    allRatings.push({
+                        ...ratingData,
+                        workshopTitle: workshop.title,
+                        timestamp: ratingData.timestamp?.toDate() || new Date()
+                    });
+                });
+            }
+        });
+
+        if (allRatings.length === 0) {
+            container.innerHTML = '<p class="text-gray-600 text-center col-span-3">No testimonials yet.</p>';
+            return;
+        }
+
+        // Sort by most recent and get top 3
+        const recentRatings = allRatings
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 3);
+
+        // Display the testimonials
+        recentRatings.forEach(rating => {
+            const ratingCard = document.createElement('div');
+            ratingCard.className = 'bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition flex flex-col h-full';
+            
+            ratingCard.innerHTML = `
+                <div class="flex-grow">
+                    <div class="flex justify-center mb-4">
+                        ${renderStars(rating.rating)}
+                    </div>
+                    <p class="text-gray-600 italic mb-4 text-center">"${rating.comment || 'Great workshop experience!'}"</p>
+                </div>
+                <div class="mt-auto text-center">
+                    <p class="font-semibold">${rating.userName || 'Participant'}</p>
+                    <p class="text-sm text-gray-500">${rating.workshopTitle}</p>
+                    <p class="text-xs text-gray-400 mt-1">${rating.timestamp.toLocaleDateString()}</p>
+                </div>
+            `;
+            
+            container.appendChild(ratingCard);
+        });
+
+    } catch (error) {
+        console.error("Error loading featured ratings: ", error);
+        container.innerHTML = `<p class="text-red-500 text-center col-span-3">Error loading testimonials: ${error.message}</p>`;
+    }
+}
+</script>
 </body>
 </html>

@@ -6,6 +6,8 @@ const WorkshopRegistration = ({ workshopTitle, workshopDate, workshopTime, works
     name: '',
     email: '',
     phone: '',
+    age: '',
+    occupation: '',
     workshop: workshopTitle
   });
 
@@ -21,7 +23,7 @@ const WorkshopRegistration = ({ workshopTitle, workshopDate, workshopTime, works
     e.preventDefault();
     
     // Basic form validation
-    if (!formData.name || !formData.email || !formData.phone) {
+    if (!formData.name || !formData.email || !formData.phone || !formData.age || !formData.occupation) {
       alert('Please fill in all fields');
       return;
     }
@@ -37,6 +39,12 @@ const WorkshopRegistration = ({ workshopTitle, workshopDate, workshopTime, works
     const phoneRegex = /^(09|\+639)\d{9}$/;
     if (!phoneRegex.test(formData.phone)) {
       alert('Please enter a valid Philippine phone number (e.g., 09123456789)');
+      return;
+    }
+
+    // Age validation
+    if (formData.age < 13 || formData.age > 100) {
+      alert('Please enter a valid age between 13 and 100');
       return;
     }
 
@@ -111,6 +119,44 @@ const WorkshopRegistration = ({ workshopTitle, workshopDate, workshopTime, works
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
+          </div>
+          
+          <div>
+            <label htmlFor="age" className="block mb-2 font-medium">
+              Age
+            </label>
+            <input 
+              type="number" 
+              id="age"
+              name="age"
+              value={formData.age}
+              onChange={handleChange}
+              min="13"
+              max="100"
+              placeholder="Enter your age"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="occupation" className="block mb-2 font-medium">
+              Occupation
+            </label>
+            <select
+              id="occupation"
+              name="occupation"
+              value={formData.occupation}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">Select your occupation</option>
+              <option value="student">Student</option>
+              <option value="employed">Employed</option>
+              <option value="unemployed">Unemployed</option>
+              <option value="other">Other</option>
+            </select>
           </div>
           
           <button 

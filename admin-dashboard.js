@@ -4,9 +4,137 @@ function loadDashboardData() {
     const totalUsersElement = document.getElementById('totalUsers');
     const activeWorkshopsElement = document.getElementById('activeWorkshops');
     const totalRegistrationsElement = document.getElementById('totalRegistrations');
-    const recentActivityElement = document.getElementById('recentActivity');
     const clearActivityBtn = document.getElementById('clearActivityBtn');
     
+// Pagination variables
+    let currentActivityPage = 1;
+    const activitiesPerPage = 10;
+    let totalActivities = 0;
+    let activityListener = null;
+    const recentActivityElement = document.getElementById('recentActivity');
+    
+    // Function to setup activity listener with pagination
+    function setupActivityListener() {
+        if (activityListener) {
+            activityListener(); // Unsubscribe from previous listener
+        }
+        
+        activityListener = db.collection('activity')
+            .orderBy('timestamp', 'desc')
+            .onSnapshot((snapshot) => {
+                totalActivities = snapshot.size;
+                updatePaginationControls();
+                displayActivities(snapshot);
+            }, (error) => {
+                console.error("Error getting activities: ", error);
+                showActivityError(error);
+            });
+    }
+    
+    // Function to display activities for current page
+    function displayActivities(snapshot) {
+        recentActivityElement.innerHTML = '';
+        
+        if (snapshot.empty) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="4" class="py-4 px-4 text-center text-gray-500">No recent activity</td>
+            `;
+            recentActivityElement.appendChild(row);
+            return;
+        }
+        
+        // Calculate start and end indices for current page
+        const startIdx = (currentActivityPage - 1) * activitiesPerPage;
+        const endIdx = startIdx + activitiesPerPage;
+        const activitiesToShow = Array.from(snapshot.docs).slice(startIdx, endIdx);
+        
+        // If no activities on current page but not on page 1, go back to page 1
+        if (activitiesToShow.length === 0 && currentActivityPage > 1) {
+            currentActivityPage = 1;
+            displayActivities(snapshot);
+            return;
+        }
+        
+        // Display each activity
+        activitiesToShow.forEach((doc) => {
+            const activity = doc.data();
+            const date = new Date(activity.timestamp?.toDate() || new Date());
+            const formattedDate = new Intl.DateTimeFormat('en-US', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            }).format(date);
+            
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors duration-150';
+            row.innerHTML = `
+                <td class="py-2 px-4 border-b ${getActivityColor(activity.type)} font-medium">
+                    ${activity.type || 'Unknown'}
+                </td>
+                <td class="py-2 px-4 border-b">${activity.user || 'Unknown'}</td>
+                <td class="py-2 px-4 border-b text-gray-600">${formattedDate}</td>
+                <td class="py-2 px-4 border-b">${activity.details || 'No details'}</td>
+            `;
+            recentActivityElement.appendChild(row);
+        });
+    }
+    
+    // Helper function to determine activity color
+    function getActivityColor(type) {
+        if (!type) return 'text-gray-600';
+        
+        switch(type.toLowerCase()) {
+            case 'login': return 'text-blue-600';
+            case 'registration': return 'text-green-600';
+            case 'workshop created': return 'text-purple-600';
+            case 'profile updated': return 'text-orange-600';
+            default: return 'text-gray-600';
+        }
+    }
+    
+    // Function to show error message
+    function showActivityError(error) {
+        recentActivityElement.innerHTML = `
+            <tr>
+                <td colspan="4" class="py-4 px-4 text-center">
+                    <div class="text-red-500 font-medium">Error loading activities</div>
+                    <div class="text-sm text-gray-500 mt-1">${error.message}</div>
+                </td>
+            </tr>
+        `;
+    }
+    
+    // Function to update pagination controls
+    function updatePaginationControls() {
+        const totalPages = Math.ceil(totalActivities / activitiesPerPage);
+        document.getElementById('pageInfo').textContent = `Page ${currentActivityPage} of ${totalPages}`;
+        
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        
+        prevBtn.disabled = currentActivityPage <= 1;
+        nextBtn.disabled = currentActivityPage >= totalPages || totalActivities === 0;
+    }
+    
+    // Initialize pagination controls
+    document.getElementById('prevPageBtn').addEventListener('click', () => {
+        if (currentActivityPage > 1) {
+            currentActivityPage--;
+            setupActivityListener();
+        }
+    });
+    
+    document.getElementById('nextPageBtn').addEventListener('click', () => {
+        const totalPages = Math.ceil(totalActivities / activitiesPerPage);
+        if (currentActivityPage < totalPages) {
+            currentActivityPage++;
+            setupActivityListener();
+        }
+    });
+    
+    // Initialize the activity listener
+    setupActivityListener();
+
     // Initialize with loading indicators
     totalUsersElement.textContent = 'Loading...';
     activeWorkshopsElement.textContent = 'Loading...';
@@ -39,70 +167,7 @@ function loadDashboardData() {
         totalRegistrationsElement.textContent = 'Error';
     });
     
-    // Set up real-time listener for recent activity
-    const activityListener = db.collection('activity')
-        .orderBy('timestamp', 'desc')
-        .limit(20)
-        .onSnapshot((snapshot) => {
-            // Clear current activity
-            recentActivityElement.innerHTML = '';
-            
-            if (snapshot.empty) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td colspan="4" class="py-4 px-4 text-center text-gray-500">No recent activity</td>
-                `;
-                recentActivityElement.appendChild(row);
-                return;
-            }
-            
-            snapshot.forEach((doc) => {
-                const activity = doc.data();
-                const date = new Date(activity.timestamp?.toDate() || new Date());
-                const formattedDate = new Intl.DateTimeFormat('en-US', {
-                    dateStyle: 'medium',
-                    timeStyle: 'short'
-                }).format(date);
-                
-                // Determine activity type color
-                let typeColor = 'text-gray-600';
-                switch(activity.type?.toLowerCase()) {
-                    case 'login':
-                        typeColor = 'text-blue-600';
-                        break;
-                    case 'registration':
-                        typeColor = 'text-green-600';
-                        break;
-                    case 'workshop created':
-                        typeColor = 'text-purple-600';
-                        break;
-                    case 'profile updated':
-                        typeColor = 'text-orange-600';
-                        break;
-                }
-                
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50 transition-colors duration-150';
-                row.innerHTML = `
-                    <td class="py-2 px-4 border-b ${typeColor} font-medium">${activity.type || 'Unknown'}</td>
-                    <td class="py-2 px-4 border-b">${activity.user || 'Unknown'}</td>
-                    <td class="py-2 px-4 border-b text-gray-600">${formattedDate}</td>
-                    <td class="py-2 px-4 border-b">${activity.details || 'No details'}</td>
-                `;
-                
-                recentActivityElement.appendChild(row);
-            });
-        }, (error) => {
-            console.error("Error getting activities: ", error);
-            recentActivityElement.innerHTML = `
-                <tr>
-                    <td colspan="4" class="py-4 px-4 text-center">
-                        <div class="text-red-500 font-medium">Error loading activities</div>
-                        <div class="text-sm text-gray-500 mt-1">${error.message}</div>
-                    </td>
-                </tr>
-            `;
-        });
+    
     
     // Set up real-time listeners for stat updates
     db.collection('users').onSnapshot((snapshot) => {
@@ -196,6 +261,8 @@ function logout() {
             });
         });
 }
+
+
 
 // Utility function to create dummy data for testing
 // Only use this in development

@@ -1,4 +1,4 @@
-// Firebase configuration
+// Initialize Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
     authDomain: "ratbow-454f1.firebaseapp.com",
@@ -9,156 +9,265 @@ const firebaseConfig = {
     measurementId: "G-71PNRPMEKP"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 
-// DOM Elements
-const loginForm = document.getElementById('loginForm');
-const registerForm = document.getElementById('registerForm');
-const loginEmail = document.getElementById('loginEmail');
-const loginPassword = document.getElementById('loginPassword');
-const registerEmail = document.getElementById('registerEmail');
-const registerPassword = document.getElementById('registerPassword');
-const registerName = document.getElementById('registerName');
-const errorMessage = document.getElementById('error-message');
-
-// Get Firebase instances
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Check if we're on the register page
-if (registerForm) {
-    console.log('Register form found');
-    // Register functionality
-    registerForm.addEventListener('submit', async (e) => {
+// Social login providers
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// Function to show registration modal
+function showRegistrationModal(workshopData, callback) {
+    const modal = document.createElement('div');
+    modal.className = 'registration-modal-overlay';
+    modal.innerHTML = `
+        <div class="registration-modal">
+            <span class="close-modal">&times;</span>
+            <h2>Register for ${workshopData.title}</h2>
+            
+            <div class="social-login-options">
+                <p>Sign up with:</p>
+                <button class="social-login-btn google" id="google-signup">
+                    <i class="fab fa-google"></i> Google
+                </button>
+                <button class="social-login-btn facebook" id="facebook-signup">
+                    <i class="fab fa-facebook"></i> Facebook
+                </button>
+                <button class="social-login-btn yahoo" id="yahoo-signup">
+                    <i class="fab fa-yahoo"></i> Yahoo
+                </button>
+                <p class="divider">or</p>
+            </div>
+            
+            <form id="email-signup-form">
+                <div class="form-group">
+                    <label for="fullname">Full Name</label>
+                    <input type="text" id="fullname" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password (min 6 characters)</label>
+                    <input type="password" id="password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="demographics">Demographic Information</label>
+                    <select id="demographics" required>
+                        <option value="">Select your category</option>
+                        <option value="student">Student</option>
+                        <option value="professional">Working Professional</option>
+                        <option value="job_seeker">Job Seeker</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Register & Sign Up</button>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close modal handler
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+
+    // Social login handlers
+    modal.querySelector('#google-signup').addEventListener('click', () => socialSignUp(googleProvider, workshopData, callback));
+    modal.querySelector('#facebook-signup').addEventListener('click', () => socialSignUp(facebookProvider, workshopData, callback));
+    modal.querySelector('#yahoo-signup').addEventListener('click', () => socialSignUp(yahooProvider, workshopData, callback));
+
+    // Email signup handler
+    modal.querySelector('#email-signup-form').addEventListener('submit', (e) => {
         e.preventDefault();
-        console.log('Registration form submitted');
-        errorMessage.textContent = ''; // Clear any previous errors
+        const email = modal.querySelector('#email').value;
+        const password = modal.querySelector('#password').value;
+        const fullName = modal.querySelector('#fullname').value;
+        const demographics = modal.querySelector('#demographics').value;
         
-        try {
-            if (!registerEmail.value || !registerPassword.value || !registerName.value) {
-                errorMessage.textContent = 'Please fill in all fields';
-                return;
-            }
-
-            if (registerPassword.value.length < 6) {
-                errorMessage.textContent = 'Password must be at least 6 characters long';
-                return;
-            }
-
-            // Disable the submit button to prevent double submission
-            const submitButton = registerForm.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            
-            console.log('Creating user account...');
-            const userCredential = await firebase.auth().createUserWithEmailAndPassword(
-                registerEmail.value,
-                registerPassword.value
-            );
-            
-            console.log('User account created, now creating user document...');
-            
-            // Create user document with default role as 'user'
-            await firebase.firestore().collection('users').doc(userCredential.user.uid).set({
-                name: registerName.value,
-                email: registerEmail.value,
-                role: 'user',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            console.log('Registration complete, redirecting...');
-            alert('Registration successful!');
-            window.location.href = 'index.html';
-        } catch (error) {
-            console.error('Registration error:', error);
-            errorMessage.textContent = error.message;
-            // Re-enable the submit button if there was an error
-            const submitButton = registerForm.querySelector('button[type="submit"]');
-            submitButton.disabled = false;
-        }
-    });
-} else {
-    console.log('Register form not found - might be on a different page');
-}
-
-// Check if we're on the login page
-if (loginForm) {
-    // Login functionality
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        try {
-            const userCredential = await auth.signInWithEmailAndPassword(
-                loginEmail.value,
-                loginPassword.value
-            );
-            
-            // Check user role
-            const userDoc = await db.collection('users').doc(userCredential.user.uid).get();
-            
-            if (!userDoc.exists) {
-                // If user document doesn't exist, create it with default role
-                await db.collection('users').doc(userCredential.user.uid).set({
-                    name: userCredential.user.email.split('@')[0],
-                    email: userCredential.user.email,
-                    role: 'user',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            const userData = userDoc.data();
-            
-            if (userData.role === 'admin') {
-                window.location.href = 'admin-dashboard.html';
-            } else {
-                window.location.href = 'index.html';
-            }
-        } catch (error) {
-            alert(error.message);
-        }
-    });
-} else {
-    console.log('Login form not found - might be on a different page');
-}
-
-// Logout functionality
-function logout() {
-    firebase.auth().signOut().then(() => {
-        window.location.href = 'login.html';
-    }).catch((error) => {
-        console.error('Logout error:', error);
-        alert('Error logging out: ' + error.message);
+        emailSignUp(email, password, fullName, demographics, workshopData, callback);
     });
 }
 
-// Make logout function available globally
-window.logout = logout;
-
-// Auth state observer
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        // User is signed in
-        db.collection('users').doc(user.uid).get().then((doc) => {
-            if (!doc.exists) {
-                // If user document doesn't exist, create it with default role
-                db.collection('users').doc(user.uid).set({
-                    name: user.email.split('@')[0],
-                    email: user.email,
-                    role: 'user',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                return;
-            }
-            
-            const userData = doc.data();
-            if (userData.role === 'admin') {
-                // Show admin features
-                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-            }
-        });
-    } else {
-        // User is signed out
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+// Google sign up function
+async function socialSignUp(provider, workshopData, callback) {
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        
+        // Save additional user data
+        await db.collection('users').doc(user.uid).set({
+            name: user.displayName || 'Google User',
+            email: user.email,
+            demographics: 'google_user',
+            workshops: [workshopData.id]
+        }, { merge: true });
+        
+        // Register for workshop
+        await registerForWorkshop(workshopData.id, user.uid);
+        
+        // Send confirmation email
+        sendWorkshopConfirmation(user.email, workshopData);
+        
+        if (callback) callback();
+    } catch (error) {
+        console.error("Google sign up error:", error);
+        alert("Google sign up failed: " + error.message);
     }
-}); 
+}
+
+// Email sign up function
+async function emailSignUp(email, password, fullName, demographics, workshopData, callback) {
+    try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        
+        // Save additional user data
+        await db.collection('users').doc(user.uid).set({
+            name: fullName,
+            email: email,
+            demographics: demographics,
+            workshops: [workshopData.id]
+        }, { merge: true });
+        
+        // Send email verification
+        await user.sendEmailVerification();
+        
+        // Register for workshop
+        await registerForWorkshop(workshopData.id, user.uid);
+        
+        // Send confirmation email
+        sendWorkshopConfirmation(email, workshopData);
+        
+        if (callback) callback();
+    } catch (error) {
+        console.error("Email sign up error:", error);
+        alert("Registration failed: " + error.message);
+    }
+}
+
+// Workshop registration function
+async function registerForWorkshop(workshopId, userId) {
+    const workshopRef = db.collection('workshops').doc(workshopId);
+    
+    return db.runTransaction(async (transaction) => {
+        const workshopDoc = await transaction.get(workshopRef);
+        if (!workshopDoc.exists) throw new Error('Workshop not found');
+        
+        const workshop = workshopDoc.data();
+        const registeredUsers = workshop.registeredUsers || [];
+        
+        if (!registeredUsers.includes(userId)) {
+            registeredUsers.push(userId);
+            transaction.update(workshopRef, {
+                registeredUsers,
+                registered: registeredUsers.length
+            });
+        }
+        
+        return true;
+    });
+}
+
+// Email confirmation function
+function sendWorkshopConfirmation(email, workshopData) {
+    // In a real app, you would use a cloud function or email service
+    console.log(`Sending confirmation to ${email} for workshop ${workshopData.title}`);
+    
+    // This would be replaced with actual email sending logic
+    db.collection('mail').add({
+        to: email,
+        message: {
+            subject: `Workshop Registration Confirmation: ${workshopData.title}`,
+            html: `
+                <h1>Thank you for registering!</h1>
+                <p>You have successfully registered for:</p>
+                <h2>${workshopData.title}</h2>
+                <p><strong>Date:</strong> ${workshopData.date.toDate().toLocaleString()}</p>
+                <p><strong>Location:</strong> ${workshopData.location}</p>
+            `
+        }
+    }).then(() => {
+        console.log("Confirmation email queued");
+    });
+}
+
+    function updateNavigationAuthState(user) {
+        const navLinks = document.querySelector('.nav-links');
+        const logoutBtn = document.querySelector('.btn-logout');
+        const authButtons = document.querySelector('.auth-buttons');
+        const adminDashboard = document.querySelector('.admin-dashboard');
+
+        if (user) {
+            // User is logged in - hide auth buttons
+            if (authButtons) authButtons.style.display = 'none';
+            
+            // Create/show logout button
+            if (!logoutBtn && navLinks) {
+                const logoutButton = document.createElement('button');
+                logoutButton.className = 'btn-logout';
+                logoutButton.textContent = 'Logout';
+                logoutButton.onclick = logout;
+                navLinks.appendChild(logoutButton);
+            }
+
+            // Check for admin status - updated to be consistent
+            db.collection('users').doc(user.uid).get().then((doc) => {
+                const userData = doc.data();
+                if (adminDashboard) {
+                    adminDashboard.style.display = (userData && userData.role === 'admin') ? 'inline-block' : 'none';
+                }
+            }).catch((error) => {
+                console.error("Error checking user status:", error);
+                if (adminDashboard) {
+                    adminDashboard.style.display = 'none';
+                }
+            });
+        } else {
+            // User is logged out - show auth buttons
+            if (authButtons) authButtons.style.display = 'flex';
+            if (logoutBtn) {
+                logoutBtn.remove();
+            }
+            if (adminDashboard) {
+                adminDashboard.style.display = 'none';
+            }
+        }
+    }
+
+// Update the auth state changed handler
+auth.onAuthStateChanged((user) => {
+    updateNavigationAuthState(user);
+});
+
+// Make sure logout function is available
+function logout() {
+    auth.signOut().then(() => {
+        console.log('User signed out');
+        // The auth state change handler will update the UI automatically
+    }).catch((error) => {
+        console.error('Sign out error:', error);
+    });
+}
+
+// checking admin
+function makeUserAdmin(userId) {
+    return db.collection('admins').doc(userId).set({
+        addedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        addedBy: auth.currentUser.uid
+    });
+}
+
+// In your registration function
+if (email.endsWith('@admin.com')) {
+    userData.role = 'admin';
+}
+
+// Before redirecting non-admins
+alert('You need admin privileges to access this page');
+window.location.href = 'index.html';

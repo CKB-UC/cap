@@ -119,7 +119,6 @@ function loadUsers(searchTerm = '', roleFilter = '') {
                         ${user.role || 'user'}
                     </span>
                 </td>
-                <td class="py-2 px-4 border-b">${formatDate(user.created?.toDate())}</td>
                 <td class="py-2 px-4 border-b">
                     <span class="px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(user.status)}">
                         ${user.status || 'active'}

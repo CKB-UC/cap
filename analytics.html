@@ -48,7 +48,7 @@
             </div>
             
             <!-- Analytics Overview Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
                     <div class="text-blue-500 text-lg font-semibold">Registration Rate</div>
                     <div class="text-3xl font-bold text-gray-800 mt-2" id="registrationRate">--</div>
@@ -63,11 +63,6 @@
                     <div class="text-purple-500 text-lg font-semibold">User Growth</div>
                     <div class="text-3xl font-bold text-gray-800 mt-2" id="userGrowth">--</div>
                     <div class="text-sm text-gray-500 mt-1">New users this period</div>
-                </div>
-                <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
-                    <div class="text-yellow-500 text-lg font-semibold">Popular Time</div>
-                    <div class="text-3xl font-bold text-gray-800 mt-2" id="popularTime">--</div>
-                    <div class="text-sm text-gray-500 mt-1">Most active hours</div>
                 </div>
             </div>
             
@@ -99,37 +94,7 @@
                         <canvas id="userDemographicsChart"></canvas>
                     </div>
                 </div>
-                
-                <!-- Completion Stats Chart -->
-                <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Completion Statistics</h2>
-                    <div class="h-80">
-                        <canvas id="completionStatsChart"></canvas>
-                    </div>
-                </div>
             </div>
-            
-            <!-- Top Workshops Table -->
-            <div class="mt-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Top Workshops</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white border border-gray-200">
-                        <thead>
-                            <tr class="bg-gray-50">
-                                <th class="py-2 px-4 border-b text-left">Workshop Name</th>
-                                <th class="py-2 px-4 border-b text-left">Registrations</th>
-                                <th class="py-2 px-4 border-b text-left">Completion Rate</th>
-                                <th class="py-2 px-4 border-b text-left">Average Rating</th>
-                                <th class="py-2 px-4 border-b text-left">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="topWorkshops">
-                            <tr>
-                                <td colspan="5" class="py-4 px-4 text-center text-gray-500">Loading workshop data...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
         </div>
     </div>

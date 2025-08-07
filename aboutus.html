@@ -3,35 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Workshop</title>
+    <title>About Us - UPSKILL</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/video.css">
-    <link rel="stylesheet" href="css/footer.css">
     <link href="css/output.css" rel="stylesheet">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/footer.css">
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
-    <header class="main-header">
-        <h1>Welcome to Our Corporate Training Hub</h1>
-        <p>Delivering Excellence in Workshops & Trainings</p>
-    </header>
-    
-    <nav class="navbar">
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="workshops.html">Workshops</a>
-            <a href="aboutus.html" class="active">About Us</a>
-            <a href="contact.html">Contact</a>
-            <a href="admin-dashboard.html" class="admin-dashboard admin-only">Dashboard</a>
-            <button onclick="logout()" class="btn-logout">Logout</button>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="navbar bg-gray-900 text-white py-4 sticky top-0 z-30 shadow-md">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="nav-links flex space-x-6">
+                <a href="index.html" class="hover:text-blue-300 transition">Home</a>
+                <a href="workshops.html" class="hover:text-blue-300 transition">Workshops</a>
+                <a href="aboutus.html" class="active bg-blue-600 px-4 py-2 rounded-full">About Us</a>
+                <a href="contact.html" class="hover:text-blue-300 transition">Contact</a>
+                <a href="admin-dashboard.html" class="admin-dashboard admin-only hover:text-blue-300 transition">Dashboard</a>
+            </div>
+            <div class="auth-buttons flex space-x-4">
+                <a href="login.html" class="auth-btn login-btn border border-white px-4 py-2 rounded-full hover:bg-white hover:text-gray-900 transition">Log In</a>
+                <a href="register.html" class="auth-btn signup-btn bg-blue-600 px-4 py-2 rounded-full hover:bg-blue-700 transition">Sign Up</a>
+            </div>
         </div>
     </nav>
 
+    <!-- Header Section -->
+    <header class="bg-gradient-to-r from-blue-800 to-blue-600 text-white py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">About UPSKILL</h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">Learn more about our mission, vision, and values</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <div class="grid md:grid-cols-2 gap-12">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Mission</h2>
+                    <p class="text-gray-600 mb-6">Our mission is to provide valuable human resource assistance, professional consultancy services, and specialized trainings and workshops to both private and government organizations, as our means to promote sustainability in business operations.</p>
+
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Vision</h2>
+                    <p class="text-gray-600 mb-6">One of the most credible service providers of human resources related functions such as talent acquisition, compensation and benefits, employee engagement, performance management, and training development.</p>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Our Services</h2>
+                    <ul class="list-disc pl-5 text-gray-600 mb-6 space-y-2">
+                        <li>Development of trainings and workshops tailored to fit the organization's needs</li>
+                        <li>Human Resource Management Consultancy</li>
+                        <li>Human Resource Audits (External)</li>
+                    </ul>
+
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Our Values</h2>
+                    <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                        <li>Professionalism</li>
+                        <li>Teamwork</li>
+                        <li>Excellence</li>
+                        <li>Integrity</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Our Clients</h2>
+            
+            <div class="space-y-8">
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">2022</h3>
+                    <ul class="space-y-4">
+                        <li>
+                            <strong>DEPARTMENT OF LABOR AND EMPLOYMENT (DOLE) – CAR</strong>
+                            <p class="text-gray-600">Capacity Building (Teambuilding Program)</p>
+                            <ul class="list-disc pl-5 text-gray-600 mt-2 space-y-1">
+                                <li>S.A.F.E. Spaces – Personal Wellness, Stress Management and Gender Sensitivity</li>
+                                <li>November 22 – 24, 2022 (Anda, Pangasinan)</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <strong>ENCAM AGRI MARKETING</strong>
+                            <ul class="list-disc pl-5 text-gray-600 mt-2 space-y-1">
+                                <li>Inhouse Training provider</li>
+                                <li>February to October, Encam Office La Trinidad</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Add other years similarly -->
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Permits and Licenses</h2>
+            <div class="flex justify-center">
+                <img src="assets/perm.png" alt="Permits and Licenses" class="max-w-full h-auto rounded-lg shadow">
+            </div>
+        </div>
+    </main>
+    
     <!-- Chatbot Icon -->
     <div id="chatbot-icon" class="fixed bottom-5 left-5 w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-300 z-50">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -68,160 +146,50 @@
             </div>
         </div>
     </div>
-    <script src="chatbot.js"></script>
 
-    
-
-    <h1><center>ABOUT US</center></h1>
-
-    <div class="video-gallery">
-        
-        <!-- Video 1 -->
-        <div class="video-card">
-            <div class="video-content">
-                <h2>Mission</h2>
-                <p>Our mission is to provide valuable human resource assistance, professional consultancy
-                    services, and specialized trainings and workshops to both private and government organizations,
-                    as our means to promote sustainability in business operations.</p><br><br>
-
-                <h2>Vision</h2>
-                <p>One of the most credible service providers of human resources related functions such
-                    as talent acquisition, compensation and benefits, employee engagement, performance
-                    management, and training development.</p><br><br>
-
-                <h2>Our Services</h2>
-                <ul>
-                    <li>Development of trainings and workshops tailored to fit the organization's needs</li>
-                    <li>Human Resource Management Consultancy</li>
-                    <li>Human Resource Audits (External)</li>
-                  </ul><br><br>
-                
-                <h2>Our Values</h2>
-                <ul>
-                    <li>Professionalism</li>
-                    <li>Teamwork</li>
-                    <li>Excellence</li>
-                    <li>Integrity</li>
-                </ul><br><br>
-
-                <h2>Our Clients</h2>
-                <h3><u>2022</u></h3>
-                <ol>
-                    <li><strong>DEPARTMENT OF LABOR AND EMPLOYMENT (DOLE) – CAR
-                        Capacity Building (Teambuilding Program)</strong></li>
-                        <ul>
-                            <li>S.A.F.E. Spaces – Personal Wellness, Stress Management and Gender Sensitivity</li>
-                            <li>November 22 – 24, 2022 (Anda, Pangasinan)</li>
-                        </ul><br>
-                    <li><strong>ENCAM AGRI MARKETING</strong></li>
-                    <ul>
-                        <li>Inhouse Training provider</li>
-                        <li>February to October, Encam Office La Trinidad</li>
-                    </ul><br>
-                </ol><br>
-
-                <h3><u>2019</u></h3>
-                <ol>
-                    <li><strong>DEPARTMENT OF LABOR AND EMPLOYMENT (DOLE) – CAR
-                        Capacity Building (Teambuilding Program)</strong></li>
-                        <ul>
-                            <li>The DOLE Model – "It Starts with ME, but Works with WE"</li>
-                            <li>November 27 – 29, 2019 (Candon, Ilocos Sur)</li>
-                        </ul><br>
-                    <li><strong>PINES MULTI TELECOM SHOP</strong></li>
-                    <ul>
-                        <li>Payroll, Compensation and Benefits Administration Workshop</li>
-                        <li>2018 to 2019 (Baguio City)</li>
-                    </ul><br>
-                    <li><strong>OTEL GROUP OF COMPANIES </strong></li>
-                    <ul>
-                        <li>Values Enhancement, Work Values and Customer Service</li>
-                        <li>April 16,17 & 18(San Fernando, Pampanga)</li>
-                    </ul><br>
-                    <li><strong>SAVE OUR PROFESSIONAL WORKSHOP</strong></li>
-                    <ul>
-                        <li>Invitational Workshop</li>
-                        <li>March 2019 – (G Hotel Baguio City)</li>
-                    </ul><br>
-                </ol><br>
-
-                <h3><u>2018</u></h3>
-                <ol>
-                    <li><strong>UNITED ARCHITECTS OF THE PHILIPPINES</strong></li>
-                        <ul>
-                            <li>The Trends In Urban & Countryside Development</li>
-                            <li>July 14 (Albergo Hotel, Baguio City)</li>
-                        </ul><br>
-                    <li><strong>INVITATIONAL LEADERSHIP WORKSHOP</strong></li>
-                    <ul>
-                        <li>Attended by different representatives of different Companies and organizations</li>
-                        <li>April 14 & 15 (Hotel Selvina, Baguio City)</li>
-                    </ul><br>
-                    <li><strong>SAVE OUR PROFESSIONAL WORKSHOP</strong></li>
-                    <ul>
-                        <li>Invitational Workshop</li>
-                        <li>June 29, 2018 (Hotel Silvina, Baguio City)</li>
+    <!-- Footer -->
+    <footer class="bg-gray-100 py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">About UPSKILL</h3>
+                    <p class="text-gray-600">
+                        Our mission is to provide accessible, research-based soft skills training to help individuals thrive in their careers.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="workshops.html" class="text-blue-600 hover:underline">Workshops</a></li>
+                        <li><a href="aboutus.html" class="text-blue-600 hover:underline">About Us</a></li>
+                        <li><a href="contact.html" class="text-blue-600 hover:underline">Contact</a></li>
+                        <li><a href="privacy.html" class="text-blue-600 hover:underline">Privacy Policy</a></li>
                     </ul>
-                </ol><br>
-
-                <h3><u>2017</u></h3>
-                <ol>
-                    <li><strong>JENMEN ENGINEERING</strong></li>
-                    <strong>Employee Team Building Activity</strong>
-                        <ul>
-                            <li>December 19, 2017 (Pugo, La Union)</li>
-                        </ul><br>
-                    
-                    <li><strong>JENMEN ENGINEERING</strong></li>
-                    <strong>Values Enhancement Program</strong>
-                        <ul>
-                        <li>"Our Values, Our Success"</li>
-                        <li>September 23, 2017 (Mountain Lodge Hotel, Baguio City)</li>
-                        </ul><br>
-
-                        <li><strong>JENMEN ENGINEERING</strong></li>
-                        <ul>
-                        <li>Strategic Planning</li>
-                        <li>January 6, 2017 (Prince Plaza Hotel, Baguio City)</li>
-                        </ul><br>
-                    
-                </ol><br>
-
-                <h2>Permits and Licenses</h2>
-                <center><img src="assets/perm.png" alt="permits"></center><br>
-
-                
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Contact Info</h3>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><i class="fas fa-map-marker-alt mr-2 text-blue-600"></i> Room 316 B Lopez Building</li>
+                        <li><i class="fas fa-phone mr-2 text-blue-600"></i> 0908-340-8351</li>
+                        <li><i class="fas fa-envelope mr-2 text-blue-600"></i> info@upskill.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center text-gray-500">
+                <p>&copy; 2023 UPSKILL. All rights reserved.</p>
             </div>
         </div>
-    </div>
-    
+    </footer>
 
-<hr class="footer-line">
-
-<footer class="footer">
-    <div class="footer-content">
-        <ul class="contact-info">
-            <h2>For more Info:</h2>
-            <li>Room 316 B Lopez Building</li>
-            <li>Session Road, Baguio City 2600</li>
-            <li>@JenmenManagementInc</li>
-            <li>0908-340-8351</li>
-        </ul>
-        <ul class="footer-links">
-            <li><a href="privacy.html">Privacy Policy</a></li>
-            <li><a href="terms.html">Terms of Service</a></li>
-        </ul>
-    </div>
-</footer>
-
-<script src="auth.js"></script>
-<script>
-    // Check if user is logged in
-    auth.onAuthStateChanged((user) => {
-        if (!user) {
-            window.location.href = 'login.html';
-        }
+    <script src="auth.js"></script>
+    <script src="chatbot.js"></script>
+    <script>
+    // Initialize auth state for navigation
+    document.addEventListener('DOMContentLoaded', () => {
+        auth.onAuthStateChanged((user) => {
+            updateNavigationAuthState(user);
+        });
     });
-</script>
+    </script>
 </body>
 </html>

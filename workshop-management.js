@@ -165,16 +165,38 @@ function createWorkshopRow(workshop, formattedDate, formattedTime) {
             };
     }
     
+    let tagStyles = {};
+    if (workshop.tag) {
+        const tagColors = {
+            communication: { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200' },
+            teamwork: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200' },
+            leadership: { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-200' },
+            creativity: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
+            'problem-solving': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
+            technical: { bg: 'bg-indigo-100', text: 'text-indigo-800', border: 'border-indigo-200' },
+            management: { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-200' }
+        };
+        
+        tagStyles = tagColors[workshop.tag] || { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-200' };
+    }
+
     // Create inline style string directly
     const styleString = `background-color:${statusStyles.backgroundColor};color:${statusStyles.color};border-color:${statusStyles.borderColor}`;
-    
-    // Create the row HTML with inline styles for reliability
+
+    // Update the row HTML to include tags
     row.innerHTML = `
         <td class="py-3 px-4 border-b">${workshop.title}</td>
         <td class="py-3 px-4 border-b">
             <span class="px-2 py-1 inline-block rounded-full text-xs font-medium" style="${styleString};border-width:1px;border-style:solid;font-weight:500;">
                 ${workshop.status.charAt(0).toUpperCase() + workshop.status.slice(1)}
             </span>
+        </td>
+        <td class="py-3 px-4 border-b">
+            ${workshop.tag ? `
+            <span class="${tagStyles.bg} ${tagStyles.text} ${tagStyles.border} px-2 py-1 inline-block rounded-full text-xs font-medium border">
+                ${workshop.tag.charAt(0).toUpperCase() + workshop.tag.slice(1).replace('-', ' ')}
+            </span>
+            ` : 'N/A'}
         </td>
         <td class="py-3 px-4 border-b">
             <div class="flex flex-col">
@@ -237,8 +259,17 @@ function openWorkshopModal(workshopData = null) {
         document.getElementById('title').value = workshopData.title || '';
         document.getElementById('description').value = workshopData.description || '';
         document.getElementById('status').value = workshopData.status || 'upcoming';
+        document.getElementById('workshopTag').value = workshopData.tag || '';
         document.getElementById('capacity').value = workshopData.capacity || '';
         document.getElementById('location').value = workshopData.location || '';
+        
+        // Set selected tags
+        const tagSelect = document.getElementById('workshopTags');
+        if (workshopData.tags) {
+            Array.from(tagSelect.options).forEach(option => {
+                option.selected = workshopData.tags.includes(option.value);
+            });
+        }
         
         // Fill module information
         document.getElementById('moduleDescription').value = workshopData.moduleDescription || '';
@@ -268,6 +299,7 @@ function openWorkshopModal(workshopData = null) {
         
         // Set default status for new workshop
         document.getElementById('status').value = 'upcoming';
+        document.getElementById('workshopTag').value = '';
     }
     
     // Show the modal
@@ -367,6 +399,7 @@ async function handleWorkshopSubmit(e) {
             date: new Date(`${document.getElementById('workshopDate').value}T${document.getElementById('workshopTime').value}`),
             capacity: parseInt(document.getElementById('capacity').value),
             status: document.getElementById('status').value,
+            tag: document.getElementById('workshopTag').value, // Single tag selection
             location: document.getElementById('location').value,
             moduleDescription: document.getElementById('moduleDescription').value,
             moduleObjectives: document.getElementById('moduleObjectives').value,
