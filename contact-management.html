@@ -904,6 +904,54 @@
                         replyMessage: message,
                         repliedBy: auth.currentUser.uid
                     });
+
+                    // Try to notify the user who sent the message
+                    let targetUserId = originalMessage.userId || null;
+
+                    // If userId is missing, try to resolve by email
+                    if (!targetUserId) {
+                        const emailToMatch = originalMessage.userEmail || originalMessage.email;
+                        if (emailToMatch) {
+                            try {
+                                const userSnap = await db.collection('users')
+                                    .where('email', '==', emailToMatch)
+                                    .limit(1)
+                                    .get();
+                                if (!userSnap.empty) {
+                                    targetUserId = userSnap.docs[0].id;
+                                }
+                            } catch (lookupErr) {
+                                console.warn('Could not resolve user by email for notification:', lookupErr);
+                            }
+                        }
+                    }
+
+                    // Create in-app notification if we have a target user
+                    if (targetUserId) {
+                        const notificationData = {
+                            title: subject || 'Reply to your contact message',
+                            message: message,
+                            type: 'admin_reply',
+                            priority: 'high',
+                            targetUsers: [targetUserId],
+                            createdAt: new Date(),
+                            createdBy: auth.currentUser.uid,
+                            isActive: true,
+                            readBy: [],
+                            relatedTo: 'contact_message',
+                            contactMessageId: currentReplyId,
+                            canReply: true
+                        };
+
+                        try {
+                            const notifRef = await db.collection('notifications').add(notificationData);
+                            console.log('✅ User notified with notification ID:', notifRef.id);
+                        } catch (notifErr) {
+                            console.error('Failed to create user notification for contact reply:', notifErr);
+                        }
+                    } else {
+                        console.log('No user account matched for this contact message; skipping in-app notification.');
+                    }
                 } else if (originalMessage.type === 'notification') {
                     // Handle notification reply - send a new notification to the user
                     const newNotificationData = {
