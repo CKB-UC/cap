@@ -103,19 +103,44 @@ async function socialSignUp(provider, workshopData, callback) {
         const result = await auth.signInWithPopup(provider);
         const user = result.user;
         
-        // Save additional user data
+        // Save additional user data with verification status
         await db.collection('users').doc(user.uid).set({
             name: user.displayName || 'Google User',
             email: user.email,
             demographics: 'google_user',
-            workshops: [workshopData.id]
+            workshops: [workshopData.id],
+            verificationStatus: 'pending',
+            emailVerified: false,
+            phoneVerified: false,
+            adminApproved: false,
+            verificationSubmittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            role: 'user'
         }, { merge: true });
+        
+        // For social login, email is typically already verified by the provider
+        // But we'll still mark it as pending for consistency
+        if (user.emailVerified) {
+            await db.collection('users').doc(user.uid).update({
+                emailVerified: true,
+                emailVerifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                verificationStatus: 'verified',
+                verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
         
         // Register for workshop
         await registerForWorkshop(workshopData.id, user.uid);
         
         // Send confirmation email
         sendWorkshopConfirmation(user.email, workshopData);
+        
+        // Redirect based on verification status
+        if (user.emailVerified) {
+            window.location.href = 'index.html';
+        } else {
+            window.location.href = 'verification-pending.html';
+        }
         
         if (callback) callback();
     } catch (error) {
@@ -130,22 +155,57 @@ async function emailSignUp(email, password, fullName, demographics, workshopData
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
         
-        // Save additional user data
+        // Save additional user data with verification status
         await db.collection('users').doc(user.uid).set({
             name: fullName,
             email: email,
             demographics: demographics,
-            workshops: [workshopData.id]
+            workshops: [workshopData.id],
+            verificationStatus: 'pending',
+            emailVerified: false,
+            phoneVerified: false,
+            adminApproved: false,
+            verificationSubmittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            role: 'user'
         }, { merge: true });
         
-        // Send email verification
-        await user.sendEmailVerification();
+        // Try to send custom email verification via our server
+        try {
+            const response = await fetch('/api/send-verification-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    userId: user.uid,
+                    userName: fullName
+                })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                console.log('Custom email verification sent successfully');
+            } else {
+                console.log('Custom email server not available, using Firebase email verification');
+                // Fallback to Firebase's built-in email verification
+                await user.sendEmailVerification();
+            }
+        } catch (error) {
+            console.log('Custom email server not available, using Firebase email verification');
+            // Fallback to Firebase's built-in email verification
+            await user.sendEmailVerification();
+        }
         
         // Register for workshop
         await registerForWorkshop(workshopData.id, user.uid);
         
         // Send confirmation email
         sendWorkshopConfirmation(email, workshopData);
+        
+        // Redirect to verification pending page
+        window.location.href = 'verification-pending.html';
         
         if (callback) callback();
     } catch (error) {

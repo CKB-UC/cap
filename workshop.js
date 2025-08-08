@@ -870,15 +870,49 @@ function showRegistrationForm(workshopId, workshopData, successCallback) {
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
             
-            // Save user data
+            // Save user data with verification status
             await db.collection('users').doc(user.uid).set({
                 name: name,
                 email: email,
                 phone: phone,
                 birthDate: birthDate,
                 occupation: occupation,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                verificationStatus: 'pending',
+                emailVerified: false,
+                phoneVerified: false,
+                adminApproved: false,
+                verificationSubmittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                role: 'user'
             });
+            
+            // Try to send custom email verification via our server
+            try {
+                const response = await fetch('/api/send-verification-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        userId: user.uid,
+                        userName: name
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    console.log('Custom email verification sent successfully');
+                } else {
+                    console.log('Custom email server not available, using Firebase email verification');
+                    // Fallback to Firebase's built-in email verification
+                    await user.sendEmailVerification();
+                }
+            } catch (error) {
+                console.log('Custom email server not available, using Firebase email verification');
+                // Fallback to Firebase's built-in email verification
+                await user.sendEmailVerification();
+            }
             
             // Register for workshop
             await registerForWorkshop(user, workshopId);
@@ -886,8 +920,8 @@ function showRegistrationForm(workshopId, workshopData, successCallback) {
             // Close the registration popup
             document.body.removeChild(popupContainer);
             
-            // Show success popup
-            showSuccessPopup(workshopData);
+            // Redirect to verification pending page
+            window.location.href = 'verification-pending.html';
             
             // Execute success callback if provided
             if (successCallback) {

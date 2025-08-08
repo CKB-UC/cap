@@ -290,24 +290,37 @@
         
         // Check if user is admin
         document.addEventListener('DOMContentLoaded', function() {
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    db.collection('users').doc(user.uid).get().then((doc) => {
-                        const userData = doc.data();
-                        if (!userData || userData.role !== 'admin') {
-                            window.location.href = 'index.html';
-                        } else {
-                            loadVerifications();
-                            setupEventListeners();
-                        }
-                    }).catch((error) => {
-                        console.error("Error verifying admin status:", error);
+            // Small delay to ensure Firebase is fully initialized
+            setTimeout(() => {
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        db.collection('users').doc(user.uid).get().then((doc) => {
+                            const userData = doc.data();
+                            if (!userData || userData.role !== 'admin') {
+                                window.location.href = 'index.html';
+                            } else {
+                                // Ensure page elements are loaded before proceeding
+                                if (document.getElementById('verificationList') && 
+                                    document.getElementById('statusFilter') && 
+                                    document.getElementById('searchInput') && 
+                                    document.getElementById('sortBy')) {
+                                    loadVerifications();
+                                    setupEventListeners();
+                                } else {
+                                    console.error('Required page elements not found');
+                                    document.getElementById('verificationList').innerHTML = 
+                                        '<div class="text-center text-red-500 py-8">Error: Page elements not loaded properly</div>';
+                                }
+                            }
+                        }).catch((error) => {
+                            console.error("Error verifying admin status:", error);
+                            window.location.href = 'login.html';
+                        });
+                    } else {
                         window.location.href = 'login.html';
-                    });
-                } else {
-                    window.location.href = 'login.html';
-                }
-            });
+                    }
+                });
+            }, 100);
         });
         
         function setupEventListeners() {
@@ -321,54 +334,91 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const sortBy = document.getElementById('sortBy').value;
             
+            // Show loading state
+            document.getElementById('verificationList').innerHTML = 
+                '<div class="text-center text-gray-500 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-4"></i><p>Loading verifications...</p></div>';
+            
             let query = db.collection('users');
             
+            // Only apply status filter if it's not "all"
             if (statusFilter !== 'all') {
                 query = query.where('verificationStatus', '==', statusFilter);
             }
             
             query.get().then((snapshot) => {
+                console.log(`Loaded ${snapshot.size} users from database`);
+                
                 const verifications = [];
                 let pendingCount = 0;
                 let verifiedCount = 0;
                 let rejectedCount = 0;
                 
                 snapshot.forEach((doc) => {
-                    const userData = doc.data();
-                    userData.id = doc.id;
-                    
-                    // Apply search filter
-                    if (searchTerm && !userData.name.toLowerCase().includes(searchTerm) && 
-                        !userData.email.toLowerCase().includes(searchTerm)) {
-                        return;
-                    }
-                    
-                    verifications.push(userData);
-                    
-                    // Count statistics
-                    switch(userData.verificationStatus) {
-                        case 'pending':
-                            pendingCount++;
-                            break;
-                        case 'verified':
-                            verifiedCount++;
-                            break;
-                        case 'rejected':
-                            rejectedCount++;
-                            break;
+                    try {
+                        const userData = doc.data();
+                        if (!userData) {
+                            console.log(`User ${doc.id} has no data, skipping`);
+                            return;
+                        }
+                        
+                        userData.id = doc.id;
+                        
+                        // Handle cases where verificationStatus might not exist
+                        if (!userData.verificationStatus) {
+                            userData.verificationStatus = 'pending'; // Default to pending if not set
+                            console.log(`User ${userData.id} has no verificationStatus, defaulting to pending`);
+                        }
+                        
+                        // Apply search filter
+                        if (searchTerm && !userData.name?.toLowerCase().includes(searchTerm) && 
+                            !userData.email?.toLowerCase().includes(searchTerm)) {
+                            return;
+                        }
+                        
+                        verifications.push(userData);
+                        
+                        // Count statistics
+                        switch(userData.verificationStatus) {
+                            case 'pending':
+                                pendingCount++;
+                                break;
+                            case 'verified':
+                                verifiedCount++;
+                                break;
+                            case 'rejected':
+                                rejectedCount++;
+                                break;
+                            default:
+                                // If verificationStatus is not one of the expected values, count as pending
+                                console.log(`User ${userData.id} has unexpected verificationStatus: ${userData.verificationStatus}, counting as pending`);
+                                pendingCount++;
+                                break;
+                        }
+                    } catch (error) {
+                        console.error(`Error processing user ${doc.id}:`, error);
+                        // Continue processing other users even if one fails
                     }
                 });
                 
+                console.log(`Processed ${verifications.length} verifications: ${pendingCount} pending, ${verifiedCount} verified, ${rejectedCount} rejected`);
+                
                 // Sort verifications
                 verifications.sort((a, b) => {
-                    switch(sortBy) {
-                        case 'name':
-                            return a.name.localeCompare(b.name);
-                        case 'email':
-                            return a.email.localeCompare(b.email);
-                        case 'date':
-                        default:
-                            return b.verificationSubmittedAt?.toDate() - a.verificationSubmittedAt?.toDate();
+                    try {
+                        switch(sortBy) {
+                            case 'name':
+                                return (a.name || '').localeCompare(b.name || '');
+                            case 'email':
+                                return (a.email || '').localeCompare(b.email || '');
+                            case 'date':
+                            default:
+                                const dateA = a.verificationSubmittedAt?.toDate ? a.verificationSubmittedAt.toDate() : new Date(0);
+                                const dateB = b.verificationSubmittedAt?.toDate ? b.verificationSubmittedAt.toDate() : new Date(0);
+                                return dateB - dateA;
+                        }
+                    } catch (error) {
+                        console.error('Error sorting verifications:', error);
+                        return 0;
                     }
                 });
                 
@@ -381,8 +431,15 @@
                 renderVerifications(verifications);
             }).catch((error) => {
                 console.error("Error loading verifications:", error);
+                let errorMessage = 'Error loading verifications';
+                if (error.code) {
+                    errorMessage += ` (${error.code})`;
+                }
+                if (error.message) {
+                    errorMessage += `: ${error.message}`;
+                }
                 document.getElementById('verificationList').innerHTML = 
-                    '<div class="text-center text-red-500 py-8">Error loading verifications</div>';
+                    `<div class="text-center text-red-500 py-8">${errorMessage}</div>`;
             });
         }
         
@@ -394,15 +451,21 @@
                 return;
             }
             
-            container.innerHTML = verifications.map(verification => `
+            container.innerHTML = verifications.map(verification => {
+                // Ensure verificationStatus exists and has a valid value
+                const status = verification.verificationStatus || 'pending';
+                const statusClass = `status-${status}`;
+                const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+                
+                return `
                 <div class="verification-card">
                     <div class="verification-header">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-800">${verification.name}</h3>
-                            <p class="text-gray-600">${verification.email}</p>
+                            <h3 class="text-lg font-semibold text-gray-800">${verification.name || 'N/A'}</h3>
+                            <p class="text-gray-600">${verification.email || 'N/A'}</p>
                         </div>
-                        <span class="status-badge status-${verification.verificationStatus}">
-                            ${verification.verificationStatus.charAt(0).toUpperCase() + verification.verificationStatus.slice(1)}
+                        <span class="status-badge ${statusClass}">
+                            ${statusText}
                         </span>
                     </div>
                     <div class="verification-content">
@@ -429,7 +492,7 @@
                             <div class="info-value">${verification.address || 'N/A'}</div>
                         </div>
                         <div class="verification-actions">
-                            ${verification.verificationStatus === 'pending' ? `
+                            ${status === 'pending' ? `
                                 <button class="btn btn-approve" onclick="approveVerification('${verification.id}')">
                                     <i class="fas fa-check"></i> Approve
                                 </button>
@@ -443,7 +506,8 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
         
         function approveVerification(userId) {
