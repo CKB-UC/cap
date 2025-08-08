@@ -334,113 +334,133 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const sortBy = document.getElementById('sortBy').value;
             
+            console.log('Loading verifications with filter:', statusFilter, 'search:', searchTerm, 'sort:', sortBy);
+            
             // Show loading state
             document.getElementById('verificationList').innerHTML = 
                 '<div class="text-center text-gray-500 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-4"></i><p>Loading verifications...</p></div>';
             
-            let query = db.collection('users');
-            
-            // Only apply status filter if it's not "all"
-            if (statusFilter !== 'all') {
-                query = query.where('verificationStatus', '==', statusFilter);
-            }
-            
-            query.get().then((snapshot) => {
-                console.log(`Loaded ${snapshot.size} users from database`);
+            try {
+                let query = db.collection('users');
                 
-                const verifications = [];
-                let pendingCount = 0;
-                let verifiedCount = 0;
-                let rejectedCount = 0;
-                
-                snapshot.forEach((doc) => {
-                    try {
-                        const userData = doc.data();
-                        if (!userData) {
-                            console.log(`User ${doc.id} has no data, skipping`);
-                            return;
-                        }
-                        
-                        userData.id = doc.id;
-                        
-                        // Handle cases where verificationStatus might not exist
-                        if (!userData.verificationStatus) {
-                            userData.verificationStatus = 'pending'; // Default to pending if not set
-                            console.log(`User ${userData.id} has no verificationStatus, defaulting to pending`);
-                        }
-                        
-                        // Apply search filter
-                        if (searchTerm && !userData.name?.toLowerCase().includes(searchTerm) && 
-                            !userData.email?.toLowerCase().includes(searchTerm)) {
-                            return;
-                        }
-                        
-                        verifications.push(userData);
-                        
-                        // Count statistics
-                        switch(userData.verificationStatus) {
-                            case 'pending':
-                                pendingCount++;
-                                break;
-                            case 'verified':
-                                verifiedCount++;
-                                break;
-                            case 'rejected':
-                                rejectedCount++;
-                                break;
-                            default:
-                                // If verificationStatus is not one of the expected values, count as pending
-                                console.log(`User ${userData.id} has unexpected verificationStatus: ${userData.verificationStatus}, counting as pending`);
-                                pendingCount++;
-                                break;
-                        }
-                    } catch (error) {
-                        console.error(`Error processing user ${doc.id}:`, error);
-                        // Continue processing other users even if one fails
-                    }
-                });
-                
-                console.log(`Processed ${verifications.length} verifications: ${pendingCount} pending, ${verifiedCount} verified, ${rejectedCount} rejected`);
-                
-                // Sort verifications
-                verifications.sort((a, b) => {
-                    try {
-                        switch(sortBy) {
-                            case 'name':
-                                return (a.name || '').localeCompare(b.name || '');
-                            case 'email':
-                                return (a.email || '').localeCompare(b.email || '');
-                            case 'date':
-                            default:
-                                const dateA = a.verificationSubmittedAt?.toDate ? a.verificationSubmittedAt.toDate() : new Date(0);
-                                const dateB = b.verificationSubmittedAt?.toDate ? b.verificationSubmittedAt.toDate() : new Date(0);
-                                return dateB - dateA;
-                        }
-                    } catch (error) {
-                        console.error('Error sorting verifications:', error);
-                        return 0;
-                    }
-                });
-                
-                // Update statistics
-                document.getElementById('pendingCount').textContent = pendingCount;
-                document.getElementById('verifiedCount').textContent = verifiedCount;
-                document.getElementById('rejectedCount').textContent = rejectedCount;
-                
-                // Render verifications
-                renderVerifications(verifications);
-            }).catch((error) => {
-                console.error("Error loading verifications:", error);
-                let errorMessage = 'Error loading verifications';
-                if (error.code) {
-                    errorMessage += ` (${error.code})`;
+                // Only apply status filter if it's not "all"
+                if (statusFilter !== 'all') {
+                    console.log('Applying status filter:', statusFilter);
+                    query = query.where('verificationStatus', '==', statusFilter);
+                } else {
+                    console.log('Loading all users (no status filter applied)');
+                    // For "all" status, we'll get all users and filter them in memory
+                    // This ensures we don't miss users without verificationStatus field
                 }
-                if (error.message) {
-                    errorMessage += `: ${error.message}`;
-                }
+                
+                query.get().then((snapshot) => {
+                    console.log(`Loaded ${snapshot.size} users from database`);
+                    
+                    if (snapshot.empty) {
+                        console.log('No users found in database');
+                        document.getElementById('verificationList').innerHTML = 
+                            '<div class="text-center text-gray-500 py-8">No verifications found</div>';
+                        return;
+                    }
+                    
+                    const verifications = [];
+                    let pendingCount = 0;
+                    let verifiedCount = 0;
+                    let rejectedCount = 0;
+                    
+                    snapshot.forEach((doc) => {
+                        try {
+                            const userData = doc.data();
+                            if (!userData) {
+                                console.log(`User ${doc.id} has no data, skipping`);
+                                return;
+                            }
+                            
+                            userData.id = doc.id;
+                            
+                            // Handle cases where verificationStatus might not exist
+                            if (!userData.verificationStatus) {
+                                userData.verificationStatus = 'pending'; // Default to pending if not set
+                                console.log(`User ${userData.id} has no verificationStatus, defaulting to pending`);
+                            }
+                            
+                            // Apply search filter
+                            if (searchTerm && !userData.name?.toLowerCase().includes(searchTerm) && 
+                                !userData.email?.toLowerCase().includes(searchTerm)) {
+                                return;
+                            }
+                            
+                            verifications.push(userData);
+                            
+                            // Count statistics
+                            switch(userData.verificationStatus) {
+                                case 'pending':
+                                    pendingCount++;
+                                    break;
+                                case 'verified':
+                                    verifiedCount++;
+                                    break;
+                                case 'rejected':
+                                    rejectedCount++;
+                                    break;
+                                default:
+                                    // If verificationStatus is not one of the expected values, count as pending
+                                    console.log(`User ${userData.id} has unexpected verificationStatus: ${userData.verificationStatus}, counting as pending`);
+                                    pendingCount++;
+                                    break;
+                            }
+                        } catch (error) {
+                            console.error(`Error processing user ${doc.id}:`, error);
+                            // Continue processing other users even if one fails
+                        }
+                    });
+                    
+                    console.log(`Processed ${verifications.length} verifications: ${pendingCount} pending, ${verifiedCount} verified, ${rejectedCount} rejected`);
+                    
+                    // Sort verifications
+                    verifications.sort((a, b) => {
+                        try {
+                            switch(sortBy) {
+                                case 'name':
+                                    return (a.name || '').localeCompare(b.name || '');
+                                case 'email':
+                                    return (a.email || '').localeCompare(b.email || '');
+                                case 'date':
+                                default:
+                                    const dateA = a.verificationSubmittedAt?.toDate ? a.verificationSubmittedAt.toDate() : new Date(0);
+                                    const dateB = b.verificationSubmittedAt?.toDate ? b.verificationSubmittedAt.toDate() : new Date(0);
+                                    return dateB - dateA;
+                            }
+                        } catch (error) {
+                            console.error('Error sorting verifications:', error);
+                            return 0;
+                        }
+                    });
+                    
+                    // Update statistics
+                    document.getElementById('pendingCount').textContent = pendingCount;
+                    document.getElementById('verifiedCount').textContent = verifiedCount;
+                    document.getElementById('rejectedCount').textContent = rejectedCount;
+                    
+                    // Render verifications
+                    renderVerifications(verifications);
+                }).catch((error) => {
+                    console.error("Error loading verifications:", error);
+                    let errorMessage = 'Error loading verifications';
+                    if (error.code) {
+                        errorMessage += ` (${error.code})`;
+                    }
+                    if (error.message) {
+                        errorMessage += `: ${error.message}`;
+                    }
+                    document.getElementById('verificationList').innerHTML = 
+                        `<div class="text-center text-red-500 py-8">${errorMessage}</div>`;
+                });
+            } catch (error) {
+                console.error("Error setting up query:", error);
                 document.getElementById('verificationList').innerHTML = 
-                    `<div class="text-center text-red-500 py-8">${errorMessage}</div>`;
-            });
+                    `<div class="text-center text-red-500 py-8">Error setting up query: ${error.message}</div>`;
+            }
         }
         
         function renderVerifications(verifications) {
