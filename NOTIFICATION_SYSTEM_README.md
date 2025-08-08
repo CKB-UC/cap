@@ -25,7 +25,7 @@ The notification system allows admins to send announcements and updates to regis
 ```
 ├── notifications.js                 # Core notification system functionality
 ├── notification-component.js        # Reusable notification component
-├── notification-management.html     # Admin notification management page
+├── manage-workshops-notifications.html     # Combined admin page for Workshop & Notification management
 ├── notifications.html              # User notifications page
 ├── css/
 │   └── notifications.css           # Notification system styles
@@ -39,7 +39,7 @@ The notification system allows admins to send announcements and updates to regis
 1. **Access Notification Management**:
    - Go to Admin Dashboard
    - Click "Notification Management"
-   - Or navigate directly to `notification-management.html`
+   - Or navigate directly to `manage-workshops-notifications.html`
 
 2. **Create a Notification**:
    - Fill out the notification form
