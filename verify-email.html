@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - Workshop Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .verification-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .verification-icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+        }
+        
+        .success-icon {
+            color: #10b981;
+        }
+        
+        .error-icon {
+            color: #ef4444;
+        }
+        
+        .loading-icon {
+            color: #3b82f6;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .verification-status {
+            margin-bottom: 30px;
+        }
+        
+        .status-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .status-message {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        
+        .action-buttons {
+            margin-top: 30px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        
+        .error-details {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .error-details h4 {
+            color: #dc2626;
+            margin: 0 0 10px 0;
+        }
+        
+        .error-details p {
+            color: #7f1d1d;
+            margin: 0;
+        }
+        
+        .success-details {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .success-details h4 {
+            color: #16a34a;
+            margin: 0 0 10px 0;
+        }
+        
+        .success-details p {
+            color: #166534;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div id="loadingState">
+            <div class="verification-icon loading-icon">
+                <i class="fas fa-spinner"></i>
+            </div>
+            <div class="verification-status">
+                <div class="status-title">Verifying Your Email...</div>
+                <div class="status-message">Please wait while we verify your email address.</div>
+            </div>
+        </div>
+        
+        <div id="successState" style="display: none;">
+            <div class="verification-icon success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="verification-status">
+                <div class="status-title">Email Verified Successfully!</div>
+                <div class="status-message">Your email address has been verified. You can now access all features of the Workshop Platform.</div>
+            </div>
+            <div class="success-details">
+                <h4><i class="fas fa-info-circle"></i> What's Next?</h4>
+                <p>You'll be redirected to the main platform where you can complete your profile and start exploring workshops.</p>
+            </div>
+            <div class="action-buttons">
+                <a href="index.html" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Go to Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <div id="errorState" style="display: none;">
+            <div class="verification-icon error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="verification-status">
+                <div class="status-title">Verification Failed</div>
+                <div class="status-message" id="errorMessage">There was an error verifying your email address.</div>
+            </div>
+            <div class="error-details" id="errorDetails">
+                <h4><i class="fas fa-exclamation-circle"></i> Error Details</h4>
+                <p id="errorDetailsText">Please try again or contact support if the problem persists.</p>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="resendVerification()">
+                    <i class="fas fa-envelope"></i> Resend Verification
+                </button>
+                <a href="login.html" class="btn btn-secondary">
+                    <i class="fas fa-sign-in-alt"></i> Back to Login
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const userId = urlParams.get('userId');
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
+            authDomain: "ratbow-454f1.firebaseapp.com",
+            projectId: "ratbow-454f1",
+            storageBucket: "ratbow-454f1.firebasestorage.app",
+            messagingSenderId: "494138400120",
+            appId: "1:494138400120:web:d8eac6dc7437431b783c8d",
+            measurementId: "G-71PNRPMEKP"
+        };
+        
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Verify email when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!token || !userId) {
+                showError('Invalid verification link', 'The verification link is missing required parameters.');
+                return;
+            }
+            
+            try {
+                // Call the verification API
+                const response = await fetch(`/api/verify-email?token=${token}&userId=${userId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update Firebase user verification status
+                    await updateUserVerificationStatus(userId);
+                    showSuccess();
+                } else {
+                    showError('Verification failed', result.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                showError('Network error', 'Unable to connect to the verification service. Please check your internet connection and try again.');
+            }
+        });
+        
+        async function updateUserVerificationStatus(userId) {
+            try {
+                // Update the user's email verification status in Firestore
+                await db.collection('users').doc(userId).update({
+                    emailVerified: true,
+                    emailVerifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Check if user should be fully verified
+                const userDoc = await db.collection('users').doc(userId).get();
+                const userData = userDoc.data();
+                
+                // If phone is also verified, mark as fully verified
+                if (userData.phoneVerified) {
+                    await db.collection('users').doc(userId).update({
+                        verificationStatus: 'verified',
+                        verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error updating user verification status:', error);
+                // Don't show error to user as the email verification was successful
+            }
+        }
+        
+        function showSuccess() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('successState').style.display = 'block';
+            
+            // Redirect to dashboard after 3 seconds
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 3000);
+        }
+        
+        function showError(title, message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            
+            document.getElementById('errorMessage').textContent = title;
+            document.getElementById('errorDetailsText').textContent = message;
+        }
+        
+        async function resendVerification() {
+            try {
+                // Get user data from Firestore
+                const userDoc = await db.collection('users').doc(userId).get();
+                if (!userDoc.exists) {
+                    alert('User not found. Please try logging in again.');
+                    return;
+                }
+                
+                const userData = userDoc.data();
+                
+                // Call resend API
+                const response = await fetch('/api/resend-verification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: userData.email,
+                        userId: userId,
+                        userName: userData.name
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('New verification email sent! Please check your inbox.');
+                } else {
+                    alert('Failed to resend verification email: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error resending verification:', error);
+                alert('Failed to resend verification email. Please try again later.');
+            }
+        }
+    </script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</body>
+</html> 

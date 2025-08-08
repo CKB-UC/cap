@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Setup</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="css/output.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box">
+            <h2>Admin Setup</h2>
+            <p>This page will set your current user account as an admin.</p>
+            <button id="setupAdminBtn" class="btn-primary">Make Current User Admin</button>
+            <div id="status" style="margin-top: 10px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            const firebaseConfig = {
+                apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
+                authDomain: "ratbow-454f1.firebaseapp.com",
+                projectId: "ratbow-454f1",
+                storageBucket: "ratbow-454f1.firebasestorage.app",
+                messagingSenderId: "494138400120",
+                appId: "1:494138400120:web:d8eac6dc7437431b783c8d",
+                measurementId: "G-71PNRPMEKP"
+            };
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        document.getElementById('setupAdminBtn').addEventListener('click', function() {
+            const user = auth.currentUser;
+            if (!user) {
+                document.getElementById('status').innerHTML = '<p style="color: red;">Please log in first!</p>';
+                return;
+            }
+            
+            // Update user role to admin
+            db.collection('users').doc(user.uid).update({
+                role: 'admin',
+                verificationStatus: 'verified',
+                emailVerified: true,
+                phoneVerified: true,
+                adminApproved: true
+            })
+            .then(() => {
+                document.getElementById('status').innerHTML = '<p style="color: green;">Success! Your account is now an admin. You can now log in normally.</p>';
+            })
+            .catch((error) => {
+                document.getElementById('status').innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            });
+        });
+        
+        // Check if user is logged in
+        auth.onAuthStateChanged(function(user) {
+            if (user) {
+                document.getElementById('status').innerHTML = '<p style="color: blue;">Logged in as: ' + user.email + '</p>';
+            } else {
+                document.getElementById('status').innerHTML = '<p style="color: red;">Not logged in. Please log in first.</p>';
+            }
+        });
+    </script>
+</body>
+</html>

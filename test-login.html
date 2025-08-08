@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Login Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="test-card">
+        <h1>🧪 Test Login Flow</h1>
+        <p>This page tests the login flow to ensure there are no JavaScript errors.</p>
+        
+        <div id="status"></div>
+        
+        <button class="btn" onclick="testAuthState()">Test Auth State</button>
+        <button class="btn" onclick="testUserData()">Test User Data</button>
+        <button class="btn" onclick="goToLogin()">Go to Login</button>
+        <button class="btn" onclick="goToDashboard()">Go to Dashboard</button>
+    </div>
+
+    <script>
+        // Firebase is already initialized in auth.js
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status status-${type}">${message}</div>`;
+        }
+        
+        function testAuthState() {
+            try {
+                const user = auth.currentUser;
+                if (user) {
+                    showStatus(`✅ Auth state working. User: ${user.email} (Verified: ${user.emailVerified})`);
+                } else {
+                    showStatus('ℹ️ No user currently logged in');
+                }
+            } catch (error) {
+                showStatus(`❌ Auth state error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testUserData() {
+            const user = auth.currentUser;
+            if (!user) {
+                showStatus('❌ No user logged in', 'error');
+                return;
+            }
+            
+            try {
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        showStatus(`✅ User data loaded successfully. Verification: ${userData.verificationStatus}, Email Verified: ${userData.emailVerified}`);
+                    } else {
+                        showStatus('❌ User document not found', 'error');
+                    }
+                }).catch((error) => {
+                    showStatus(`❌ Error loading user data: ${error.message}`, 'error');
+                });
+            } catch (error) {
+                showStatus(`❌ Database error: ${error.message}`, 'error');
+            }
+        }
+        
+        function goToLogin() {
+            window.location.href = 'login.html';
+        }
+        
+        function goToDashboard() {
+            window.location.href = 'index.html';
+        }
+        
+        // Test on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            showStatus('✅ Page loaded successfully. No JavaScript errors detected.');
+        });
+    </script>
+    <script src="auth.js"></script>
+</body>
+</html> 

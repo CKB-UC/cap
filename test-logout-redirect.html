@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout Redirect Test</title>
+    <!-- Tailwind CSS -->
+    <link href="css/output.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl">Logout Redirect Test</div>
+            <div class="nav-links space-x-6">
+                <a href="login.html" class="hover:text-indigo-200 transition">Login Page</a>
+                <a href="admin-dashboard.html" class="hover:text-indigo-200 transition">Admin Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">Logout Redirect Test Page</h1>
+            
+            <div class="space-y-6">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-2">Test Instructions:</h3>
+                    <ul class="text-blue-700 space-y-1">
+                        <li>• Go to the Admin Dashboard page</li>
+                        <li>• Click the "Logout" button</li>
+                        <li>• You should see the logout popup on the admin dashboard</li>
+                        <li>• After 2 seconds, you'll be redirected to the login page</li>
+                        <li>• The logout popup should also appear on the login page</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <h3 class="text-lg font-semibold text-green-800 mb-2">Expected Behavior:</h3>
+                    <ul class="text-green-700 space-y-1">
+                        <li>• Popup appears on admin dashboard when logout is clicked</li>
+                        <li>• After 2 seconds, redirects to login.html?logout=true</li>
+                        <li>• Login page detects the ?logout=true parameter</li>
+                        <li>• Login page shows the same logout popup</li>
+                        <li>• URL parameter is cleaned up after popup shows</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                    <h3 class="text-lg font-semibold text-yellow-800 mb-2">Test Links:</h3>
+                    <div class="space-y-2">
+                        <a href="admin-dashboard.html" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition">Go to Admin Dashboard</a>
+                        <br>
+                        <a href="login.html?logout=true" class="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition">Test Login Page with Logout Parameter</a>
+                    </div>
+                </div>
+                
+                <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                    <h3 class="text-lg font-semibold text-purple-800 mb-2">Technical Details:</h3>
+                    <ul class="text-purple-700 space-y-1">
+                        <li>• Admin pages redirect to: login.html?logout=true</li>
+                        <li>• Login page checks for ?logout=true parameter</li>
+                        <li>• If parameter exists, shows popup and cleans URL</li>
+                        <li>• Popup auto-closes after 3 seconds</li>
+                        <li>• Users can also click "OK" to close manually</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

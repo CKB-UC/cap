@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Test - Login Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .status {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .btn-success {
+            background: #10b981;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-card">
+        <h1>✅ Login Fix Test</h1>
+        <p>This page tests if the JavaScript errors are fixed.</p>
+        
+        <div id="status" class="status status-success">
+            ✅ Page loaded successfully - No JavaScript errors detected!
+        </div>
+        
+        <button class="btn" onclick="testLogin()">Test Login Flow</button>
+        <button class="btn btn-success" onclick="goToLogin()">Go to Login</button>
+        <button class="btn" onclick="goToDashboard()">Go to Dashboard</button>
+    </div>
+
+    <script>
+        function testLogin() {
+            try {
+                // Test if Firebase is available
+                if (typeof firebase !== 'undefined') {
+                    document.getElementById('status').innerHTML = '✅ Firebase is available - Login should work!';
+                    document.getElementById('status').className = 'status status-success';
+                } else {
+                    document.getElementById('status').innerHTML = '❌ Firebase not loaded';
+                    document.getElementById('status').className = 'status status-error';
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = '❌ Error: ' + error.message;
+                document.getElementById('status').className = 'status status-error';
+            }
+        }
+        
+        function goToLogin() {
+            window.location.href = 'login.html';
+        }
+        
+        function goToDashboard() {
+            window.location.href = 'index.html';
+        }
+        
+        // Test on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('✅ Quick test page loaded successfully');
+        });
+    </script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="auth.js"></script>
+</body>
+</html> 

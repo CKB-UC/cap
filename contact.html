@@ -28,7 +28,9 @@
                 <a href="contact.html" class="active bg-blue-600 px-4 py-2 rounded-full">Contact</a>
                 <a href="admin-dashboard.html" class="admin-dashboard admin-only hover:text-blue-300 transition">Dashboard</a>
             </div>
-            <div class="auth-buttons flex space-x-4">
+            <div class="auth-buttons flex space-x-4 items-center">
+                <!-- Notification Container - Only shown when logged in -->
+                <div id="notification-container" class="mr-4 hidden"></div>
                 <a href="login.html" class="auth-btn login-btn border border-white px-4 py-2 rounded-full hover:bg-white hover:text-gray-900 transition">Log In</a>
                 <a href="register.html" class="auth-btn signup-btn bg-blue-600 px-4 py-2 rounded-full hover:bg-blue-700 transition">Sign Up</a>
             </div>
@@ -47,21 +49,38 @@
     <main class="container mx-auto px-4 py-12">
         <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Send us a message</h2>
-            <form action="https://api.web3forms.com/submit" method="POST" class="space-y-6">
-                <input type="hidden" name="access_key" value="760045dc-8bcd-48fb-917f-17396e87912b">
-                
-                <div>
+            <form id="contactForm" class="space-y-6">
+                <!-- Name and Email fields - hidden when user is logged in -->
+                <div id="nameField" class="user-info-field">
                     <label for="name" class="block text-gray-700 font-medium mb-2">Name</label>
                     <input type="text" id="name" name="name" required 
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g. Jan Ray Mamaril">
                 </div>
 
-                <div>
+                <div id="emailField" class="user-info-field">
                     <label for="email" class="block text-gray-700 font-medium mb-2">Email</label>
                     <input type="email" id="email" name="email" required 
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g. Mamaril1234@gmail.com">
+                </div>
+
+                <!-- User info display when logged in -->
+                <div id="userInfoDisplay" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-user-circle text-blue-600 mr-3 text-xl"></i>
+                        <div>
+                            <p class="text-sm text-blue-600 font-medium">Sending as logged-in user</p>
+                            <p class="text-gray-700" id="userInfoText"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="subject" class="block text-gray-700 font-medium mb-2">Subject</label>
+                    <input type="text" id="subject" name="subject" required 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g. Workshop Inquiry">
                 </div>
 
                 <div>
@@ -71,11 +90,30 @@
                         placeholder="Your Message"></textarea>
                 </div>
 
-                <button type="submit" 
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300">
-                    Send Message
+                <button type="submit" id="submitBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span id="submitText">Send Message</span>
+                    <div id="submitSpinner" class="hidden ml-2">
+                        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    </div>
                 </button>
             </form>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="hidden mt-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>Message sent successfully! We'll get back to you soon.</span>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <span id="errorText">An error occurred. Please try again.</span>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -151,13 +189,204 @@
     </footer>
 
     <script src="auth.js"></script>
+    <script src="notifications.js"></script>
+    <script src="notification-component.js"></script>
+    <link rel="stylesheet" href="css/notifications.css">
     <script src="chatbot.js"></script>
     <script>
-    // Initialize auth state for navigation
-    document.addEventListener('DOMContentLoaded', () => {
-        auth.onAuthStateChanged((user) => {
-            updateNavigationAuthState(user);
+            // Initialize auth state for navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            auth.onAuthStateChanged((user) => {
+                updateNavigationAuthState(user);
+                
+                // Handle contact form fields based on authentication
+                handleContactFormAuth(user);
+                
+                // Initialize notification component if user is logged in
+                if (user) {
+                    console.log('User logged in, initializing notification component for user:', user.uid);
+                    // Show notification container
+                    const notificationContainer = document.getElementById('notification-container');
+                    if (notificationContainer) {
+                        notificationContainer.classList.remove('hidden');
+                        // Wait a bit for the DOM to be ready
+                        setTimeout(() => {
+                            console.log('Creating notification component for user:', user.uid);
+                            window.notificationComponent = new NotificationComponent('notification-container');
+                        }, 100);
+                    } else {
+                        console.error('Notification container not found');
+                    }
+                } else {
+                    console.log('No user logged in, hiding notification container');
+                    // Hide notification container when not logged in
+                    const notificationContainer = document.getElementById('notification-container');
+                    if (notificationContainer) {
+                        notificationContainer.classList.add('hidden');
+                        // Clean up existing notification component
+                        if (window.notificationComponent) {
+                            window.notificationComponent.destroy();
+                            window.notificationComponent = null;
+                        }
+                    }
+                }
+            });
+
+        // Function to handle contact form authentication
+        function handleContactFormAuth(user) {
+            const nameField = document.getElementById('nameField');
+            const emailField = document.getElementById('emailField');
+            const userInfoDisplay = document.getElementById('userInfoDisplay');
+            const userInfoText = document.getElementById('userInfoText');
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+
+            if (user) {
+                // User is logged in - hide name/email fields and show user info
+                nameField.classList.add('hidden');
+                emailField.classList.add('hidden');
+                userInfoDisplay.classList.remove('hidden');
+                
+                // Display user info
+                const displayName = user.displayName || user.email.split('@')[0];
+                userInfoText.textContent = `${displayName} (${user.email})`;
+                
+                // Pre-fill hidden inputs with user data
+                nameInput.value = displayName;
+                emailInput.value = user.email;
+                
+                // Remove required attribute since fields are hidden
+                nameInput.removeAttribute('required');
+                emailInput.removeAttribute('required');
+            } else {
+                // User is not logged in - show name/email fields
+                nameField.classList.remove('hidden');
+                emailField.classList.remove('hidden');
+                userInfoDisplay.classList.add('hidden');
+                
+                // Clear any pre-filled values
+                nameInput.value = '';
+                emailInput.value = '';
+                
+                // Add required attribute back
+                nameInput.setAttribute('required', '');
+                emailInput.setAttribute('required', '');
+            }
+        }
+
+        // Contact form submission
+        const contactForm = document.getElementById('contactForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const submitSpinner = document.getElementById('submitSpinner');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            console.log('Contact form submitted');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitText.textContent = 'Sending...';
+            submitSpinner.classList.remove('hidden');
+            
+            // Hide any existing messages
+            successMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+
+            try {
+                // Get form data
+                const formData = new FormData(contactForm);
+                const messageData = {
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    subject: formData.get('subject'),
+                    message: formData.get('message'),
+                    createdAt: new Date(),
+                    status: 'unread',
+                    userId: auth.currentUser ? auth.currentUser.uid : null,
+                    userEmail: auth.currentUser ? auth.currentUser.email : formData.get('email')
+                };
+
+                console.log('Message data to save:', messageData);
+
+                // Save message to Firestore
+                const docRef = await db.collection('contactMessages').add(messageData);
+                console.log('Message saved with ID:', docRef.id);
+
+                // Send notification to admins
+                await sendAdminNotification(messageData);
+                console.log('Admin notifications sent');
+
+                // Show success message
+                successMessage.classList.remove('hidden');
+                contactForm.reset();
+
+                // Re-apply authentication state to form fields
+                if (auth.currentUser) {
+                    handleContactFormAuth(auth.currentUser);
+                }
+
+                // Auto-hide success message after 5 seconds
+                setTimeout(() => {
+                    successMessage.classList.add('hidden');
+                }, 5000);
+
+            } catch (error) {
+                console.error('Error sending message:', error);
+                errorText.textContent = `Failed to send message: ${error.message}. Please try again.`;
+                errorMessage.classList.remove('hidden');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitText.textContent = 'Send Message';
+                submitSpinner.classList.add('hidden');
+            }
         });
+
+        // Function to send notification to admins
+        async function sendAdminNotification(messageData) {
+            try {
+                console.log('Sending admin notifications for message:', messageData.subject);
+                
+                // Get all admin users
+                const adminSnapshot = await db.collection('users')
+                    .where('role', '==', 'admin')
+                    .get();
+
+                console.log('Found admin users:', adminSnapshot.size);
+
+                if (!adminSnapshot.empty) {
+                    // Create notification for each admin
+                    const adminNotifications = adminSnapshot.docs.map(doc => {
+                        const notificationData = {
+                            title: `New Contact Message: ${messageData.subject}`,
+                            message: `From: ${messageData.name} (${messageData.email})\n\nMessage: ${messageData.message}`,
+                            type: 'system',
+                            priority: 'high',
+                            targetUsers: [doc.id], // Send to specific admin
+                            createdAt: new Date(),
+                            createdBy: 'system',
+                            relatedTo: 'contact_message'
+                        };
+                        
+                        console.log('Creating notification for admin:', doc.id, notificationData);
+                        return db.collection('notifications').add(notificationData);
+                    });
+
+                    await Promise.all(adminNotifications);
+                    console.log('All admin notifications created successfully');
+                } else {
+                    console.log('No admin users found');
+                }
+            } catch (error) {
+                console.error('Error sending admin notification:', error);
+                // Don't throw error here as the main message was already saved
+            }
+        }
     });
     </script>
 </body>
