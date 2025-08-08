@@ -395,11 +395,4 @@ function checkVerificationRedirect(user) {
     }
 }
 
-// In your registration function
-if (email.endsWith('@admin.com')) {
-    userData.role = 'admin';
-}
-
-// Before redirecting non-admins
-alert('You need admin privileges to access this page');
-window.location.href = 'index.html';
+// These lines were orphaned and causing errors - removed

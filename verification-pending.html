@@ -239,54 +239,166 @@
         // Check authentication and verification status
         auth.onAuthStateChanged((user) => {
             if (user) {
-                loadVerificationStatus(user.uid);
+                // Check Firebase's built-in email verification status
+                if (user.emailVerified) {
+                    console.log('Firebase email verification is true, updating database...');
+                    updateEmailVerificationStatus(user.uid);
+                } else {
+                    console.log('Firebase email verification is false');
+                    loadVerificationStatus(user.uid);
+                }
             } else {
                 window.location.href = 'login.html';
             }
         });
         
+        // Also check on page load in case user is already verified
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = auth.currentUser;
+            if (user) {
+                if (user.emailVerified) {
+                    console.log('Firebase email verification is true (page load), updating database...');
+                    updateEmailVerificationStatus(user.uid);
+                } else {
+                    loadVerificationStatus(user.uid);
+                }
+            }
+        });
+        
+        function updateEmailVerificationStatus(userId) {
+            db.collection('users').doc(userId).update({
+                emailVerified: true,
+                emailVerifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                verificationStatus: 'verified',
+                verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                console.log('Email verification status updated in database, redirecting...');
+                window.location.href = 'index.html';
+            }).catch((error) => {
+                console.error('Error updating email verification status:', error);
+                // Still redirect even if update fails
+                window.location.href = 'index.html';
+            });
+        }
+        
         function loadVerificationStatus(userId) {
+            console.log('Loading verification status for user:', userId);
             db.collection('users').doc(userId).get().then((doc) => {
                 if (doc.exists) {
                     const userData = doc.data();
+                    console.log('User data loaded:', userData);
                     updateVerificationSteps(userData);
+                } else {
+                    console.log('User document does not exist');
                 }
+            }).catch((error) => {
+                console.error('Error loading user data:', error);
             });
         }
         
         function updateVerificationSteps(userData) {
+            console.log('Updating verification steps with data:', userData);
+            
             // Update email verification step
-            if (userData.emailVerified) {
+            if (userData.emailVerified === true) {
+                console.log('Email is verified, marking step as completed');
                 document.getElementById('emailStep').classList.add('completed');
                 document.getElementById('emailStep').querySelector('.step-icon i').className = 'fas fa-check';
+            } else {
+                console.log('Email is NOT verified:', userData.emailVerified);
             }
             
             // Update phone verification step
-            if (userData.phoneVerified) {
+            if (userData.phoneVerified === true) {
+                console.log('Phone is verified, marking step as completed');
                 document.getElementById('phoneStep').classList.add('completed');
                 document.getElementById('phoneStep').querySelector('.step-icon i').className = 'fas fa-check';
             }
             
             // Update admin approval step
-            if (userData.adminApproved) {
+            if (userData.adminApproved === true) {
+                console.log('Admin approved, marking step as completed');
                 document.getElementById('adminStep').classList.add('completed');
                 document.getElementById('adminStep').querySelector('.step-icon i').className = 'fas fa-check';
             }
             
-            // If fully verified, redirect to main page
-            if (userData.verificationStatus === 'verified') {
-                window.location.href = 'index.html';
+            // Check if user should be redirected to main page
+            // For now, if email is verified, allow access (you can modify this logic)
+            if (userData.emailVerified === true) {
+                console.log('Email is verified, checking if we should redirect...');
+                // Update verification status to verified if not already
+                if (userData.verificationStatus !== 'verified') {
+                    console.log('Updating verification status to verified...');
+                    const userId = userData.uid || auth.currentUser.uid;
+                    db.collection('users').doc(userId).update({
+                        verificationStatus: 'verified',
+                        verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(() => {
+                        console.log('Verification status updated, redirecting to index.html');
+                        window.location.href = 'index.html';
+                    }).catch((error) => {
+                        console.error('Error updating verification status:', error);
+                        // Still redirect even if update fails
+                        window.location.href = 'index.html';
+                    });
+                } else {
+                    console.log('Already verified, redirecting to index.html');
+                    window.location.href = 'index.html';
+                }
+            } else {
+                console.log('Email not verified, staying on verification pending page');
             }
+            
+            // Alternative: If you want to require both email and phone verification
+            // if (userData.emailVerified && userData.phoneVerified) {
+            //     window.location.href = 'index.html';
+            // }
         }
         
-        function resendEmailVerification() {
+        async function resendEmailVerification() {
             const user = auth.currentUser;
-            if (user) {
-                user.sendEmailVerification().then(() => {
-                    alert('Email verification sent! Please check your inbox.');
-                }).catch((error) => {
-                    alert('Error sending email verification: ' + error.message);
-                });
+            if (!user) return;
+            
+            try {
+                // Get user data from database
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (!userDoc.exists) {
+                    showToast('User data not found.', 'error');
+                    return;
+                }
+                
+                const userData = userDoc.data();
+                
+                // Try to call our custom email verification API
+                try {
+                    const response = await fetch('/api/send-verification-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: userData.email,
+                            userId: user.uid,
+                            userName: userData.name
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showToast('Email verification sent! Please check your inbox.', 'success');
+                    } else {
+                        showToast('Error sending email verification: ' + (result.error || 'Unknown error'), 'error');
+                    }
+                } catch (error) {
+                    console.log('Custom email server not available, using Firebase email verification');
+                    // Fallback to Firebase's built-in email verification
+                    await user.sendEmailVerification();
+                    showToast('Email verification sent! Please check your inbox.', 'success');
+                }
+            } catch (error) {
+                console.error('Error sending email verification:', error);
+                showToast('Error sending email verification: ' + error.message, 'error');
             }
         }
         

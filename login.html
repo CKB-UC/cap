@@ -32,22 +32,7 @@
         </div>
     </div>
     <script>
-        // Initialize Firebase
-    if (!firebase.apps.length) {
-        const firebaseConfig = {
-            apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
-            authDomain: "ratbow-454f1.firebaseapp.com",
-            projectId: "ratbow-454f1",
-            storageBucket: "ratbow-454f1.firebasestorage.app",
-            messagingSenderId: "494138400120",
-            appId: "1:494138400120:web:d8eac6dc7437431b783c8d",
-            measurementId: "G-71PNRPMEKP"
-        };
-        firebase.initializeApp(firebaseConfig);
-    }
-    
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+        // Firebase is already initialized in auth.js
     
     // Function to show logout popup
     function showLogoutPopup() {
@@ -113,36 +98,77 @@
                 // Signed in
                 const user = userCredential.user;
                 
-                // Check verification status
-                return db.collection('users').doc(user.uid).get();
+                // Check verification status and pass user info along
+                return db.collection('users').doc(user.uid).get().then((doc) => {
+                    return { user: user, doc: doc };
+                });
             })
-                         .then((doc) => {
-                 if (doc.exists) {
-                     const userData = doc.data();
-                     console.log('User data:', userData); // Debug log
-                     
-                     // Check if user is admin - admins bypass verification
-                     if (userData.role === 'admin') {
-                         console.log('Admin detected, redirecting to index.html');
-                         window.location.href = 'index.html';
-                     } else {
-                         console.log('Regular user, checking verification status:', userData.verificationStatus);
-                         // Regular users need verification
-                         if (userData.verificationStatus === 'verified') {
-                             window.location.href = 'index.html';
-                         } else if (userData.verificationStatus === 'rejected') {
-                             alert('Your account verification has been rejected. Please contact support for assistance.');
-                             auth.signOut();
-                         } else {
-                             // Pending verification
-                             window.location.href = 'verification-pending.html';
-                         }
-                     }
-                 } else {
-                     // User document doesn't exist, redirect to main page
-                     window.location.href = 'index.html';
-                 }
-             })
+            .then(({ user, doc }) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    console.log('User data:', userData); // Debug log
+                    
+                    // Check if user is admin - admins bypass verification
+                    if (userData.role === 'admin') {
+                        console.log('Admin detected, redirecting to index.html');
+                        window.location.href = 'index.html';
+                    } else {
+                        console.log('Regular user, checking verification status:', userData.verificationStatus);
+                        console.log('Email verified (database):', userData.emailVerified);
+                        console.log('Firebase email verified:', user.emailVerified);
+                        console.log('Full user data:', userData);
+                        
+                        // Check Firebase's built-in email verification first
+                        if (user.emailVerified) {
+                            console.log('Firebase email is verified, updating database and redirecting...');
+                            return db.collection('users').doc(user.uid).update({
+                                emailVerified: true,
+                                emailVerifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                verificationStatus: 'verified',
+                                verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            }).then(() => {
+                                console.log('Database updated, redirecting to index.html');
+                                window.location.href = 'index.html';
+                            }).catch((error) => {
+                                console.error('Error updating database:', error);
+                                // Still redirect even if update fails
+                                window.location.href = 'index.html';
+                            });
+                        }
+                        // Check database email verification as fallback
+                        else if (userData.emailVerified === true) {
+                            console.log('Database email is verified, updating status and redirecting...');
+                            // Update verification status to verified if not already
+                            if (userData.verificationStatus !== 'verified') {
+                                return db.collection('users').doc(user.uid).update({
+                                    verificationStatus: 'verified',
+                                    verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                }).then(() => {
+                                    console.log('Verification status updated, redirecting to index.html');
+                                    window.location.href = 'index.html';
+                                }).catch((error) => {
+                                    console.error('Error updating verification status:', error);
+                                    // Still redirect even if update fails
+                                    window.location.href = 'index.html';
+                                });
+                            } else {
+                                console.log('Already verified, redirecting to index.html');
+                                window.location.href = 'index.html';
+                            }
+                        } else if (userData.verificationStatus === 'rejected') {
+                            alert('Your account verification has been rejected. Please contact support for assistance.');
+                            auth.signOut();
+                        } else {
+                            console.log('Email not verified, redirecting to verification-pending.html');
+                            // Pending verification
+                            window.location.href = 'verification-pending.html';
+                        }
+                    }
+                } else {
+                    // User document doesn't exist, redirect to main page
+                    window.location.href = 'index.html';
+                }
+            })
             .catch((error) => {
                 alert(error.message);
             });

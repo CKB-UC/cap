@@ -168,8 +168,22 @@
                      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                      role: 'user'
                  }).then(() => {
-                     // Send email verification
-                     return user.sendEmailVerification();
+                     // Try to send custom email verification via our server
+                     return fetch('/api/send-verification-email', {
+                         method: 'POST',
+                         headers: {
+                             'Content-Type': 'application/json',
+                         },
+                         body: JSON.stringify({
+                             email: email,
+                             userId: user.uid,
+                             userName: name
+                         })
+                     }).catch((error) => {
+                         console.log('Custom email server not available, using Firebase email verification');
+                         // Fallback to Firebase's built-in email verification
+                         return user.sendEmailVerification();
+                     });
                  });
              })
              .then(() => {
