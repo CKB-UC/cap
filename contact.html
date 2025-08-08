@@ -286,6 +286,8 @@
         contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            console.log('Contact form submitted');
+            
             // Show loading state
             submitBtn.disabled = true;
             submitText.textContent = 'Sending...';
@@ -309,11 +311,15 @@
                     userEmail: auth.currentUser ? auth.currentUser.email : formData.get('email')
                 };
 
+                console.log('Message data to save:', messageData);
+
                 // Save message to Firestore
-                await db.collection('contactMessages').add(messageData);
+                const docRef = await db.collection('contactMessages').add(messageData);
+                console.log('Message saved with ID:', docRef.id);
 
                 // Send notification to admins
                 await sendAdminNotification(messageData);
+                console.log('Admin notifications sent');
 
                 // Show success message
                 successMessage.classList.remove('hidden');
@@ -331,7 +337,7 @@
 
             } catch (error) {
                 console.error('Error sending message:', error);
-                errorText.textContent = 'Failed to send message. Please try again.';
+                errorText.textContent = `Failed to send message: ${error.message}. Please try again.`;
                 errorMessage.classList.remove('hidden');
             } finally {
                 // Reset button state
@@ -344,15 +350,19 @@
         // Function to send notification to admins
         async function sendAdminNotification(messageData) {
             try {
+                console.log('Sending admin notifications for message:', messageData.subject);
+                
                 // Get all admin users
                 const adminSnapshot = await db.collection('users')
                     .where('role', '==', 'admin')
                     .get();
 
+                console.log('Found admin users:', adminSnapshot.size);
+
                 if (!adminSnapshot.empty) {
                     // Create notification for each admin
                     const adminNotifications = adminSnapshot.docs.map(doc => {
-                        return db.collection('notifications').add({
+                        const notificationData = {
                             title: `New Contact Message: ${messageData.subject}`,
                             message: `From: ${messageData.name} (${messageData.email})\n\nMessage: ${messageData.message}`,
                             type: 'system',
@@ -361,10 +371,16 @@
                             createdAt: new Date(),
                             createdBy: 'system',
                             relatedTo: 'contact_message'
-                        });
+                        };
+                        
+                        console.log('Creating notification for admin:', doc.id, notificationData);
+                        return db.collection('notifications').add(notificationData);
                     });
 
                     await Promise.all(adminNotifications);
+                    console.log('All admin notifications created successfully');
+                } else {
+                    console.log('No admin users found');
                 }
             } catch (error) {
                 console.error('Error sending admin notification:', error);
