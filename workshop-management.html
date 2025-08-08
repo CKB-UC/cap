@@ -119,6 +119,32 @@
             background-color: #dc2626;
             border-color: #b91c1c;
         }
+        
+        /* Custom scrollbar for modal content */
+        #registeredUsersList::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #registeredUsersList::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        #registeredUsersList::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        #registeredUsersList::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* Ensure modal content area is scrollable */
+        .modal-content-scrollable {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #c1c1c1 #f1f1f1;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -143,9 +169,11 @@
         <div class="bg-white rounded-lg shadow-lg p-6 max-w-6xl mx-auto">
             <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-200">
                 <h1 class="text-2xl font-bold text-gray-800">Workshop Management</h1>
-                <button id="createWorkshopBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition">
-                    Create New Workshop
-                </button>
+                <div class="flex space-x-2">
+                    <button id="createWorkshopBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition">
+                        Create New Workshop
+                    </button>
+                </div>
             </div>
             
             <!-- Success Message -->
@@ -371,6 +399,43 @@
                 <button id="confirmAction" class="modal-button modal-button-confirm">
                     Archive Workshop
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registered Users Modal -->
+    <div id="registeredUsersModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+                <!-- Header -->
+                <div class="border-b border-gray-200 px-6 py-4 flex-shrink-0">
+                    <div class="flex justify-between items-center">
+                        <h2 id="registeredUsersModalTitle" class="text-xl font-bold text-gray-800">Registered Users</h2>
+                        <button id="closeRegisteredUsersModal" class="text-gray-500 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Content - Scrollable Area (match Create Workshop modal) -->
+                <div style="max-height: calc(100vh - 200px); overflow-y: auto;">
+                    <div class="px-6 py-4">
+                    <div id="registeredUsersList" class="space-y-4">
+                        <!-- Users will be loaded here -->
+                    </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="border-t border-gray-200 px-6 py-4">
+                    <div class="flex justify-end">
+                        <button id="closeRegisteredUsersBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded transition">
+                            Close
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

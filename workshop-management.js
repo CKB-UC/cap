@@ -53,6 +53,13 @@ function setupEventListeners() {
     
     // Video file input change
     document.getElementById('workshopVideo').addEventListener('change', handleVideoSelect);
+    
+    // Registered users modal
+    document.getElementById('closeRegisteredUsersModal').addEventListener('click', closeRegisteredUsersModal);
+    document.getElementById('closeRegisteredUsersBtn').addEventListener('click', closeRegisteredUsersModal);
+    
+    // Add recalculate registrations button
+    addRecalculateButton();
 }
 
 // Load workshops from Firestore
@@ -244,6 +251,9 @@ function createWorkshopRow(workshop, formattedDate, formattedTime) {
                         <i class="fas fa-archive"></i> Archive
                     </button>
                 `}
+                <button class="show-registered-users" data-id="${workshop.id}" data-title="${workshop.title}" title="Show Registered Users" style="background-color:#dbeafe;color:#1e40af;border-color:#bfdbfe;padding:0.25rem 0.75rem;border-width:1px;border-radius:0.25rem;border-style:solid;transition:all 0.2s;">
+                    <i class="fas fa-users"></i> Users (${workshop.registered || 0})
+                </button>
             </div>
         </td>
     `;
@@ -282,6 +292,15 @@ function addActionButtonListeners() {
         button.addEventListener('click', () => {
             const workshopId = button.getAttribute('data-id');
             confirmPermanentDeleteWorkshop(workshopId);
+        });
+    });
+    
+    // Show registered users buttons
+    document.querySelectorAll('.show-registered-users').forEach(button => {
+        button.addEventListener('click', () => {
+            const workshopId = button.getAttribute('data-id');
+            const workshopTitle = button.getAttribute('data-title');
+            showRegisteredUsers(workshopId, workshopTitle);
         });
     });
 }
@@ -733,6 +752,190 @@ function closeLogoutPopup() {
     }
 }
 
+// Show registered users for a workshop
+async function showRegisteredUsers(workshopId, workshopTitle) {
+    try {
+        // Show loading state
+        const modal = document.getElementById('registeredUsersModal');
+        const modalTitle = document.getElementById('registeredUsersModalTitle');
+        const usersList = document.getElementById('registeredUsersList');
+        
+        modalTitle.textContent = `Registered Users - ${workshopTitle}`;
+        usersList.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i><p class="mt-2 text-gray-500">Loading registered users...</p></div>';
+        
+        // Show the modal and prevent background scroll
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // Get workshop data
+        const workshopDoc = await db.collection('workshops').doc(workshopId).get();
+        if (!workshopDoc.exists) {
+            throw new Error('Workshop not found');
+        }
+        
+        const workshop = workshopDoc.data();
+        
+        // Collect user IDs from both registration models:
+        // 1) workshops.registeredUsers: [uid]
+        // 2) users/{uid}/registrations/{workshopId}
+        const userIdSet = new Set((workshop.registeredUsers || []).filter(Boolean));
+
+        // Query collection group for registrations matching this workshop
+        try {
+            const regSnap = await db.collectionGroup('registrations')
+                .where('workshopId', '==', workshopId)
+                .get();
+            regSnap.forEach(doc => {
+                const uid = doc.ref.parent && doc.ref.parent.parent ? doc.ref.parent.parent.id : null;
+                if (uid) userIdSet.add(uid);
+            });
+        } catch (cgErr) {
+            console.warn('collectionGroup(registrations) query failed or unavailable:', cgErr);
+        }
+
+        const aggregatedUserIds = Array.from(userIdSet);
+
+        if (aggregatedUserIds.length === 0) {
+            usersList.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500 text-lg">No users registered for this workshop yet.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Get user details for each registered user
+        console.log('Aggregated registered user IDs:', aggregatedUserIds);
+        const userPromises = aggregatedUserIds.map(userId => db.collection('users').doc(userId).get());
+        const userDocs = await Promise.all(userPromises);
+        console.log('User documents found:', userDocs.filter(doc => doc.exists).length, 'out of', userDocs.length);
+        
+        // Only include users that exist and are not deleted
+        const users = userDocs
+            .filter(doc => doc.exists)
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(user => {
+                // Filter out users that are marked as deleted or don't have essential data
+                return user && 
+                       !user.deleted && 
+                       !user.isDeleted && 
+                       (user.name || user.fullName || user.email);
+            })
+            .sort((a, b) => (a.name || a.fullName || a.email || '').localeCompare(b.name || b.fullName || b.email || ''));
+        
+        // Log filtered results for debugging
+        console.log('Valid users after filtering:', users.length);
+        const filteredOutCount = userDocs.filter(doc => doc.exists).length - users.length;
+        if (filteredOutCount > 0) {
+            console.log(`Filtered out ${filteredOutCount} deleted/non-existent users`);
+        }
+        
+        // Clean up orphaned registrations (optional - can be enabled if needed)
+        // await cleanupOrphanedRegistrations(workshopId, users.map(u => u.id));
+        
+        // Display users
+        usersList.innerHTML = `
+            <div class="mb-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-800">Total Registered: ${users.length}</h3>
+                    <span class="text-sm text-gray-500">Capacity: ${workshop.capacity || 'N/A'}</span>
+                </div>
+            </div>
+            <div class="grid gap-4">
+                ${users.map((user, index) => `
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                    <span class="text-indigo-600 font-semibold">${(user.name || user.fullName || user.email || 'U').charAt(0).toUpperCase()}</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">${user.name || user.fullName || 'No Name'}</h4>
+                                    <p class="text-sm text-gray-600">${user.email || 'No Email'}</p>
+                                    ${user.role ? `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mt-1">${user.role}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500">Registration #${index + 1}</p>
+                                ${user.verificationStatus ? `
+                                    <span class="inline-block text-xs px-2 py-1 rounded-full mt-1 ${
+                                        user.verificationStatus === 'verified' ? 'bg-green-100 text-green-800' :
+                                        user.verificationStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                        'bg-red-100 text-red-800'
+                                    }">
+                                        ${user.verificationStatus.charAt(0).toUpperCase() + user.verificationStatus.slice(1)}
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ${user.demographics ? `
+                            <div class="mt-3 pt-3 border-t border-gray-200">
+                                <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                                    ${user.demographics.age ? `<div><span class="font-medium">Age:</span> ${user.demographics.age}</div>` : ''}
+                                    ${user.demographics.gender ? `<div><span class="font-medium">Gender:</span> ${user.demographics.gender}</div>` : ''}
+                                    ${user.demographics.occupation ? `<div><span class="font-medium">Occupation:</span> ${user.demographics.occupation}</div>` : ''}
+                                    ${user.demographics.education ? `<div><span class="font-medium">Education:</span> ${user.demographics.education}</div>` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading registered users:', error);
+        const usersList = document.getElementById('registeredUsersList');
+        usersList.innerHTML = `
+            <div class="text-center py-8">
+                <i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-4"></i>
+                <p class="text-red-500 text-lg">Error loading registered users</p>
+                <p class="text-gray-500 text-sm mt-2">${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+// Close registered users modal
+function closeRegisteredUsersModal() {
+    const modal = document.getElementById('registeredUsersModal');
+    modal.classList.add('hidden');
+    // Re-enable background scroll
+    document.body.style.overflow = '';
+}
+
+// Clean up orphaned registrations for deleted users
+async function cleanupOrphanedRegistrations(workshopId, validUserIds) {
+    try {
+        // Get all registered user IDs for this workshop
+        const workshopDoc = await db.collection('workshops').doc(workshopId).get();
+        if (!workshopDoc.exists) return;
+        
+        const workshop = workshopDoc.data();
+        const allRegisteredUserIds = new Set(workshop.registeredUsers || []);
+        
+        // Find orphaned user IDs (registered but not in valid users)
+        const orphanedUserIds = Array.from(allRegisteredUserIds).filter(uid => !validUserIds.includes(uid));
+        
+        if (orphanedUserIds.length > 0) {
+            console.log(`Found ${orphanedUserIds.length} orphaned registrations for workshop ${workshopId}`);
+            
+            // Remove orphaned registrations from workshop document
+            const updatedRegisteredUsers = Array.from(allRegisteredUserIds).filter(uid => validUserIds.includes(uid));
+            
+            await db.collection('workshops').doc(workshopId).update({
+                registeredUsers: updatedRegisteredUsers,
+                registered: updatedRegisteredUsers.length
+            });
+            
+            console.log(`Cleaned up ${orphanedUserIds.length} orphaned registrations`);
+        }
+    } catch (error) {
+        console.error('Error cleaning up orphaned registrations:', error);
+    }
+}
+
 // Logout function
 function logout() {
     // Log the logout activity
@@ -763,4 +966,208 @@ function logout() {
                 }, 2000);
             });
         });
+}
+
+// Function to recalculate registration counts for all workshops
+async function recalculateAllWorkshopRegistrations() {
+    try {
+        console.log('Starting registration count recalculation...');
+        
+        // Get all workshops
+        const workshopsSnapshot = await db.collection('workshops').get();
+        let totalUpdated = 0;
+        let totalWorkshops = 0;
+        
+        for (const workshopDoc of workshopsSnapshot.docs) {
+            const workshop = workshopDoc.data();
+            const workshopId = workshopDoc.id;
+            
+            if (!workshop.registeredUsers || workshop.registeredUsers.length === 0) {
+                // Skip workshops with no registrations
+                continue;
+            }
+            
+            totalWorkshops++;
+            console.log(`Processing workshop: ${workshop.title} (${workshopId})`);
+            
+            // Get valid user IDs (users that still exist and are not deleted)
+            const validUserIds = [];
+            const userPromises = workshop.registeredUsers.map(userId => 
+                db.collection('users').doc(userId).get()
+            );
+            
+            const userDocs = await Promise.all(userPromises);
+            
+            for (let i = 0; i < userDocs.length; i++) {
+                const userDoc = userDocs[i];
+                const userId = workshop.registeredUsers[i];
+                
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    // Check if user is not deleted and has essential data
+                    if (userData && 
+                        !userData.deleted && 
+                        !userData.isDeleted && 
+                        (userData.name || userData.fullName || userData.email)) {
+                        validUserIds.push(userId);
+                    } else {
+                        console.log(`Filtered out deleted/invalid user: ${userId}`);
+                    }
+                } else {
+                    console.log(`User document not found: ${userId}`);
+                }
+            }
+            
+            // Update workshop with corrected registration data
+            const originalCount = workshop.registered || 0;
+            const newCount = validUserIds.length;
+            
+            if (originalCount !== newCount) {
+                await db.collection('workshops').doc(workshopId).update({
+                    registeredUsers: validUserIds,
+                    registered: newCount
+                });
+                
+                totalUpdated++;
+                console.log(`Updated workshop "${workshop.title}": ${originalCount} → ${newCount} registrations`);
+            } else {
+                console.log(`Workshop "${workshop.title}" already has correct count: ${newCount}`);
+            }
+        }
+        
+        console.log(`Recalculation complete! Updated ${totalUpdated} out of ${totalWorkshops} workshops.`);
+        return { totalUpdated, totalWorkshops };
+        
+    } catch (error) {
+        console.error('Error recalculating workshop registrations:', error);
+        throw error;
+    }
+}
+
+// Function to recalculate registration count for a specific workshop
+async function recalculateWorkshopRegistration(workshopId) {
+    try {
+        const workshopDoc = await db.collection('workshops').doc(workshopId).get();
+        if (!workshopDoc.exists) {
+            throw new Error('Workshop not found');
+        }
+        
+        const workshop = workshopDoc.data();
+        
+        if (!workshop.registeredUsers || workshop.registeredUsers.length === 0) {
+            // No registrations to recalculate
+            return { originalCount: 0, newCount: 0, updated: false };
+        }
+        
+        // Get valid user IDs
+        const validUserIds = [];
+        const userPromises = workshop.registeredUsers.map(userId => 
+            db.collection('users').doc(userId).get()
+        );
+        
+        const userDocs = await Promise.all(userPromises);
+        
+        for (let i = 0; i < userDocs.length; i++) {
+            const userDoc = userDocs[i];
+            const userId = workshop.registeredUsers[i];
+            
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                if (userData && 
+                    !userData.deleted && 
+                    !userData.isDeleted && 
+                    (userData.name || userData.fullName || userData.email)) {
+                    validUserIds.push(userId);
+                }
+            }
+        }
+        
+        const originalCount = workshop.registered || 0;
+        const newCount = validUserIds.length;
+        
+        if (originalCount !== newCount) {
+            await db.collection('workshops').doc(workshopId).update({
+                registeredUsers: validUserIds,
+                registered: newCount
+            });
+            
+            console.log(`Updated workshop "${workshop.title}": ${originalCount} → ${newCount} registrations`);
+            return { originalCount, newCount, updated: true };
+        } else {
+            return { originalCount, newCount, updated: false };
+        }
+        
+    } catch (error) {
+        console.error('Error recalculating workshop registration:', error);
+        throw error;
+    }
+}
+
+// Add button to recalculate all registrations
+function addRecalculateButton() {
+    console.log('addRecalculateButton called');
+    const headerSection = document.querySelector('.flex.justify-between.items-center.mb-6');
+    console.log('headerSection found:', headerSection);
+    if (headerSection) {
+        const recalculateBtn = document.createElement('button');
+        recalculateBtn.id = 'recalculateRegistrationsBtn';
+        recalculateBtn.className = 'bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded transition flex items-center space-x-2 border-2 border-red-500';
+        recalculateBtn.style.cssText = 'display: inline-flex; visibility: visible; opacity: 1; background-color: #f97316; color: white; padding: 8px 16px; border-radius: 4px; border: 2px solid red;';
+        recalculateBtn.innerHTML = `
+            <i class="fas fa-sync-alt"></i>
+            <span>Recalculate</span>
+        `;
+        recalculateBtn.title = 'Recalculate registration counts for all workshops';
+        console.log('Button created:', recalculateBtn);
+        
+        recalculateBtn.addEventListener('click', async () => {
+            if (confirm('This will recalculate registration counts for all workshops by checking which registered users still exist. This may take a few moments. Continue?')) {
+                try {
+                    recalculateBtn.disabled = true;
+                    recalculateBtn.innerHTML = `
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Recalculating...</span>
+                    `;
+                    
+                    const result = await recalculateAllWorkshopRegistrations();
+                    
+                    showSuccessMessage(`Successfully recalculated registrations! Updated ${result.totalUpdated} out of ${result.totalWorkshops} workshops.`);
+                    
+                    // Reload workshops to show updated counts
+                    loadWorkshops();
+                    
+                } catch (error) {
+                    console.error('Error during recalculation:', error);
+                    alert(`Error recalculating registrations: ${error.message}`);
+                } finally {
+                    recalculateBtn.disabled = false;
+                    recalculateBtn.innerHTML = `
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Recalculate</span>
+                    `;
+                }
+            }
+        });
+        
+        // Insert button into the button container
+        const buttonContainer = headerSection.querySelector('.flex.space-x-2');
+        console.log('buttonContainer found:', buttonContainer);
+        if (buttonContainer) {
+            buttonContainer.appendChild(recalculateBtn);
+            console.log('Button appended to container');
+            console.log('Button container children:', buttonContainer.children.length);
+            console.log('Button in DOM:', document.getElementById('recalculateRegistrationsBtn'));
+        } else {
+            // Fallback: insert after the Create New Workshop button
+            const createBtn = headerSection.querySelector('#createWorkshopBtn');
+            console.log('createBtn found:', createBtn);
+            if (createBtn) {
+                createBtn.parentNode.insertBefore(recalculateBtn, createBtn.nextSibling);
+                console.log('Button inserted after create button');
+            } else {
+                headerSection.appendChild(recalculateBtn);
+                console.log('Button appended to header section');
+            }
+        }
+    }
 }

@@ -1017,9 +1017,31 @@ async function registerForWorkshop(user, workshopId, workshopData = null) {
     }
     
     try {
-        // Add registration to workshop
-        await db.collection('workshops').doc(workshopId).update({
-            registered: firebase.firestore.FieldValue.increment(1)
+        // Use transaction to ensure consistency
+        await db.runTransaction(async (transaction) => {
+            const workshopRef = db.collection('workshops').doc(workshopId);
+            const workshopDoc = await transaction.get(workshopRef);
+            
+            if (!workshopDoc.exists) {
+                throw new Error('Workshop not found');
+            }
+            
+            const workshop = workshopDoc.data();
+            const registeredUsers = workshop.registeredUsers || [];
+            
+            // Check if user is already registered
+            if (registeredUsers.includes(user.uid)) {
+                throw new Error('User is already registered for this workshop');
+            }
+            
+            // Add user to registered users array
+            registeredUsers.push(user.uid);
+            
+            // Update workshop with new registration
+            transaction.update(workshopRef, {
+                registeredUsers: registeredUsers,
+                registered: registeredUsers.length
+            });
         });
         
         // Add workshop to user's registrations
