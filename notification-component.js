@@ -179,30 +179,40 @@ class NotificationComponent {
     }
     
     setupRealTimeListener() {
-        try {
-            // Use a simpler query that should work with basic permissions
-            this.unsubscribe = firebase.firestore()
-                .collection('notifications')
-                .where('isActive', '==', true)
-                .limit(10) // Reduced limit
-                .onSnapshot((snapshot) => {
+        const startListener = (mode = 'ordered') => {
+            try {
+                if (this.unsubscribe) {
+                    this.unsubscribe();
+                    this.unsubscribe = null;
+                }
+                const base = firebase.firestore().collection('notifications');
+                const query = mode === 'ordered'
+                    ? base.orderBy('createdAt', 'desc').limit(50)
+                    : base.where('isActive', '==', true).limit(50);
+
+                this.unsubscribe = query.onSnapshot((snapshot) => {
                     try {
-                        this.notifications = [];
+                        const collected = [];
                         snapshot.forEach(doc => {
                             const notification = doc.data();
                             notification.id = doc.id;
-                            
-                            // Check if notification should be shown to this user
-                            if (this.shouldShowNotificationToUser(notification)) {
-                                this.notifications.push(notification);
+                            if (notification.isActive && this.shouldShowNotificationToUser(notification)) {
+                                collected.push(notification);
                             }
                         });
-                        
-                        console.log(`Found ${this.notifications.length} notifications for user:`, this.userId);
+
+                        // If we used the basic mode, sort client-side to show most recent first
+                        this.notifications = mode === 'ordered'
+                            ? collected
+                            : collected.sort((a, b) => {
+                                const aTime = a.createdAt?.toDate?.() || a.createdAt || 0;
+                                const bTime = b.createdAt?.toDate?.() || b.createdAt || 0;
+                                return bTime - aTime;
+                            });
+
+                        console.log(`Found ${this.notifications.length} notifications for user (mode: ${mode}):`, this.userId);
                         this.updateNotificationDisplay();
                         this.updateBadge();
-                        
-                        // Show toast for new notifications
                         if (this.options.showToast) {
                             this.showNewNotificationToasts();
                         }
@@ -211,16 +221,15 @@ class NotificationComponent {
                         this.updateNotificationDisplay();
                     }
                 }, (error) => {
-                    console.error('Error in notification listener:', error);
-                    console.error('Error details:', {
-                        code: error.code,
-                        message: error.message,
-                        stack: error.stack
-                    });
-                    
-                    // Show a user-friendly error message based on the error type
+                    console.error(`Error in notification listener (mode: ${mode}):`, error);
+                    // Fallback once if ordered mode fails due to index or rules
+                    if (mode === 'ordered' && (error.code === 'failed-precondition' || error.code === 'permission-denied')) {
+                        console.log('Falling back to basic notification query');
+                        startListener('basic');
+                        return;
+                    }
+
                     let errorMessage = 'Unable to load notifications. Please try refreshing the page.';
-                    
                     if (error.code === 'permission-denied') {
                         errorMessage = 'You do not have permission to view notifications. Please contact an administrator.';
                     } else if (error.code === 'unavailable') {
@@ -232,13 +241,16 @@ class NotificationComponent {
                     } else if (error.code === 'not-found') {
                         errorMessage = 'Notifications collection not found.';
                     }
-                    
                     this.showErrorMessage(errorMessage);
                 });
-        } catch (error) {
-            console.error('Error setting up real-time listener:', error);
-            this.showErrorMessage('Unable to load notifications. Please try refreshing the page.');
-        }
+            } catch (error) {
+                console.error('Error setting up real-time listener:', error);
+                this.showErrorMessage('Unable to load notifications. Please try refreshing the page.');
+            }
+        };
+
+        // Start with ordered mode for recency correctness
+        startListener('ordered');
     }
     
     shouldShowNotificationToUser(notification) {
@@ -727,3 +739,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export for use in other files
 window.NotificationComponent = NotificationComponent;
+
