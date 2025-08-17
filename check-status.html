@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Verification Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .status-card {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        .status-value {
+            font-weight: bold;
+        }
+        .status-true {
+            color: #10b981;
+        }
+        .status-false {
+            color: #ef4444;
+        }
+        .status-pending {
+            color: #f59e0b;
+        }
+        .status-verified {
+            color: #10b981;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .btn-danger {
+            background: #ef4444;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-success {
+            background: #10b981;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="status-card">
+        <h1>Verification Status Checker</h1>
+        <div id="userInfo">
+            <p>Loading user information...</p>
+        </div>
+        
+        <div id="verificationStatus">
+            <h2>Verification Details</h2>
+            <div id="statusDetails">
+                <p>Loading verification details...</p>
+            </div>
+        </div>
+        
+        <div id="actions">
+            <h2>Actions</h2>
+            <button class="btn" onclick="refreshStatus()">Refresh Status</button>
+            <button class="btn btn-success" onclick="goToDashboard()">Go to Dashboard</button>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
+            authDomain: "ratbow-454f1.firebaseapp.com",
+            projectId: "ratbow-454f1",
+            storageBucket: "ratbow-454f1.firebasestorage.app",
+            messagingSenderId: "494138400120",
+            appId: "1:494138400120:web:d8eac6dc7437431b783c8d",
+            measurementId: "G-71PNRPMEKP"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Check authentication
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                loadUserStatus(user.uid);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+        
+        function loadUserStatus(userId) {
+            console.log('Loading status for user:', userId);
+            
+            db.collection('users').doc(userId).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    console.log('User data:', userData);
+                    displayUserInfo(userData);
+                    displayVerificationStatus(userData);
+                } else {
+                    document.getElementById('userInfo').innerHTML = '<p>User document not found!</p>';
+                }
+            }).catch((error) => {
+                console.error('Error loading user data:', error);
+                document.getElementById('userInfo').innerHTML = '<p>Error loading user data: ' + error.message + '</p>';
+            });
+        }
+        
+        function displayUserInfo(userData) {
+            const userInfo = document.getElementById('userInfo');
+            userInfo.innerHTML = `
+                <h2>User Information</h2>
+                <div class="status-item">
+                    <span>Name:</span>
+                    <span class="status-value">${userData.name || 'N/A'}</span>
+                </div>
+                <div class="status-item">
+                    <span>Email:</span>
+                    <span class="status-value">${userData.email || 'N/A'}</span>
+                </div>
+                <div class="status-item">
+                    <span>User ID:</span>
+                    <span class="status-value">${auth.currentUser.uid}</span>
+                </div>
+                <div class="status-item">
+                    <span>Role:</span>
+                    <span class="status-value">${userData.role || 'user'}</span>
+                </div>
+            `;
+        }
+        
+        function displayVerificationStatus(userData) {
+            const statusDetails = document.getElementById('statusDetails');
+            
+            const emailVerifiedClass = userData.emailVerified === true ? 'status-true' : 'status-false';
+            const phoneVerifiedClass = userData.phoneVerified === true ? 'status-true' : 'status-false';
+            const adminApprovedClass = userData.adminApproved === true ? 'status-true' : 'status-false';
+            
+            let verificationStatusClass = 'status-pending';
+            if (userData.verificationStatus === 'verified') {
+                verificationStatusClass = 'status-verified';
+            } else if (userData.verificationStatus === 'rejected') {
+                verificationStatusClass = 'status-false';
+            }
+            
+            statusDetails.innerHTML = `
+                <div class="status-item">
+                    <span>Email Verified:</span>
+                    <span class="status-value ${emailVerifiedClass}">${userData.emailVerified === true ? 'YES' : 'NO'}</span>
+                </div>
+                <div class="status-item">
+                    <span>Phone Verified:</span>
+                    <span class="status-value ${phoneVerifiedClass}">${userData.phoneVerified === true ? 'YES' : 'NO'}</span>
+                </div>
+                <div class="status-item">
+                    <span>Admin Approved:</span>
+                    <span class="status-value ${adminApprovedClass}">${userData.adminApproved === true ? 'YES' : 'NO'}</span>
+                </div>
+                <div class="status-item">
+                    <span>Overall Status:</span>
+                    <span class="status-value ${verificationStatusClass}">${userData.verificationStatus || 'pending'}</span>
+                </div>
+                <div class="status-item">
+                    <span>Created At:</span>
+                    <span class="status-value">${userData.createdAt ? userData.createdAt.toDate().toLocaleString() : 'N/A'}</span>
+                </div>
+                <div class="status-item">
+                    <span>Email Verified At:</span>
+                    <span class="status-value">${userData.emailVerifiedAt ? userData.emailVerifiedAt.toDate().toLocaleString() : 'N/A'}</span>
+                </div>
+                <div class="status-item">
+                    <span>Verified At:</span>
+                    <span class="status-value">${userData.verifiedAt ? userData.verifiedAt.toDate().toLocaleString() : 'N/A'}</span>
+                </div>
+            `;
+        }
+        
+        function refreshStatus() {
+            const user = auth.currentUser;
+            if (user) {
+                loadUserStatus(user.uid);
+            }
+        }
+        
+        function goToDashboard() {
+            window.location.href = 'index.html';
+        }
+        
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = 'login.html';
+            });
+        }
+    </script>
+</body>
+</html> 

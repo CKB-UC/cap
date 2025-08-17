@@ -29,8 +29,8 @@
                     <input type="password" id="registerPassword" required minlength="6">
                 </div>
                 <div class="form-group">
-                    <label for="registerAge">Age</label>
-                    <input type="number" id="registerAge" required min="13" max="100">
+                    <label for="registerBirthDate">Birth Date</label>
+                    <input type="date" id="registerBirthDate" required>
                 </div>
                 <div class="form-group">
                     <label for="registerOccupation">Occupation</label>
@@ -41,6 +41,23 @@
                         <option value="unemployed">Unemployed</option>
                         <option value="other">Other</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="registerPhone">Phone Number</label>
+                    <input type="tel" id="registerPhone" required placeholder="e.g., 09171234567" pattern="^(09\d{9}|\+639\d{9})$">
+                    <small class="text-gray-500">Enter your mobile number (e.g., 09171234567)</small>
+                </div>
+                <div class="form-group">
+                    <label for="registerID">Government ID Number</label>
+                    <input type="text" id="registerID" required placeholder="e.g., Passport, Driver's License, National ID">
+                </div>
+                <div class="form-group">
+                    <label for="registerAddress">Address</label>
+                    <textarea id="registerAddress" required placeholder="Enter your full address"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmergencyContact">Emergency Contact</label>
+                    <input type="text" id="registerEmergencyContact" required placeholder="Name and phone number">
                 </div>
                 <button type="submit" class="btn-primary">Register</button>
             </form>
@@ -68,34 +85,126 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     
+    // Real-time age validation for birth date input
+    document.getElementById('registerBirthDate').addEventListener('change', function() {
+        const birthDate = this.value;
+        const errorMessage = document.getElementById('error-message');
+        
+        if (birthDate) {
+            const today = new Date();
+            const birthDateObj = new Date(birthDate);
+            const age = today.getFullYear() - birthDateObj.getFullYear();
+            const monthDiff = today.getMonth() - birthDateObj.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+                age--;
+            }
+            
+            if (age < 15) {
+                errorMessage.textContent = 'You must be at least 15 years old to register.';
+                this.style.borderColor = 'red';
+            } else {
+                errorMessage.textContent = '';
+                this.style.borderColor = '';
+            }
+        } else {
+            errorMessage.textContent = '';
+            this.style.borderColor = '';
+        }
+    });
+    
     document.getElementById('registerForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('registerName').value;
         const email = document.getElementById('registerEmail').value;
         const password = document.getElementById('registerPassword').value;
-        const age = document.getElementById('registerAge').value;
+        const birthDate = document.getElementById('registerBirthDate').value;
         const occupation = document.getElementById('registerOccupation').value;
+        const phone = document.getElementById('registerPhone').value.trim();
+        const phonePattern = /^(09\d{9}|\+639\d{9})$/;
+        if (!phonePattern.test(phone)) {
+            document.getElementById('error-message').textContent = 'Please enter a valid Philippine phone number (09XXXXXXXXX or +639XXXXXXXXX).';
+            return;
+        }
+        const governmentID = document.getElementById('registerID').value;
+        const address = document.getElementById('registerAddress').value;
+        const emergencyContact = document.getElementById('registerEmergencyContact').value;
         
-        auth.createUserWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                // Signed up
-                const user = userCredential.user;
-                
-                // Save additional user data
-                return db.collection('users').doc(user.uid).set({
-                    name: name,
-                    email: email,
-                    age: age,
-                    occupation: occupation,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            })
-            .then(() => {
-                window.location.href = 'index.html';
-            })
-            .catch((error) => {
-                document.getElementById('error-message').textContent = error.message;
-            });
+        // Age validation - must be 15 years and above
+        const today = new Date();
+        const birthDateObj = new Date(birthDate);
+        const age = today.getFullYear() - birthDateObj.getFullYear();
+        const monthDiff = today.getMonth() - birthDateObj.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+            age--;
+        }
+        
+        if (age < 15) {
+            document.getElementById('error-message').textContent = 'You must be at least 15 years old to register.';
+            return;
+        }
+        
+                 auth.createUserWithEmailAndPassword(email, password)
+             .then((userCredential) => {
+                 // Signed up
+                 const user = userCredential.user;
+                 
+                 // Save additional user data with verification status
+                 return db.collection('users').doc(user.uid).set({
+                     name: name,
+                     email: email,
+                     birthDate: birthDate,
+                     occupation: occupation,
+                     phone: phone,
+                     governmentID: governmentID,
+                     address: address,
+                     emergencyContact: emergencyContact,
+                     verificationStatus: 'pending', // pending, verified, rejected
+                     emailVerified: false,
+                     phoneVerified: false,
+                     adminApproved: false,
+                     verificationSubmittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                     role: 'user'
+                 }).then(() => {
+                     // Try to send custom email verification via our server
+                     return fetch('/api/send-verification-email', {
+                         method: 'POST',
+                         headers: {
+                             'Content-Type': 'application/json',
+                         },
+                         body: JSON.stringify({
+                             email: email,
+                             userId: user.uid,
+                             userName: name
+                         })
+                     }).catch((error) => {
+                         console.log('Custom email server not available, using Firebase email verification');
+                         // Fallback to Firebase's built-in email verification
+                         return user.sendEmailVerification();
+                     });
+                 });
+             })
+             .then(() => {
+                 // Redirect to verification page
+                 window.location.href = 'verification-pending.html';
+             })
+             .catch((error) => {
+                 let errorMessage = 'An error occurred during registration.';
+                 
+                 if (error.code === 'auth/email-already-in-use') {
+                     errorMessage = 'This email address is already registered. Please use a different email or try logging in.';
+                 } else if (error.code === 'auth/weak-password') {
+                     errorMessage = 'Password should be at least 6 characters long.';
+                 } else if (error.code === 'auth/invalid-email') {
+                     errorMessage = 'Please enter a valid email address.';
+                 } else {
+                     errorMessage = error.message;
+                 }
+                 
+                 document.getElementById('error-message').textContent = errorMessage;
+             });
     });
     </script>
     <script src="auth.js"></script>

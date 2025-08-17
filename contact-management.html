@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Management - Admin Dashboard</title>
+    <!-- Tailwind CSS -->
+    <link href="css/output.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .contact-management {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .message-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .message-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .message-item.unread {
+            border-left: 4px solid #3b82f6;
+            background-color: #f8fafc;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .message-info h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+        
+        .message-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .message-content {
+            color: #374151;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        
+        .message-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .status-unread {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-read {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-replied {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        /* Tab Styles */
+        .tab-button {
+            transition: all 0.2s ease;
+        }
+        
+        .tab-button:hover {
+            color: #374151;
+            border-color: #d1d5db;
+        }
+        
+        .tab-button.active {
+            border-bottom-color: #3b82f6;
+            color: #3b82f6;
+        }
+        
+        /* Message Reply Styles */
+        .message-reply {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        /* Notification Reply Styles */
+        .notification-context {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 1rem;
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 32rem;
+            width: 100%;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-content.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl">Contact Management</div>
+            <div class="nav-links space-x-6">
+                <a href="admin-dashboard.html" class="hover:text-indigo-200 transition">Dashboard</a>
+                <a href="manage-workshops-notifications.html#notifications" class="hover:text-indigo-200 transition">Notifications</a>
+                <a href="manage-workshops-notifications.html#workshops" class="hover:text-indigo-200 transition">Workshops & Notifications</a>
+                <a href="user-management.html" class="hover:text-indigo-200 transition">Users</a>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-1 rounded text-white ml-4 transition">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Contact Management</h1>
+            <p class="text-gray-600">Manage contact messages and notification replies</p>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-lg shadow">
+                <div class="text-2xl font-bold text-blue-600" id="totalMessages">0</div>
+                <div class="text-sm text-gray-600">Total Messages</div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow">
+                <div class="text-2xl font-bold text-red-600" id="unreadMessages">0</div>
+                <div class="text-sm text-gray-600">Unread Messages</div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow">
+                <div class="text-2xl font-bold text-green-600" id="repliedMessages">0</div>
+                <div class="text-sm text-gray-600">Replied Messages</div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow">
+                <div class="text-2xl font-bold text-purple-600" id="notificationReplies">0</div>
+                <div class="text-sm text-gray-600">Notification Replies</div>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <button id="contactTab" class="tab-button active py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
+                        All Messages & Replies
+                    </button>
+                    <button id="notificationTab" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Notification Replies Only
+                    </button>
+                </nav>
+            </div>
+            <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-start">
+                    <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+                    <div>
+                        <h4 class="font-semibold text-blue-800 mb-1">📋 User Replies & Messages</h4>
+                        <p class="text-blue-700 text-sm mb-2">
+                            <strong>📧 All Messages & Replies (Current Tab):</strong> <span class="bg-green-200 px-2 py-1 rounded">✅ Shows ALL user communications in one place!</span><br>
+                            • Contact form messages + admin replies<br>
+                            • User replies to notifications<br>
+                            <strong>💬 Notification Replies Only:</strong> Shows only notification replies (filtered view)
+                        </p>
+                        <p class="text-blue-600 text-xs">
+                            💡 Use "Test User Reply" button to create a sample notification reply and see how it appears below.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="bg-white p-4 rounded-lg shadow mb-6">
+            <div class="flex flex-wrap gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="statusFilter" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                        <option value="">All Status</option>
+                        <option value="unread">Unread</option>
+                        <option value="read">Read</option>
+                        <option value="replied">Replied</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                    <select id="dateFilter" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                        <option value="">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="markAllAsRead()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
+                        Mark All as Read
+                    </button>
+                    <button onclick="refreshMessages()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm ml-2">
+                        <i class="fas fa-sync-alt mr-1"></i> Refresh
+                    </button>
+                    <button onclick="createTestMessage()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md text-sm ml-2">
+                        <i class="fas fa-plus mr-1"></i> Test Message
+                    </button>
+                    <button onclick="createTestNotificationReply()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md text-sm ml-2">
+                        <i class="fas fa-reply mr-1"></i> Test User Reply
+                    </button>
+                    <button onclick="createRealisticTest()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md text-sm ml-2">
+                        <i class="fas fa-magic mr-1"></i> Full Test
+                    </button>
+                    <button onclick="debugNotifications()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm ml-2">
+                        <i class="fas fa-bug mr-1"></i> Debug
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Messages List -->
+        <div id="messagesList" class="space-y-4">
+            <!-- Messages will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Reply Modal -->
+    <div id="replyModal" class="modal-overlay hidden">
+        <div class="modal-content" id="replyModalContent">
+            <div class="modal-header">
+                <h3 class="text-lg font-semibold">Reply to Message</h3>
+                <button onclick="closeReplyModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <h4 class="font-semibold mb-2">Original Message</h4>
+                    <p class="text-sm text-gray-600" id="originalMessage"></p>
+                </div>
+                <form id="replyForm">
+                    <input type="hidden" id="replyMessageId">
+                    <div class="form-group">
+                        <label for="replySubject">Subject</label>
+                        <input type="text" id="replySubject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="replyMessage">Reply Message</label>
+                        <textarea id="replyMessage" required placeholder="Type your reply..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeReplyModal()" class="btn btn-secondary">Cancel</button>
+                <button onclick="sendReply()" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Reply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script>
+        let currentMessages = [];
+        let currentTab = 'contact'; // 'contact' or 'notification'
+        let currentReplyId = null;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check admin authentication
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // Check if user is admin
+                    db.collection('users').doc(user.uid).get()
+                        .then((doc) => {
+                            if (doc.exists && doc.data().role === 'admin') {
+                                initializePage();
+                            } else {
+                                alert('Access denied. Admin privileges required.');
+                                window.location.href = 'login.html';
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Error checking user role:', error);
+                            alert('Error checking permissions.');
+                            window.location.href = 'login.html';
+                        });
+                } else {
+                    window.location.href = 'login.html';
+                }
+            });
+        });
+
+        function initializePage() {
+            loadMessages();
+            setupEventListeners();
+            setupTabHandlers();
+            setupRealTimeListener();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('statusFilter').addEventListener('change', loadMessages);
+            document.getElementById('dateFilter').addEventListener('change', loadMessages);
+        }
+
+        function setupTabHandlers() {
+            document.getElementById('contactTab').addEventListener('click', () => {
+                switchTab('contact');
+            });
+            document.getElementById('notificationTab').addEventListener('click', () => {
+                switchTab('notification');
+            });
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab button styles
+            const contactTab = document.getElementById('contactTab');
+            const notificationTab = document.getElementById('notificationTab');
+            
+            if (tab === 'contact') {
+                contactTab.classList.add('active', 'border-blue-500', 'text-blue-600');
+                contactTab.classList.remove('border-transparent', 'text-gray-500');
+                notificationTab.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                notificationTab.classList.add('border-transparent', 'text-gray-500');
+            } else {
+                notificationTab.classList.add('active', 'border-blue-500', 'text-blue-600');
+                notificationTab.classList.remove('border-transparent', 'text-gray-500');
+                contactTab.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                contactTab.classList.add('border-transparent', 'text-gray-500');
+            }
+            
+            loadMessages();
+        }
+
+        async function loadMessages() {
+            const messagesList = document.getElementById('messagesList');
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
+            messagesList.innerHTML = '<div class="text-center py-8 text-gray-500">Loading messages...</div>';
+            
+            try {
+                currentMessages = [];
+                
+                if (currentTab === 'contact') {
+                    await loadContactMessages(statusFilter, dateFilter);
+                } else {
+                    await loadNotificationReplies(statusFilter, dateFilter);
+                }
+                
+                updateStatistics();
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                messagesList.innerHTML = '<div class="text-center py-8 text-red-500">Error loading messages</div>';
+            }
+        }
+
+        async function loadContactMessages(statusFilter, dateFilter) {
+            const messagesList = document.getElementById('messagesList');
+            
+            console.log('Loading contact messages and notification replies with filters:', { statusFilter, dateFilter });
+            
+            messagesList.innerHTML = '<div class="text-center py-8 text-gray-500">Loading messages...</div>';
+            
+            // Load contact messages
+            let contactQuery = db.collection('contactMessages').orderBy('createdAt', 'desc');
+            if (statusFilter) {
+                contactQuery = contactQuery.where('status', '==', statusFilter);
+            }
+            
+            // Load notification replies
+            const repliesQuery = db.collection('notificationReplies').orderBy('createdAt', 'desc');
+            
+            // Get all notifications for context
+            const [contactSnapshot, repliesSnapshot, notificationsSnapshot] = await Promise.all([
+                contactQuery.get(),
+                repliesQuery.get(),
+                db.collection('notifications').get()
+            ]);
+            
+            const notifications = {};
+            notificationsSnapshot.forEach(doc => {
+                notifications[doc.id] = doc.data();
+            });
+            
+            const allMessages = [];
+            
+            // Process contact messages
+            contactSnapshot.forEach(doc => {
+                const message = doc.data();
+                message.id = doc.id;
+                message.type = 'contact';
+                
+                // Apply date filter
+                if (!dateFilter || isInDateRange(message.createdAt.toDate(), dateFilter)) {
+                    allMessages.push(message);
+                }
+            });
+            
+            // Process notification replies (only if no status filter or status is 'read')
+            if (!statusFilter || statusFilter === 'read') {
+                repliesSnapshot.forEach(doc => {
+                    const reply = doc.data();
+                    reply.id = doc.id;
+                    reply.type = 'notification';
+                    reply.notification = notifications[reply.notificationId];
+                    reply.status = 'read'; // Notification replies are considered 'read'
+                    
+                    // Apply date filter
+                    if (!dateFilter || isInDateRange(reply.createdAt.toDate(), dateFilter)) {
+                        allMessages.push(reply);
+                    }
+                });
+            }
+            
+            // Sort all messages by date
+            allMessages.sort((a, b) => {
+                const dateA = a.createdAt?.toDate() || new Date(0);
+                const dateB = b.createdAt?.toDate() || new Date(0);
+                return dateB - dateA;
+            });
+            
+            messagesList.innerHTML = '';
+            
+            if (allMessages.length === 0) {
+                messagesList.innerHTML = '<div class="text-center py-8 text-gray-500">No messages found</div>';
+                return;
+            }
+            
+            // Add section headers and messages
+            let lastType = null;
+            allMessages.forEach(message => {
+                // Add section header if type changes
+                if (message.type !== lastType) {
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'mt-6 mb-4 first:mt-0';
+                    const headerTitle = message.type === 'contact' ? '📧 Contact Form Messages' : '💬 User Replies to Notifications';
+                    headerDiv.innerHTML = `
+                        <div class="flex items-center">
+                            <h3 class="text-lg font-semibold text-gray-800">${headerTitle}</h3>
+                            <div class="flex-grow h-px bg-gray-300 ml-4"></div>
+                        </div>
+                    `;
+                    messagesList.appendChild(headerDiv);
+                    lastType = message.type;
+                }
+                
+                currentMessages.push(message);
+                const messageElement = createMessageElement(message);
+                messagesList.appendChild(messageElement);
+            });
+            
+            console.log('Total messages loaded:', currentMessages.length);
+        }
+
+        async function loadNotificationReplies(statusFilter, dateFilter) {
+            const messagesList = document.getElementById('messagesList');
+            
+            // Get all notification replies
+            const repliesSnapshot = await db.collection('notificationReplies').orderBy('createdAt', 'desc').get();
+            
+            if (repliesSnapshot.empty) {
+                messagesList.innerHTML = '<div class="text-center py-8 text-gray-500">No notification replies found</div>';
+                return;
+            }
+            
+            messagesList.innerHTML = '';
+            
+            // Get all notifications for context
+            const notificationsSnapshot = await db.collection('notifications').get();
+            const notifications = {};
+            notificationsSnapshot.forEach(doc => {
+                notifications[doc.id] = doc.data();
+            });
+            
+            repliesSnapshot.forEach(doc => {
+                const reply = doc.data();
+                reply.id = doc.id;
+                reply.type = 'notification';
+                reply.notification = notifications[reply.notificationId];
+                
+                // Apply date filter
+                if (dateFilter && !isInDateRange(reply.createdAt.toDate(), dateFilter)) {
+                    return;
+                }
+                
+                // Apply status filter (for notification replies, we'll treat them as 'read' by default)
+                if (statusFilter && statusFilter !== 'read') {
+                    return;
+                }
+                
+                currentMessages.push(reply);
+                const messageElement = createMessageElement(reply);
+                messagesList.appendChild(messageElement);
+            });
+        }
+
+        function isInDateRange(date, filter) {
+            const now = new Date();
+            const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            switch (filter) {
+                case 'today':
+                    return date >= startOfDay;
+                case 'week':
+                    const startOfWeek = new Date(startOfDay);
+                    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+                    return date >= startOfWeek;
+                case 'month':
+                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                    return date >= startOfMonth;
+                default:
+                    return true;
+            }
+        }
+
+        function createMessageElement(message) {
+            const div = document.createElement('div');
+            div.className = `message-item ${message.status === 'unread' ? 'unread' : ''}`;
+            
+            const createdAt = message.createdAt?.toDate() || new Date();
+            const formattedDate = new Intl.DateTimeFormat('en-US', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            }).format(createdAt);
+            
+            if (message.type === 'contact') {
+                // Contact message
+                div.innerHTML = `
+                    <div class="message-header">
+                        <div class="message-info">
+                            <h4>${message.subject}</h4>
+                            <div class="message-meta">
+                                <span><i class="fas fa-user mr-1"></i>${message.name}</span>
+                                <span><i class="fas fa-envelope mr-1"></i>${message.email}</span>
+                                <span><i class="fas fa-clock mr-1"></i>${formattedDate}</span>
+                                <span class="status-badge status-${message.status}">${message.status}</span>
+                            </div>
+                        </div>
+                        <div class="message-actions">
+                            ${message.status === 'unread' ? 
+                                `<button onclick="markAsRead('${message.id}')" class="btn btn-secondary">
+                                    <i class="fas fa-check"></i> Mark as Read
+                                </button>` : ''
+                            }
+                            <button onclick="replyToMessage('${message.id}')" class="btn btn-primary">
+                                <i class="fas fa-reply"></i> Reply
+                            </button>
+                            <button onclick="deleteMessage('${message.id}')" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="message-content">
+                        <p>${message.message}</p>
+                    </div>
+                    ${message.replyMessage ? `
+                        <div class="message-reply">
+                            <h5 class="text-sm font-semibold text-gray-700 mb-2">Admin Reply:</h5>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-sm text-gray-800">${message.replyMessage}</p>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+            } else {
+                // Notification reply
+                const notificationTitle = message.notification ? message.notification.title : 'Unknown Notification';
+                const notificationMessage = message.notification ? message.notification.message : 'No notification details available';
+                
+                div.innerHTML = `
+                    <div class="message-header">
+                        <div class="message-info">
+                            <h4>Notification Reply</h4>
+                            <div class="message-meta">
+                                <span><i class="fas fa-user mr-1"></i>${message.userName || 'Anonymous'}</span>
+                                <span><i class="fas fa-clock mr-1"></i>${formattedDate}</span>
+                                <span class="status-badge status-read">Notification Reply</span>
+                            </div>
+                        </div>
+                        <div class="message-actions">
+                            <button onclick="replyToNotificationReply('${message.id}')" class="btn ${message.adminReplied ? 'btn-secondary' : 'btn-primary'}">
+                                <i class="fas fa-reply"></i> ${message.adminReplied ? 'Reply Again' : 'Reply to User'}
+                            </button>
+                            <button onclick="viewNotificationDetails('${message.notificationId}')" class="btn btn-secondary">
+                                <i class="fas fa-eye"></i> View Notification
+                            </button>
+                            <button onclick="deleteNotificationReply('${message.id}')" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="message-content">
+                        <div class="mb-3 p-3 bg-blue-50 rounded-lg">
+                            <h6 class="font-semibold text-blue-800 mb-1">Replied to Notification:</h6>
+                            <p class="text-sm text-blue-700"><strong>${notificationTitle}</strong></p>
+                            <p class="text-sm text-blue-600">${notificationMessage}</p>
+                        </div>
+                        <div class="mt-3">
+                            <h6 class="font-semibold text-gray-700 mb-1">User's Reply:</h6>
+                            <p class="text-gray-800">${message.message}</p>
+                        </div>
+                        ${message.adminReplied ? `
+                            <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <h6 class="font-semibold text-green-800 mb-1">✅ Admin Reply Sent:</h6>
+                                <p class="text-sm text-green-700">You replied to this user on ${new Intl.DateTimeFormat('en-US', {
+                                    dateStyle: 'short',
+                                    timeStyle: 'short'
+                                }).format(message.adminReplyAt?.toDate() || new Date())}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            
+            return div;
+        }
+
+        async function markAsRead(messageId) {
+            try {
+                await db.collection('contactMessages').doc(messageId).update({
+                    status: 'read'
+                });
+                loadMessages();
+            } catch (error) {
+                console.error('Error marking message as read:', error);
+                alert('Error updating message status.');
+            }
+        }
+
+        async function deleteMessage(messageId) {
+            if (!confirm('Are you sure you want to delete this message?')) return;
+            
+            try {
+                await db.collection('contactMessages').doc(messageId).delete();
+                loadMessages();
+            } catch (error) {
+                console.error('Error deleting message:', error);
+                alert('Error deleting message.');
+            }
+        }
+
+        async function deleteNotificationReply(replyId) {
+            if (!confirm('Are you sure you want to delete this notification reply?')) return;
+            
+            try {
+                await db.collection('notificationReplies').doc(replyId).delete();
+                loadMessages();
+            } catch (error) {
+                console.error('Error deleting notification reply:', error);
+                alert('Error deleting notification reply.');
+            }
+        }
+
+        function replyToNotificationReply(replyId) {
+            const reply = currentMessages.find(m => m.id === replyId && m.type === 'notification');
+            if (!reply) return;
+            
+            currentReplyId = replyId;
+            document.getElementById('replyMessageId').value = replyId;
+            document.getElementById('replySubject').value = `Re: Your reply to "${reply.notification?.title || 'Notification'}"`;
+            document.getElementById('originalMessage').textContent = `${reply.userName} replied: "${reply.message}"`;
+            document.getElementById('replyMessage').value = '';
+            
+            const modal = document.getElementById('replyModal');
+            const modalContent = document.getElementById('replyModalContent');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('show');
+            setTimeout(() => {
+                modalContent.classList.add('show');
+            }, 10);
+        }
+
+        function viewNotificationDetails(notificationId) {
+            // This could open a modal with notification details
+            // For now, we'll just show an alert with the notification ID
+            alert(`Notification ID: ${notificationId}\n\nThis feature will be enhanced to show full notification details in a modal.`);
+        }
+
+        async function markAllAsRead() {
+            if (!confirm('Mark all unread messages as read?')) return;
+            
+            try {
+                const batch = db.batch();
+                const unreadMessages = currentMessages.filter(m => m.status === 'unread' && m.type === 'contact');
+                
+                unreadMessages.forEach(message => {
+                    const ref = db.collection('contactMessages').doc(message.id);
+                    batch.update(ref, { status: 'read' });
+                });
+                
+                await batch.commit();
+                loadMessages();
+            } catch (error) {
+                console.error('Error marking all as read:', error);
+                alert('Error updating messages.');
+            }
+        }
+
+        function replyToMessage(messageId) {
+            const message = currentMessages.find(m => m.id === messageId);
+            if (!message) return;
+            
+            currentReplyId = messageId;
+            document.getElementById('replyMessageId').value = messageId;
+            document.getElementById('replySubject').value = `Re: ${message.subject}`;
+            document.getElementById('originalMessage').textContent = message.message;
+            document.getElementById('replyMessage').value = '';
+            
+            const modal = document.getElementById('replyModal');
+            const modalContent = document.getElementById('replyModalContent');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('show');
+            setTimeout(() => {
+                modalContent.classList.add('show');
+            }, 10);
+        }
+
+        function closeReplyModal() {
+            const modal = document.getElementById('replyModal');
+            const modalContent = document.getElementById('replyModalContent');
+            
+            modalContent.classList.remove('show');
+            setTimeout(() => {
+                modal.classList.remove('show');
+                modal.classList.add('hidden');
+                currentReplyId = null;
+            }, 300);
+        }
+
+        async function sendReply() {
+            const subject = document.getElementById('replySubject').value;
+            const message = document.getElementById('replyMessage').value;
+            
+            if (!subject || !message) {
+                alert('Please fill in all fields.');
+                return;
+            }
+            
+            try {
+                const originalMessage = currentMessages.find(m => m.id === currentReplyId);
+                
+                if (originalMessage.type === 'contact') {
+                    // Handle contact message reply
+                    await db.collection('contactMessages').doc(currentReplyId).update({
+                        status: 'replied',
+                        repliedAt: new Date(),
+                        replySubject: subject,
+                        replyMessage: message,
+                        repliedBy: auth.currentUser.uid
+                    });
+
+                    // Try to notify the user who sent the message
+                    let targetUserId = originalMessage.userId || null;
+
+                    // If userId is missing, try to resolve by email
+                    if (!targetUserId) {
+                        const emailToMatch = originalMessage.userEmail || originalMessage.email;
+                        if (emailToMatch) {
+                            try {
+                                const userSnap = await db.collection('users')
+                                    .where('email', '==', emailToMatch)
+                                    .limit(1)
+                                    .get();
+                                if (!userSnap.empty) {
+                                    targetUserId = userSnap.docs[0].id;
+                                }
+                            } catch (lookupErr) {
+                                console.warn('Could not resolve user by email for notification:', lookupErr);
+                            }
+                        }
+                    }
+
+                    // Create in-app notification if we have a target user
+                    if (targetUserId) {
+                        const notificationData = {
+                            title: subject || 'Reply to your contact message',
+                            message: message,
+                            type: 'admin_reply',
+                            priority: 'high',
+                            targetUsers: [targetUserId],
+                            createdAt: new Date(),
+                            createdBy: auth.currentUser.uid,
+                            isActive: true,
+                            readBy: [],
+                            relatedTo: 'contact_message',
+                            contactMessageId: currentReplyId,
+                            canReply: true
+                        };
+
+                        try {
+                            const notifRef = await db.collection('notifications').add(notificationData);
+                            console.log('✅ User notified with notification ID:', notifRef.id);
+                        } catch (notifErr) {
+                            console.error('Failed to create user notification for contact reply:', notifErr);
+                        }
+                    } else {
+                        console.log('No user account matched for this contact message; skipping in-app notification.');
+                    }
+                } else if (originalMessage.type === 'notification') {
+                    // Handle notification reply - send a new notification to the user
+                    const newNotificationData = {
+                        title: subject,
+                        message: message,
+                        type: 'admin_reply',
+                        priority: 'high',
+                        targetUsers: [originalMessage.userId], // Send to the user who replied
+                        createdAt: new Date(),
+                        createdBy: auth.currentUser.uid,
+                        relatedTo: 'notification_reply',
+                        originalReplyId: currentReplyId,
+                        isActive: true, // Required for notification to be visible
+                        readBy: [], // Initialize empty read list
+                        canReply: true // Allow user to reply back
+                    };
+                    
+                    console.log('Creating admin reply notification...');
+                    console.log('Original message userId:', originalMessage.userId);
+                    console.log('Current admin user:', auth.currentUser.uid);
+                    console.log('Notification will be sent to user:', originalMessage.userId);
+                    
+                    const notificationRef = await db.collection('notifications').add(newNotificationData);
+                    console.log('✅ Admin reply notification created with ID:', notificationRef.id);
+                    console.log('📧 Notification data:', newNotificationData);
+                    
+                    // Verify the notification was created by reading it back
+                    const createdNotification = await notificationRef.get();
+                    console.log('🔍 Verification - notification exists in database:', createdNotification.exists);
+                    if (createdNotification.exists) {
+                        console.log('📋 Stored notification data:', createdNotification.data());
+                    }
+                    
+                    // Mark the original notification reply as replied
+                    await db.collection('notificationReplies').doc(currentReplyId).update({
+                        adminReplied: true,
+                        adminReplyAt: new Date(),
+                        adminReplyBy: auth.currentUser.uid
+                    });
+                }
+                
+                closeReplyModal();
+                loadMessages();
+                alert('Reply sent successfully! The user will receive your response as a notification.');
+            } catch (error) {
+                console.error('Error sending reply:', error);
+                alert('Error sending reply.');
+            }
+        }
+
+        function updateStatistics() {
+            const contactMessages = currentMessages.filter(m => m.type === 'contact');
+            const notificationReplies = currentMessages.filter(m => m.type === 'notification');
+            
+            const totalMessages = currentMessages.length;
+            const unreadMessages = contactMessages.filter(m => m.status === 'unread').length;
+            const repliedMessages = contactMessages.filter(m => m.status === 'replied').length;
+            const totalNotificationReplies = notificationReplies.length;
+            
+            document.getElementById('totalMessages').textContent = totalMessages;
+            document.getElementById('unreadMessages').textContent = unreadMessages;
+            document.getElementById('repliedMessages').textContent = repliedMessages;
+            document.getElementById('notificationReplies').textContent = totalNotificationReplies;
+        }
+
+        function refreshMessages() {
+            loadMessages();
+        }
+
+        async function createTestMessage() {
+            try {
+                const testMessage = {
+                    name: 'Test User',
+                    email: 'test@example.com',
+                    subject: 'Test Message',
+                    message: 'This is a test message to verify the system is working.',
+                    createdAt: new Date(),
+                    status: 'unread',
+                    userId: null,
+                    userEmail: 'test@example.com'
+                };
+
+                await db.collection('contactMessages').add(testMessage);
+                console.log('Test message created successfully');
+                alert('Test message created successfully!');
+                loadMessages();
+            } catch (error) {
+                console.error('Error creating test message:', error);
+                alert('Error creating test message: ' + error.message);
+            }
+        }
+
+        async function createTestNotificationReply() {
+            try {
+                // First create a test notification
+                const testNotification = {
+                    title: 'Test Notification',
+                    message: 'This is a test notification for testing replies.',
+                    type: 'system',
+                    priority: 'medium',
+                    targetUsers: [],
+                    createdAt: new Date(),
+                    createdBy: 'system'
+                };
+
+                const notificationRef = await db.collection('notifications').add(testNotification);
+                console.log('Test notification created with ID:', notificationRef.id);
+
+                // Now create a reply to that notification using current logged-in user
+                const currentUser = auth.currentUser;
+                if (!currentUser) {
+                    alert('You must be logged in to create a test reply');
+                    return;
+                }
+
+                const testReply = {
+                    notificationId: notificationRef.id,
+                    userId: currentUser.uid, // Use the actual logged-in user ID
+                    message: 'This is a test reply to the notification. Thank you for the information!',
+                    createdAt: new Date(),
+                    userName: currentUser.displayName || currentUser.email || 'Test User',
+                    userEmail: currentUser.email
+                };
+
+                await db.collection('notificationReplies').add(testReply);
+                console.log('Test notification reply created successfully');
+                alert('Test notification and reply created successfully! Switch to "Notification Replies" tab to see it.');
+                loadMessages();
+            } catch (error) {
+                console.error('Error creating test notification reply:', error);
+                alert('Error creating test notification reply: ' + error.message);
+            }
+        }
+
+        async function createRealisticTest() {
+            try {
+                const currentUser = auth.currentUser;
+                if (!currentUser) {
+                    alert('You must be logged in to create a test');
+                    return;
+                }
+
+                // Step 1: Create a notification that would typically be sent to the user
+                const testNotification = {
+                    title: 'Welcome to UPSKILL!',
+                    message: 'Thank you for joining our platform. We have exciting workshops coming up this month!',
+                    type: 'system',
+                    priority: 'medium',
+                    targetUsers: [currentUser.uid], // Send to current user
+                    createdAt: new Date(),
+                    createdBy: 'admin',
+                    isActive: true,
+                    readBy: [],
+                    canReply: true
+                };
+
+                const notificationRef = await db.collection('notifications').add(testNotification);
+                console.log('Test notification created for user:', currentUser.uid);
+
+                // Step 2: Simulate user replying to the notification
+                const userReply = {
+                    notificationId: notificationRef.id,
+                    userId: currentUser.uid,
+                    message: 'Thank you for the information! When is the next communication workshop scheduled?',
+                    createdAt: new Date(),
+                    userName: currentUser.displayName || currentUser.email || 'Test User',
+                    userEmail: currentUser.email
+                };
+
+                await db.collection('notificationReplies').add(userReply);
+                console.log('Test user reply created');
+
+                alert('✅ Realistic test created!\n\n1. A notification was sent to you\n2. You "replied" to it\n3. Now you can test replying as admin\n4. Check your notifications to see the admin reply!');
+                loadMessages();
+            } catch (error) {
+                console.error('Error creating realistic test:', error);
+                alert('Error creating test: ' + error.message);
+            }
+        }
+
+        async function debugNotifications() {
+            try {
+                const currentUser = auth.currentUser;
+                if (!currentUser) {
+                    alert('You must be logged in to debug');
+                    return;
+                }
+
+                console.log('🔍 DEBUGGING NOTIFICATIONS FOR USER:', currentUser.uid);
+                console.log('User email:', currentUser.email);
+
+                // Check all notifications in the database
+                const allNotifications = await db.collection('notifications').orderBy('createdAt', 'desc').limit(10).get();
+                console.log('📊 Total notifications in database:', allNotifications.size);
+
+                // Check notifications that should be visible to this user
+                let userNotifications = [];
+                allNotifications.forEach(doc => {
+                    const notification = doc.data();
+                    notification.id = doc.id;
+                    
+                    console.log('📋 Notification:', {
+                        id: doc.id,
+                        title: notification.title,
+                        targetUsers: notification.targetUsers,
+                        isActive: notification.isActive,
+                        type: notification.type,
+                        createdAt: notification.createdAt?.toDate()
+                    });
+
+                    // Check if this notification should be shown to the user
+                    if (notification.isActive && 
+                        (notification.targetUsers === 'all' || 
+                         (Array.isArray(notification.targetUsers) && notification.targetUsers.includes(currentUser.uid)))) {
+                        userNotifications.push(notification);
+                        console.log('✅ This notification SHOULD be visible to user');
+                    } else {
+                        console.log('❌ This notification should NOT be visible to user');
+                    }
+                });
+
+                console.log('🎯 Notifications that should be visible to user:', userNotifications.length);
+                
+                // Check notification replies
+                const userReplies = await db.collection('notificationReplies')
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                console.log('💬 User has made', userReplies.size, 'notification replies');
+                userReplies.forEach(doc => {
+                    const reply = doc.data();
+                    console.log('Reply:', {
+                        id: doc.id,
+                        message: reply.message,
+                        notificationId: reply.notificationId,
+                        adminReplied: reply.adminReplied
+                    });
+                });
+
+                alert(`Debug info logged to console!\n\nFound:\n- ${allNotifications.size} total notifications\n- ${userNotifications.length} visible to you\n- ${userReplies.size} replies from you\n\nCheck browser console (F12) for details.`);
+            } catch (error) {
+                console.error('Error debugging notifications:', error);
+                alert('Error debugging: ' + error.message);
+            }
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = 'login.html';
+            }).catch((error) => {
+                console.error('Error signing out:', error);
+            });
+        }
+
+        function setupRealTimeListener() {
+            // Listen for new contact messages
+            db.collection('contactMessages')
+                .orderBy('createdAt', 'desc')
+                .limit(1)
+                .onSnapshot((snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === 'added') {
+                            console.log('New contact message received:', change.doc.data());
+                            // Reload messages if we're on the contact tab
+                            if (currentTab === 'contact') {
+                                loadMessages();
+                            }
+                        }
+                    });
+                }, (error) => {
+                    console.error('Error setting up real-time listener:', error);
+                });
+
+            // Listen for new notification replies
+            db.collection('notificationReplies')
+                .orderBy('createdAt', 'desc')
+                .limit(1)
+                .onSnapshot((snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === 'added') {
+                            console.log('New notification reply received:', change.doc.data());
+                            // Reload messages for both tabs since contact tab now shows both
+                            loadMessages();
+                        }
+                    });
+                }, (error) => {
+                    console.error('Error setting up notification replies listener:', error);
+                });
+        }
+    </script>
+</body>
+</html>

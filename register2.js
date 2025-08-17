@@ -6,7 +6,7 @@ const WorkshopRegistration = ({ workshopTitle, workshopDate, workshopTime, works
     name: '',
     email: '',
     phone: '',
-    age: '',
+    birthDate: '',
     occupation: '',
     workshop: workshopTitle
   });
@@ -17,13 +17,33 @@ const WorkshopRegistration = ({ workshopTitle, workshopDate, workshopTime, works
       ...prevState,
       [name]: value
     }));
+    
+    // Real-time age validation for birth date
+    if (name === 'birthDate' && value) {
+      const today = new Date();
+      const birthDate = new Date(value);
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      if (age < 15) {
+        e.target.style.borderColor = 'red';
+        e.target.title = 'You must be at least 15 years old to register.';
+      } else {
+        e.target.style.borderColor = '';
+        e.target.title = '';
+      }
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
     // Basic form validation
-    if (!formData.name || !formData.email || !formData.phone || !formData.age || !formData.occupation) {
+    if (!formData.name || !formData.email || !formData.phone || !formData.birthDate || !formData.occupation) {
       alert('Please fill in all fields');
       return;
     }
@@ -42,9 +62,18 @@ const WorkshopRegistration = ({ workshopTitle, workshopDate, workshopTime, works
       return;
     }
 
-    // Age validation
-    if (formData.age < 13 || formData.age > 100) {
-      alert('Please enter a valid age between 13 and 100');
+    // Birth date validation - must be 15 years and above
+    const today = new Date();
+    const birthDate = new Date(formData.birthDate);
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    if (age < 15) {
+      alert('You must be at least 15 years old to register.');
       return;
     }
 
@@ -122,18 +151,15 @@ const WorkshopRegistration = ({ workshopTitle, workshopDate, workshopTime, works
           </div>
           
           <div>
-            <label htmlFor="age" className="block mb-2 font-medium">
-              Age
+            <label htmlFor="birthDate" className="block mb-2 font-medium">
+              Birth Date
             </label>
             <input 
-              type="number" 
-              id="age"
-              name="age"
-              value={formData.age}
+              type="date" 
+              id="birthDate"
+              name="birthDate"
+              value={formData.birthDate}
               onChange={handleChange}
-              min="13"
-              max="100"
-              placeholder="Enter your age"
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />

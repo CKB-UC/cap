@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Pending - Workshop Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="css/output.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        .verification-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .verification-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .verification-icon {
+            font-size: 64px;
+            color: #f59e0b;
+            margin-bottom: 20px;
+        }
+        
+        .verification-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .verification-steps {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #e5e7eb;
+        }
+        
+        .step.completed {
+            border-left-color: #10b981;
+        }
+        
+        .step-icon {
+            margin-right: 16px;
+            font-size: 20px;
+            color: #6b7280;
+        }
+        
+        .step.completed .step-icon {
+            color: #10b981;
+        }
+        
+        .step-content h4 {
+            margin: 0 0 8px 0;
+            color: #111827;
+        }
+        
+        .step-content p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        
+        .verification-info {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .verification-info h3 {
+            color: #1e40af;
+            margin: 0 0 12px 0;
+        }
+        
+        .verification-info p {
+            color: #1e3a8a;
+            margin: 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div class="verification-header">
+            <div class="verification-icon">
+                <i class="fas fa-user-clock"></i>
+            </div>
+            <h1>Account Verification Pending</h1>
+            <p>Your account is being reviewed for verification. This process helps ensure the security and integrity of our platform.</p>
+        </div>
+        
+        <div class="verification-status">
+            <span class="status-badge status-pending">
+                <i class="fas fa-clock"></i> Verification Pending
+            </span>
+        </div>
+        
+        <div class="verification-info">
+            <h3><i class="fas fa-info-circle"></i> What happens next?</h3>
+            <p>Our team will review your submitted information and verify your identity. This typically takes 1-3 business days. You'll receive an email notification once your account is verified.</p>
+        </div>
+        
+        <div class="verification-steps">
+            <h3>Verification Steps</h3>
+            <div class="step" id="emailStep">
+                <div class="step-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="step-content">
+                    <h4>Email Verification</h4>
+                    <p>Check your email and click the verification link</p>
+                </div>
+            </div>
+            
+            <div class="step" id="phoneStep">
+                <div class="step-icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="step-content">
+                    <h4>Phone Verification</h4>
+                    <p>Verify your phone number with SMS code</p>
+                </div>
+            </div>
+            
+            <div class="step" id="adminStep">
+                <div class="step-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="step-content">
+                    <h4>Admin Review</h4>
+                    <p>Administrator review of your submitted documents</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="resendEmailVerification()">
+                <i class="fas fa-envelope"></i> Resend Email Verification
+            </button>
+            <button class="btn btn-secondary" onclick="verifyPhone()">
+                <i class="fas fa-phone"></i> Verify Phone Number
+            </button>
+            <button class="btn btn-secondary" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase Config -->
+    <script>
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            const firebaseConfig = {
+                apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
+                authDomain: "ratbow-454f1.firebaseapp.com",
+                projectId: "ratbow-454f1",
+                storageBucket: "ratbow-454f1.firebasestorage.app",
+                messagingSenderId: "494138400120",
+                appId: "1:494138400120:web:d8eac6dc7437431b783c8d",
+                measurementId: "G-71PNRPMEKP"
+            };
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Check authentication and verification status
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Check Firebase's built-in email verification status
+                if (user.emailVerified) {
+                    console.log('Firebase email verification is true, updating database...');
+                    updateEmailVerificationStatus(user.uid);
+                } else {
+                    console.log('Firebase email verification is false');
+                    loadVerificationStatus(user.uid);
+                }
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+        
+        // Also check on page load in case user is already verified
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = auth.currentUser;
+            if (user) {
+                if (user.emailVerified) {
+                    console.log('Firebase email verification is true (page load), updating database...');
+                    updateEmailVerificationStatus(user.uid);
+                } else {
+                    loadVerificationStatus(user.uid);
+                }
+            }
+        });
+        
+        function updateEmailVerificationStatus(userId) {
+            db.collection('users').doc(userId).update({
+                emailVerified: true,
+                emailVerifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                verificationStatus: 'verified',
+                verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                console.log('Email verification status updated in database, redirecting...');
+                window.location.href = 'index.html';
+            }).catch((error) => {
+                console.error('Error updating email verification status:', error);
+                // Still redirect even if update fails
+                window.location.href = 'index.html';
+            });
+        }
+        
+        function loadVerificationStatus(userId) {
+            console.log('Loading verification status for user:', userId);
+            db.collection('users').doc(userId).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    console.log('User data loaded:', userData);
+                    updateVerificationSteps(userData);
+                } else {
+                    console.log('User document does not exist');
+                }
+            }).catch((error) => {
+                console.error('Error loading user data:', error);
+            });
+        }
+        
+        function updateVerificationSteps(userData) {
+            console.log('Updating verification steps with data:', userData);
+            
+            // Update email verification step
+            if (userData.emailVerified === true) {
+                console.log('Email is verified, marking step as completed');
+                document.getElementById('emailStep').classList.add('completed');
+                document.getElementById('emailStep').querySelector('.step-icon i').className = 'fas fa-check';
+            } else {
+                console.log('Email is NOT verified:', userData.emailVerified);
+            }
+            
+            // Update phone verification step
+            if (userData.phoneVerified === true) {
+                console.log('Phone is verified, marking step as completed');
+                document.getElementById('phoneStep').classList.add('completed');
+                document.getElementById('phoneStep').querySelector('.step-icon i').className = 'fas fa-check';
+            }
+            
+            // Update admin approval step
+            if (userData.adminApproved === true) {
+                console.log('Admin approved, marking step as completed');
+                document.getElementById('adminStep').classList.add('completed');
+                document.getElementById('adminStep').querySelector('.step-icon i').className = 'fas fa-check';
+            }
+            
+            // Check if user should be redirected to main page
+            // For now, if email is verified, allow access (you can modify this logic)
+            if (userData.emailVerified === true) {
+                console.log('Email is verified, checking if we should redirect...');
+                // Update verification status to verified if not already
+                if (userData.verificationStatus !== 'verified') {
+                    console.log('Updating verification status to verified...');
+                    const userId = userData.uid || auth.currentUser.uid;
+                    db.collection('users').doc(userId).update({
+                        verificationStatus: 'verified',
+                        verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(() => {
+                        console.log('Verification status updated, redirecting to index.html');
+                        window.location.href = 'index.html';
+                    }).catch((error) => {
+                        console.error('Error updating verification status:', error);
+                        // Still redirect even if update fails
+                        window.location.href = 'index.html';
+                    });
+                } else {
+                    console.log('Already verified, redirecting to index.html');
+                    window.location.href = 'index.html';
+                }
+            } else {
+                console.log('Email not verified, staying on verification pending page');
+            }
+            
+            // Alternative: If you want to require both email and phone verification
+            // if (userData.emailVerified && userData.phoneVerified) {
+            //     window.location.href = 'index.html';
+            // }
+        }
+        
+        async function resendEmailVerification() {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            try {
+                // Get user data from database
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (!userDoc.exists) {
+                    showToast('User data not found.', 'error');
+                    return;
+                }
+                
+                const userData = userDoc.data();
+                
+                // Try to call our custom email verification API
+                try {
+                    const response = await fetch('/api/send-verification-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: userData.email,
+                            userId: user.uid,
+                            userName: userData.name
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showToast('Email verification sent! Please check your inbox.', 'success');
+                    } else {
+                        showToast('Error sending email verification: ' + (result.error || 'Unknown error'), 'error');
+                    }
+                } catch (error) {
+                    console.log('Custom email server not available, using Firebase email verification');
+                    // Fallback to Firebase's built-in email verification
+                    await user.sendEmailVerification();
+                    showToast('Email verification sent! Please check your inbox.', 'success');
+                }
+            } catch (error) {
+                console.error('Error sending email verification:', error);
+                showToast('Error sending email verification: ' + error.message, 'error');
+            }
+        }
+        
+        function verifyPhone() {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            // Get user's phone number from database
+            db.collection('users').doc(user.uid).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    const phoneNumber = userData.phone;
+                    
+                    if (!phoneNumber) {
+                        showToast('No phone number found in your profile.', 'error');
+                        return;
+                    }
+                    
+                    // Show phone verification modal
+                    showPhoneVerificationModal(phoneNumber, user.uid);
+                } else {
+                    showToast('User data not found.', 'error');
+                }
+            }).catch((error) => {
+                showToast('Error loading user data: ' + error.message, 'error');
+            });
+        }
+        
+        function showPhoneVerificationModal(phoneNumber, userId) {
+            // Create modal
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    border-radius: 12px;
+                    padding: 30px;
+                    max-width: 500px;
+                    width: 90%;
+                    text-align: center;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                ">
+                    <div style="color: #3b82f6; font-size: 48px; margin-bottom: 20px;">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 style="margin: 0 0 15px 0; color: #1f2937;">Phone Verification</h3>
+                    <p style="color: #6b7280; margin-bottom: 25px;">
+                        We would send a verification code to:<br>
+                        <strong>${phoneNumber}</strong>
+                    </p>
+                    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 15px; margin-bottom: 25px;">
+                        <p style="color: #92400e; margin: 0; font-size: 14px;">
+                            <i class="fas fa-info-circle"></i> 
+                            SMS verification is currently in development. For now, we'll mark your phone as verified for testing purposes.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button onclick="simulatePhoneVerification('${userId}', this)" style="
+                            background: #3b82f6;
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-weight: 500;
+                        ">Simulate Verification</button>
+                        <button onclick="closePhoneModal()" style="
+                            background: #e5e7eb;
+                            color: #374151;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-weight: 500;
+                        ">Cancel</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            window.currentPhoneModal = modal;
+        }
+        
+        function simulatePhoneVerification(userId, button) {
+            button.textContent = 'Verifying...';
+            button.disabled = true;
+            
+            // Simulate verification process
+            setTimeout(() => {
+                // Update user's phone verification status
+                db.collection('users').doc(userId).update({
+                    phoneVerified: true,
+                    phoneVerifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    closePhoneModal();
+                    showToast('Phone verification completed successfully!', 'success');
+                    
+                    // Reload verification status
+                    loadVerificationStatus(userId);
+                }).catch((error) => {
+                    button.textContent = 'Simulate Verification';
+                    button.disabled = false;
+                    showToast('Error updating verification status: ' + error.message, 'error');
+                });
+            }, 2000);
+        }
+        
+        function closePhoneModal() {
+            if (window.currentPhoneModal) {
+                document.body.removeChild(window.currentPhoneModal);
+                window.currentPhoneModal = null;
+            }
+        }
+        
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 6px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                max-width: 400px;
+            `;
+            
+            switch(type) {
+                case 'success':
+                    toast.style.background = '#10b981';
+                    break;
+                case 'error':
+                    toast.style.background = '#ef4444';
+                    break;
+                default:
+                    toast.style.background = '#3b82f6';
+            }
+            
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            // Add animation styles
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    document.body.removeChild(toast);
+                }
+            }, 4000);
+        }
+        
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = 'login.html';
+            });
+        }
+    </script>
+</body>
+</html>

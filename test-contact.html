@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Form Test</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 5px; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Contact Form Test Page</h1>
+    
+    <div class="test-section">
+        <h2>1. Firebase Connection Test</h2>
+        <button onclick="testFirebaseConnection()">Test Firebase Connection</button>
+        <div id="firebaseStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Create Test Message</h2>
+        <button onclick="createTestMessage()">Create Test Message</button>
+        <div id="testMessageStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Contact Form Test</h2>
+        <form id="testContactForm">
+            <input type="text" id="testName" placeholder="Name" value="Test User">
+            <input type="email" id="testEmail" placeholder="Email" value="test@example.com">
+            <input type="text" id="testSubject" placeholder="Subject" value="Test Message">
+            <textarea id="testMessage" placeholder="Message" rows="4">This is a test message from the test page.</textarea>
+            <button type="submit">Submit Test Message</button>
+        </form>
+        <div id="formTestStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Check Messages in Database</h2>
+        <button onclick="checkMessages()">Check Messages</button>
+        <div id="messagesStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. Check Admin Users</h2>
+        <button onclick="checkAdminUsers()">Check Admin Users</button>
+        <div id="adminStatus"></div>
+    </div>
+
+    <script>
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            const firebaseConfig = {
+                apiKey: "AIzaSyC3KWRTGbH7C-e2Que6IW9VS3Xdl_Hsy7E",
+                authDomain: "ratbow-454f1.firebaseapp.com",
+                projectId: "ratbow-454f1",
+                storageBucket: "ratbow-454f1.firebasestorage.app",
+                messagingSenderId: "494138400120",
+                appId: "1:494138400120:web:d8eac6dc7437431b783c8d",
+                measurementId: "G-71PNRPMEKP"
+            };
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        function testFirebaseConnection() {
+            const statusDiv = document.getElementById('firebaseStatus');
+            statusDiv.innerHTML = '<span class="info">Testing Firebase connection...</span>';
+            
+            db.collection('test').doc('connection').set({
+                timestamp: new Date(),
+                test: true
+            }).then(() => {
+                statusDiv.innerHTML = '<span class="success">✅ Firebase connection successful!</span>';
+            }).catch((error) => {
+                statusDiv.innerHTML = `<span class="error">❌ Firebase connection failed: ${error.message}</span>`;
+            });
+        }
+        
+        function createTestMessage() {
+            const statusDiv = document.getElementById('testMessageStatus');
+            statusDiv.innerHTML = '<span class="info">Creating test message...</span>';
+            
+            const testMessage = {
+                name: 'Test User',
+                email: 'test@example.com',
+                subject: 'Test Message from Test Page',
+                message: 'This is a test message created from the test page.',
+                createdAt: new Date(),
+                status: 'unread',
+                userId: null,
+                userEmail: 'test@example.com'
+            };
+            
+            db.collection('contactMessages').add(testMessage).then((docRef) => {
+                statusDiv.innerHTML = `<span class="success">✅ Test message created successfully! ID: ${docRef.id}</span>`;
+            }).catch((error) => {
+                statusDiv.innerHTML = `<span class="error">❌ Failed to create test message: ${error.message}</span>`;
+            });
+        }
+        
+        document.getElementById('testContactForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('formTestStatus');
+            statusDiv.innerHTML = '<span class="info">Submitting test form...</span>';
+            
+            const messageData = {
+                name: document.getElementById('testName').value,
+                email: document.getElementById('testEmail').value,
+                subject: document.getElementById('testSubject').value,
+                message: document.getElementById('testMessage').value,
+                createdAt: new Date(),
+                status: 'unread',
+                userId: null,
+                userEmail: document.getElementById('testEmail').value
+            };
+            
+            try {
+                const docRef = await db.collection('contactMessages').add(messageData);
+                statusDiv.innerHTML = `<span class="success">✅ Form submitted successfully! Message ID: ${docRef.id}</span>`;
+                
+                // Also try to create admin notification
+                await createAdminNotification(messageData);
+                statusDiv.innerHTML += '<br><span class="success">✅ Admin notification created!</span>';
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<span class="error">❌ Form submission failed: ${error.message}</span>`;
+            }
+        });
+        
+        async function createAdminNotification(messageData) {
+            try {
+                const adminSnapshot = await db.collection('users').where('role', '==', 'admin').get();
+                
+                if (!adminSnapshot.empty) {
+                    const adminNotifications = adminSnapshot.docs.map(doc => {
+                        return db.collection('notifications').add({
+                            title: `Test Contact Message: ${messageData.subject}`,
+                            message: `From: ${messageData.name} (${messageData.email})\n\nMessage: ${messageData.message}`,
+                            type: 'system',
+                            priority: 'high',
+                            targetUsers: [doc.id],
+                            createdAt: new Date(),
+                            createdBy: 'system',
+                            relatedTo: 'contact_message'
+                        });
+                    });
+                    
+                    await Promise.all(adminNotifications);
+                }
+            } catch (error) {
+                console.error('Error creating admin notification:', error);
+            }
+        }
+        
+        function checkMessages() {
+            const statusDiv = document.getElementById('messagesStatus');
+            statusDiv.innerHTML = '<span class="info">Checking messages...</span>';
+            
+            db.collection('contactMessages').orderBy('createdAt', 'desc').limit(5).get().then((snapshot) => {
+                if (snapshot.empty) {
+                    statusDiv.innerHTML = '<span class="error">❌ No messages found in database</span>';
+                } else {
+                    let html = `<span class="success">✅ Found ${snapshot.size} messages:</span><br>`;
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        html += `<div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd;">
+                            <strong>${data.subject}</strong><br>
+                            From: ${data.name} (${data.email})<br>
+                            Status: ${data.status}<br>
+                            Date: ${data.createdAt.toDate().toLocaleString()}<br>
+                            ID: ${doc.id}
+                        </div>`;
+                    });
+                    statusDiv.innerHTML = html;
+                }
+            }).catch((error) => {
+                statusDiv.innerHTML = `<span class="error">❌ Error checking messages: ${error.message}</span>`;
+            });
+        }
+        
+        function checkAdminUsers() {
+            const statusDiv = document.getElementById('adminStatus');
+            statusDiv.innerHTML = '<span class="info">Checking admin users...</span>';
+            
+            db.collection('users').where('role', '==', 'admin').get().then((snapshot) => {
+                if (snapshot.empty) {
+                    statusDiv.innerHTML = '<span class="error">❌ No admin users found</span>';
+                } else {
+                    let html = `<span class="success">✅ Found ${snapshot.size} admin users:</span><br>`;
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        html += `<div style="margin: 5px 0;">
+                            ${data.name || data.email} (${doc.id})
+                        </div>`;
+                    });
+                    statusDiv.innerHTML = html;
+                }
+            }).catch((error) => {
+                statusDiv.innerHTML = `<span class="error">❌ Error checking admin users: ${error.message}</span>`;
+            });
+        }
+    </script>
+</body>
+</html>
+
